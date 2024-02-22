@@ -23,10 +23,14 @@ const inter = Inter({ subsets: ['latin'] });
 // Next.js의 페이지 메타데이터를 정의
 export const metadata: Metadata = {
   title: `${BLOG_NAME}`, // 페이지 제목 (블로그 이름을 제목으로 사용)
-  description: `A statically generated blog example using Next.js and ${BLOG_NAME}.`, // 페이지 설명
+  description: `개발 공부를 하면서 만든 연습용 블로그그 ${BLOG_NAME}.`, // 페이지 설명
   openGraph: {
     images: [HOME_OG_IMAGE_URL], // Open Graph 프로토콜에서 사용될 이미지 (미리보기 이미지 등)
   },
+  verification: {
+    google: '20MA_khcMkhCRMF1pekcIxcPFGjEOr7Gyzxr3VbAaDo',
+  },
+
 };
 
 // Next.js의 기본 레이아웃 컴포넌트를 정의
