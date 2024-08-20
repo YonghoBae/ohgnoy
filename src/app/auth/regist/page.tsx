@@ -1,4 +1,44 @@
-const Entry = () => {
+'use client';
+
+import { useState } from 'react';
+import {User} from '@/interfaces/user'
+import { useRouter } from 'next/navigation';
+
+
+const Regist = () => {
+  const router = useRouter();
+
+  const [user, setUser] = useState<User>({
+    nick_name: '',
+    email: '',
+    password: '',
+  });
+
+  const changeUser = (e:React.ChangeEvent<HTMLInputElement>) =>{
+    setUser({...user,[e.target.name]:e.target.value});
+  };
+
+  const registSubmit = async(e:React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch('http://localhost:3130/entry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(user),
+      });
+
+      const result = await response.json();
+
+      if (result.code == 200) {
+        console.log('백엔드에서 제공한 json데이터 확인:', result);
+        router.push('/auth/login');
+      }
+    } catch (err) {
+      console.error('백엔드 REST API 호출 중에 에러가 발생');
+    }
+  };
+
   return (
     <>
       <div className="dark:text-stone-50 flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
@@ -14,7 +54,7 @@ const Entry = () => {
         </div>
 
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-          <form action="http://localhost:3130/entry" method="POST" className="space-y-6">
+          <form className="space-y-6" onSubmit={registSubmit}>
             <div>
               <label
                 htmlFor="nick_name"
@@ -27,6 +67,8 @@ const Entry = () => {
                   id="nick_name"
                   name="nick_name"
                   type="text"
+                  value={user.nick_name}
+                  onChange={changeUser}
                   required
                   autoComplete="nickname"
                   className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
@@ -46,6 +88,8 @@ const Entry = () => {
                   id="email"
                   name="email"
                   type="email"
+                  value={user.email}
+                  onChange={changeUser}
                   required
                   autoComplete="email"
                   className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
@@ -65,6 +109,8 @@ const Entry = () => {
                   id="password"
                   name="password"
                   type="password"
+                  value={user.password}
+                  onChange={changeUser}
                   required
                   autoComplete="new-password"
                   className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
@@ -104,7 +150,7 @@ const Entry = () => {
           <p className="mt-10 text-center text-sm text-gray-500">
             Already a member?{' '}
             <a
-              href="#"
+              href="/auth/login"
               className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500"
             >
               Sign in
@@ -116,4 +162,4 @@ const Entry = () => {
   );
 };
 
-export default Entry;
+export default Regist;
