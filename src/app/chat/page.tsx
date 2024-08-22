@@ -4,11 +4,16 @@ import { Message } from '@/interfaces/message';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { socket } from '@/lib/socket';
+import { UserInfo } from '@/interfaces/user';
 
 const Chat = () => {
   const router = useRouter();
 
-  const [userId, setUserId] = useState<number>(1);
+  const [user, setUser] = useState<UserInfo>({
+    user_id: 0,
+    nick_name: '',
+    email: '',
+  });
 
   const [message, setMessage] = useState<string>();
 
@@ -62,8 +67,26 @@ const Chat = () => {
 
     if (token == undefined) {
       router.push('/auth/login');
-    } 
-    
+    }
+
+    const userInfo = async () => {
+      const response = await fetch('http://localhost:3130/token', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const result = await response.json();
+
+      setUser(result.data);
+
+      console.log(result);
+    };
+
+    userInfo();
+
     socket.connect();
 
     socket.on('connect', () => {
@@ -75,6 +98,7 @@ const Chat = () => {
     });
 
     socket.on('receiveAll', (msg: Message) => {
+      console.log('서버소켓에서 전달된 데이터 확인-receiveAll:', msg);
       setmessages((prev) => [...prev, msg]);
     });
 
@@ -86,15 +110,15 @@ const Chat = () => {
   }, []);
 
   const sendMessage = () => {
-    const msgData = {
-      user_id: userId,
-      name: `사용자-${userId.toString()}`,
-      profile: `http://localhost:5000/img/user${userId.toString()}.png`,
+    const msgData:Message = {
+      user_id: user.user_id,
+      name: user.nick_name,
+      profile: "",
       message: message,
       send_date: Date.now().toString(),
     };
 
-    socket.emit('broadcast',msgData);
+    socket.emit('broadcast', msgData);
 
     setMessage('');
   };
@@ -103,14 +127,17 @@ const Chat = () => {
     <div className="dark:text-stone-50 flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
       <div className="grid pb-11">
         {messages.map((msg, index) => {
-          const isSameUser = index>0 && msg.user_id === messages[index - 1].user_id;
-          return msg.user_id === userId ? (
+          const isSameUser =
+            index > 0 && msg.user_id === messages[index - 1].user_id;
+          return msg.user_id === user.user_id ? (
             <div key={index} className="flex gap-2.5 justify-end">
               <div className="">
                 <div className="grid mb-2">
-                  {isSameUser||<h5 className="text-right block text-sm font-medium leading-6">
-                    {msg.nick_name}
-                  </h5>}
+                  {isSameUser || (
+                    <h5 className="text-right block text-sm font-medium leading-6">
+                      {msg.nick_name}
+                    </h5>
+                  )}
                   <div className="px-3 py-2 bg-indigo-600 rounded">
                     <h2 className="text-white text-sm font-normal leading-snug">
                       {msg.message}
@@ -137,9 +164,11 @@ const Chat = () => {
               className="w-10 h-11"
             /> */}
               <div className="grid">
-                {isSameUser||<h5 className="block text-sm font-medium leading-6">
-                  {msg.nick_name}
-                </h5>}
+                {isSameUser || (
+                  <h5 className="block text-sm font-medium leading-6">
+                    {msg.nick_name}
+                  </h5>
+                )}
                 <div className="w-max grid">
                   <div className="px-3.5 py-2 bg-gray-100 rounded justify-start  items-center gap-3 inline-flex">
                     <h5 className="text-gray-900 text-sm font-normal leading-snug">
@@ -160,7 +189,7 @@ const Chat = () => {
       {/* 채팅입력 영역 */}
       <div className="w-full pl-3 pr-1 py-1 rounded-3xl border items-center gap-2 flex flex-wrap justify-between dark:bg-gray-50 dark:border-gray-50">
         <div className="flex items-center gap-2 flex-grow">
-          <svg
+          {/* <svg
             xmlns="http://www.w3.org/2000/svg"
             width="22"
             height="22"
@@ -174,16 +203,18 @@ const Chat = () => {
                 stroke="#4F46E5"
               />
             </g>
-          </svg>
+          </svg> */}
 
           <input
             className="flex-grow text-xs font-medium leading-4 focus:outline-none dark:bg-gray-50 dark:text-black"
             placeholder="Type here..."
-            onChange={(e)=>{setMessage(e.target.value)}}
+            onChange={(e) => {
+              setMessage(e.target.value);
+            }}
           />
         </div>
         <div className="flex items-center gap-2">
-          <svg
+          {/* <svg
             className="cursor-pointer"
             xmlns="http://www.w3.org/2000/svg"
             width="22"
@@ -201,9 +232,12 @@ const Chat = () => {
                 />
               </g>
             </g>
-          </svg>
-          <button onClick={sendMessage} className="items-center flex px-3 py-2 bg-indigo-600 rounded-full shadow">
-            <svg
+          </svg> */}
+          <button
+            onClick={sendMessage}
+            className="items-center flex px-3 py-2 bg-indigo-600 rounded-full shadow"
+          >
+            {/* <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"
               height="16"
@@ -218,7 +252,7 @@ const Chat = () => {
                   stroke-linecap="round"
                 />
               </g>
-            </svg>
+            </svg> */}
             <h3 className="text-white text-xs font-semibold leading-4 px-2">
               Send
             </h3>
