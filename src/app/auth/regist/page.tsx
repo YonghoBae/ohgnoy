@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import {User} from '@/interfaces/user'
+import {UserRegist} from '@/interfaces/user'
 import { useRouter } from 'next/navigation';
 
 
 const Regist = () => {
   const router = useRouter();
 
-  const [user, setUser] = useState<User>({
+  const [user, setUser] = useState<UserRegist>({
     nick_name: '',
     email: '',
     password: '',
@@ -35,7 +35,7 @@ const Regist = () => {
         router.push('/auth/login');
       }
     } catch (err) {
-      console.error('백엔드 REST API 호출 중에 에러가 발생');
+      console.error('API 에러발생 : http://localhost:3130/entry');
     }
   };
 

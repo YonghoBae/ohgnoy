@@ -1,81 +1,161 @@
+'use client';
+
+import { Message } from '@/interfaces/message';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { socket } from '@/lib/socket';
+
 const Chat = () => {
+  const router = useRouter();
+
+  const [userId, setUserId] = useState<number>(1);
+
+  const [message, setMessage] = useState<string>();
+
+  const [messages, setmessages] = useState<Message[]>([
+    {
+      user_id: 1,
+      nick_name: 'Alice',
+      profile: 'https://example.com/profiles/alice.jpg',
+      message: 'Hello! How are you?',
+      send_date: '2024-08-20T14:00:00Z',
+    },
+    {
+      user_id: 1,
+      nick_name: 'Alice',
+      profile: 'https://example.com/profiles/alice.jpg',
+      message: 'I’m working on the project right now.',
+      send_date: '2024-08-20T14:15:00Z',
+    },
+    {
+      user_id: 2,
+      nick_name: 'Bob',
+      profile: 'https://example.com/profiles/bob.jpg',
+      message: "I'm good, thanks! How about you?",
+      send_date: '2024-08-20T14:05:00Z',
+    },
+    {
+      user_id: 2,
+      nick_name: 'Bob',
+      profile: 'https://example.com/profiles/bob.jpg',
+      message: 'Just finished my lunch!',
+      send_date: '2024-08-20T14:20:00Z',
+    },
+    {
+      user_id: 3,
+      nick_name: 'Charlie',
+      profile: 'https://example.com/profiles/charlie.jpg',
+      message: "Hey everyone, what's up?",
+      send_date: '2024-08-20T14:10:00Z',
+    },
+    {
+      user_id: 3,
+      nick_name: 'Charlie',
+      profile: 'https://example.com/profiles/charlie.jpg',
+      message: "I'm heading out for a walk.",
+      send_date: '2024-08-20T14:25:00Z',
+    },
+  ]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+
+    if (token == undefined) {
+      router.push('/auth/login');
+    } 
+    
+    socket.connect();
+
+    socket.on('connect', () => {
+      console.log('socekt connect');
+    });
+
+    socket.on('disconnect', () => {
+      console.log('socket disconnect');
+    });
+
+    socket.on('receiveAll', (msg: Message) => {
+      setmessages((prev) => [...prev, msg]);
+    });
+
+    return () => {
+      socket.off('connect');
+      socket.off('disconnect');
+      socket.off('receiveAll');
+    };
+  }, []);
+
+  const sendMessage = () => {
+    const msgData = {
+      user_id: userId,
+      name: `사용자-${userId.toString()}`,
+      profile: `http://localhost:5000/img/user${userId.toString()}.png`,
+      message: message,
+      send_date: Date.now().toString(),
+    };
+
+    socket.emit('broadcast',msgData);
+
+    setMessage('');
+  };
+
   return (
     <div className="dark:text-stone-50 flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
       <div className="grid pb-11">
-        {/* 상대 사용자 채팅 영역 */}
-        <div className="flex gap-2.5 mb-4">
-          {/* <img
-            src="https://pagedone.io/asset/uploads/1710412177.png"
-            alt="Shanay image"
-            className="w-10 h-11"
-          /> */}
-          <div className="grid">
-            <h5 className="block text-sm font-medium leading-6">Shanay cruz</h5>
-            <div className="w-max grid">
-              <div className="px-3.5 py-2 bg-gray-100 rounded justify-start  items-center gap-3 inline-flex">
-                <h5 className="text-gray-900 text-sm font-normal leading-snug">
-                  Guts, I need a review of work. Are you ready?
-                </h5>
+        {messages.map((msg, index) => {
+          const isSameUser = index>0 && msg.user_id === messages[index - 1].user_id;
+          return msg.user_id === userId ? (
+            <div key={index} className="flex gap-2.5 justify-end">
+              <div className="">
+                <div className="grid mb-2">
+                  {isSameUser||<h5 className="text-right block text-sm font-medium leading-6">
+                    {msg.nick_name}
+                  </h5>}
+                  <div className="px-3 py-2 bg-indigo-600 rounded">
+                    <h2 className="text-white text-sm font-normal leading-snug">
+                      {msg.message}
+                    </h2>
+                  </div>
+                  <div className="justify-start items-center inline-flex">
+                    <h3 className="text-gray-500 text-xs font-normal leading-4 py-1">
+                      {msg.send_date}
+                    </h3>
+                  </div>
+                </div>
               </div>
-              <div className="justify-end items-center inline-flex mb-2.5">
-                <h6 className="text-gray-500 text-xs font-normal leading-4 py-1">
-                  05:14 PM
-                </h6>
+              {/* <img
+              src="https://pagedone.io/asset/uploads/1704091591.png"
+              alt="Hailey image"
+              className="w-10 h-11"
+            /> */}
+            </div>
+          ) : (
+            <div key={index} className="flex gap-2.5 mb-4">
+              {/* <img
+              src="https://pagedone.io/asset/uploads/1710412177.png"
+              alt="Shanay image"
+              className="w-10 h-11"
+            /> */}
+              <div className="grid">
+                {isSameUser||<h5 className="block text-sm font-medium leading-6">
+                  {msg.nick_name}
+                </h5>}
+                <div className="w-max grid">
+                  <div className="px-3.5 py-2 bg-gray-100 rounded justify-start  items-center gap-3 inline-flex">
+                    <h5 className="text-gray-900 text-sm font-normal leading-snug">
+                      {msg.message}
+                    </h5>
+                  </div>
+                  <div className="justify-end items-center inline-flex mb-2.5">
+                    <h6 className="text-gray-500 text-xs font-normal leading-4 py-1">
+                      {msg.send_date}
+                    </h6>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="w-max grid">
-              <div className="px-3.5 py-2 bg-gray-100 rounded justify-start items-center gap-3 inline-flex">
-                <h5 className="text-gray-900 text-sm font-normal leading-snug">
-                  Let me know
-                </h5>
-              </div>
-              <div className="justify-end items-center inline-flex mb-2.5">
-                <h6 className="text-gray-500 text-xs font-normal leading-4 py-1">
-                  05:14 PM
-                </h6>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      {/* 본인 사용자 채팅 영역 */}
-      <div className="flex gap-2.5 justify-end pb-40">
-        <div className="">
-          <div className="grid mb-2">
-            <h5 className="text-right block text-sm font-medium leading-6">
-              You
-            </h5>
-            <div className="px-3 py-2 bg-indigo-600 rounded">
-              <h2 className="text-white text-sm font-normal leading-snug">
-                Yes, let’s see, send your work here
-              </h2>
-            </div>
-            <div className="justify-start items-center inline-flex">
-              <h3 className="text-gray-500 text-xs font-normal leading-4 py-1">
-                05:14 PM
-              </h3>
-            </div>
-          </div>
-          <div className="justify-center">
-            <div className="grid w-fit ml-auto">
-              <div className="px-3 py-2 bg-indigo-600 rounded ">
-                <h2 className="text-white text-sm font-normal leading-snug">
-                  Anyone on for lunch today
-                </h2>
-              </div>
-              <div className="justify-start items-center inline-flex">
-                <h3 className="text-gray-500 text-xs font-normal leading-4 py-1">
-                  You
-                </h3>
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* <img
-          src="https://pagedone.io/asset/uploads/1704091591.png"
-          alt="Hailey image"
-          className="w-10 h-11"
-        /> */}
+          );
+        })}
       </div>
       {/* 채팅입력 영역 */}
       <div className="w-full pl-3 pr-1 py-1 rounded-3xl border items-center gap-2 flex flex-wrap justify-between dark:bg-gray-50 dark:border-gray-50">
@@ -99,6 +179,7 @@ const Chat = () => {
           <input
             className="flex-grow text-xs font-medium leading-4 focus:outline-none dark:bg-gray-50 dark:text-black"
             placeholder="Type here..."
+            onChange={(e)=>{setMessage(e.target.value)}}
           />
         </div>
         <div className="flex items-center gap-2">
@@ -121,7 +202,7 @@ const Chat = () => {
               </g>
             </g>
           </svg>
-          <button className="items-center flex px-3 py-2 bg-indigo-600 rounded-full shadow">
+          <button onClick={sendMessage} className="items-center flex px-3 py-2 bg-indigo-600 rounded-full shadow">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"
