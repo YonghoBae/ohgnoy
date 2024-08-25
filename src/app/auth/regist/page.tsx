@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import {UserRegist} from '@/interfaces/user'
+import React, { useState } from 'react';
+import { UserRegist } from '@/interfaces/user';
 import { useRouter } from 'next/navigation';
-
 
 const Regist = () => {
   const router = useRouter();
@@ -12,13 +11,30 @@ const Regist = () => {
     nick_name: '',
     email: '',
     password: '',
+    auth_code: 0,
   });
 
-  const changeUser = (e:React.ChangeEvent<HTMLInputElement>) =>{
-    setUser({...user,[e.target.name]:e.target.value});
+  const changeUser = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUser({ ...user, [e.target.name]: e.target.value });
   };
 
-  const registSubmit = async(e:React.FormEvent<HTMLFormElement>) => {
+  const sendMail = async(e) => {
+    try{
+      const response = await fetch('http://localhost:3130/email',{
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(user.email),
+      })
+
+      const result = response.json();
+
+      setUser({...user,auth_code})
+    }catch(err){
+
+    }
+  };
+
+  const registSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     try {
@@ -81,7 +97,7 @@ const Regist = () => {
                 htmlFor="email"
                 className="block text-sm font-medium leading-6"
               >
-                Email address
+                Email
               </label>
               <div className="mt-2">
                 <input
@@ -92,6 +108,30 @@ const Regist = () => {
                   onChange={changeUser}
                   required
                   autoComplete="email"
+                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                />
+                <button
+                  type="button"
+                  className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                >
+                  Send Email
+                </button>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="auth_code"
+                  className="block text-sm font-medium leading-6"
+                >
+                  Authentication Code
+                </label>
+                <input
+                  id="auth_code"
+                  name="auth_code"
+                  type="auth_code"
+                  value={user.email}
+                  onChange={changeUser}
+                  required
                   className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                 />
               </div>

@@ -2,6 +2,7 @@ export type UserRegist = {
   nick_name: string;
   email: string;
   password: string;
+  auth_code: number;
 };
 
 export type UserLogin = {
