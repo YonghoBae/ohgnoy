@@ -1,4 +1,5 @@
-import { BLOG_NAME } from "@/lib/constants";
+import { BLOG_NAME } from '@/lib/constants';
+import Link from 'next/link';
 
 export function Intro() {
   return (
@@ -7,14 +8,30 @@ export function Intro() {
         {BLOG_NAME}.
       </h1>
       <h4 className="text-center md:text-left text-lg mt-5 md:pl-8">
-        A statically generated blog example using{" "}
-        <a
+        <Link
           href="/studys/list"
-          className="underline hover:text-blue-600 duration-200 transition-colors"
+          className="hover:underline hover:text-blue-600 duration-200 transition-colors"
         >
-          My Study
-        </a>{" "}
-        and {BLOG_NAME}.
+          Study
+        </Link>{' '}
+        <Link
+          href="/chat"
+          className="hover:underline hover:text-blue-600 duration-200 transition-colors"
+        >
+          Chat
+        </Link>{' '}
+        <Link
+          href="/auth/login"
+          className="hover:underline hover:text-blue-600 duration-200 transition-colors"
+        >
+          Login
+        </Link>{' '}
+        <Link
+          href="/auth/regist"
+          className="hover:underline hover:text-blue-600 duration-200 transition-colors"
+        >
+          Regist
+        </Link>{' '}
       </h4>
     </section>
   );

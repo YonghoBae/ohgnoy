@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { socket } from '@/lib/socket';
 import { UserInfo } from '@/interfaces/user';
+import moment from 'moment';
 
 const Chat = () => {
   const router = useRouter();
@@ -17,50 +18,7 @@ const Chat = () => {
 
   const [message, setMessage] = useState<string>();
 
-  const [messages, setmessages] = useState<Message[]>([
-    {
-      user_id: 1,
-      nick_name: 'Alice',
-      profile: 'https://example.com/profiles/alice.jpg',
-      message: 'Hello! How are you?',
-      send_date: '2024-08-20T14:00:00Z',
-    },
-    {
-      user_id: 1,
-      nick_name: 'Alice',
-      profile: 'https://example.com/profiles/alice.jpg',
-      message: 'I’m working on the project right now.',
-      send_date: '2024-08-20T14:15:00Z',
-    },
-    {
-      user_id: 2,
-      nick_name: 'Bob',
-      profile: 'https://example.com/profiles/bob.jpg',
-      message: "I'm good, thanks! How about you?",
-      send_date: '2024-08-20T14:05:00Z',
-    },
-    {
-      user_id: 2,
-      nick_name: 'Bob',
-      profile: 'https://example.com/profiles/bob.jpg',
-      message: 'Just finished my lunch!',
-      send_date: '2024-08-20T14:20:00Z',
-    },
-    {
-      user_id: 3,
-      nick_name: 'Charlie',
-      profile: 'https://example.com/profiles/charlie.jpg',
-      message: "Hey everyone, what's up?",
-      send_date: '2024-08-20T14:10:00Z',
-    },
-    {
-      user_id: 3,
-      nick_name: 'Charlie',
-      profile: 'https://example.com/profiles/charlie.jpg',
-      message: "I'm heading out for a walk.",
-      send_date: '2024-08-20T14:25:00Z',
-    },
-  ]);
+  const [messages, setmessages] = useState<Message[]>([]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -110,12 +68,12 @@ const Chat = () => {
   }, []);
 
   const sendMessage = () => {
-    const msgData:Message = {
+    const msgData: Message = {
       user_id: user.user_id,
-      name: user.nick_name,
-      profile: "",
+      nick_name: user.nick_name,
+      profile: '',
       message: message,
-      send_date: Date.now().toString(),
+      send_date: Date.now(),
     };
 
     socket.emit('broadcast', msgData);
@@ -125,7 +83,7 @@ const Chat = () => {
 
   return (
     <div className="dark:text-stone-50 flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-      <div className="grid pb-11">
+      <div className="grid pb-11 overflow-y-auto  max-h-full">
         {messages.map((msg, index) => {
           const isSameUser =
             index > 0 && msg.user_id === messages[index - 1].user_id;
@@ -145,7 +103,7 @@ const Chat = () => {
                   </div>
                   <div className="justify-start items-center inline-flex">
                     <h3 className="text-gray-500 text-xs font-normal leading-4 py-1">
-                      {msg.send_date}
+                      {moment(msg.send_date).format('YYYY-MM-DD HH:mm:ss')}
                     </h3>
                   </div>
                 </div>
@@ -177,7 +135,7 @@ const Chat = () => {
                   </div>
                   <div className="justify-end items-center inline-flex mb-2.5">
                     <h6 className="text-gray-500 text-xs font-normal leading-4 py-1">
-                      {msg.send_date}
+                      {moment(msg.send_date).format('YYYY-MM-DD HH:mm:ss')}
                     </h6>
                   </div>
                 </div>
@@ -208,6 +166,7 @@ const Chat = () => {
           <input
             className="flex-grow text-xs font-medium leading-4 focus:outline-none dark:bg-gray-50 dark:text-black"
             placeholder="Type here..."
+            value={message}
             onChange={(e) => {
               setMessage(e.target.value);
             }}
