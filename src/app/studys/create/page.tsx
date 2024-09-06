@@ -1,4 +1,4 @@
-const Create = () => {
+const CreateStudy = () => {
     return (
         <div>
             Study Create
@@ -6,4 +6,4 @@ const Create = () => {
     );
 }
 
-export default Create;
+export default CreateStudy;
