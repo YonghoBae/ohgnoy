@@ -4,6 +4,8 @@ import { ReactHTML, useEffect, useState } from 'react';
 import { UserLogin } from '@/interfaces/user';
 import { useRouter } from 'next/navigation';
 import FormAlert from '@/app/_components/formAlert';
+import Link from 'next/link';
+import { BLOG_NAME } from '@/lib/constants';
 
 const Login = () => {
   const router = useRouter();
@@ -13,8 +15,8 @@ const Login = () => {
     password: '',
   });
 
-  const [emailErr,setEmailErr] = useState<boolean>(false);
-  const [passwordErr,setPasswordErr] = useState<boolean>(false);
+  const [emailErr, setEmailErr] = useState<boolean>(false);
+  const [passwordErr, setPasswordErr] = useState<boolean>(false);
 
   const changeUser = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUser({ ...user, [e.target.name]: e.target.value });
@@ -33,13 +35,11 @@ const Login = () => {
       const result = await response.json();
 
       if (result.code == 200) {
-        localStorage.setItem('token',result.data);
+        localStorage.setItem('token', result.data);
         router.push('/');
-      }
-      else if(result.code == 400 && result.msg=='NotExitEmail'){
+      } else if (result.code == 400 && result.msg == 'NotExitEmail') {
         setEmailErr(true);
-      }
-      else if(result.code == 400 && result.msg=='InCorrectPassword'){
+      } else if (result.code == 400 && result.msg == 'InCorrectPassword') {
         setPasswordErr(true);
       }
     } catch (err) {
@@ -59,13 +59,16 @@ const Login = () => {
           */}
       <div className="dark:text-stone-50 flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          <img
-            alt="Your Company"
-            src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
-            className="mx-auto h-10 w-auto"
-          />
           <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight">
-            Sign in to your account
+            <div>
+              <Link
+                href="/"
+                className="text-center mx-auto h-10 w-auto first-letter:hover:underline"
+              >
+                {BLOG_NAME}
+              </Link>
+            </div>
+            로그인
           </h2>
         </div>
 
@@ -90,7 +93,12 @@ const Login = () => {
                   className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                 />
               </div>
-              {emailErr&&<FormAlert message="NotExitEmail" onClose={()=>setEmailErr(false)}/>}
+              {emailErr && (
+                <FormAlert
+                  message="NotExitEmail"
+                  onClose={() => setEmailErr(false)}
+                />
+              )}
             </div>
 
             <div>
@@ -121,7 +129,12 @@ const Login = () => {
                   autoComplete="current-password"
                   className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                 />
-                {passwordErr&&<FormAlert message="Wrong Passowrd" onClose={()=>setPasswordErr(false)}/>}
+                {passwordErr && (
+                  <FormAlert
+                    message="Wrong Passowrd"
+                    onClose={() => setPasswordErr(false)}
+                  />
+                )}
               </div>
             </div>
 
