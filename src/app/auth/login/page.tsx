@@ -5,7 +5,7 @@ import { UserLogin } from '@/interfaces/user';
 import { useRouter } from 'next/navigation';
 import FormAlert from '@/app/_components/formAlert';
 import Link from 'next/link';
-import { BLOG_NAME } from '@/lib/constants';
+import { BLOG_NAME, Ohgnoy_BackendAPI } from '@/lib/constants';
 
 const Login = () => {
   const router = useRouter();
@@ -26,7 +26,7 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch('http://localhost:3130/login', {
+      const response = await fetch(`${Ohgnoy_BackendAPI}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(user),

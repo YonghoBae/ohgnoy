@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { EmailAuth, UserRegist } from '@/interfaces/user';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { BLOG_NAME } from '@/lib/constants';
+import { BLOG_NAME, Ohgnoy_BackendAPI } from '@/lib/constants';
 
 const Regist = () => {
   const router = useRouter();
@@ -30,7 +30,7 @@ const Regist = () => {
 
   const sendMail = async (e: React.MouseEvent<HTMLButtonElement>) => {
     try {
-      const response = await fetch('http://localhost:3130/email', {
+      const response = await fetch(`${Ohgnoy_BackendAPI}/email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(user),
@@ -60,7 +60,7 @@ const Regist = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch('http://localhost:3130/entry', {
+      const response = await fetch(`${Ohgnoy_BackendAPI}/entry`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(user),

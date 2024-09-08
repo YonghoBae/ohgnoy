@@ -6,6 +6,7 @@ import { socket } from '@/lib/socket';
 import moment from 'moment';
 import { Message } from '@/interfaces/message';
 import { UserInfo } from '@/interfaces/user';
+import { Ohgnoy_BackendAPI } from '@/lib/constants';
 
 const Chat = () => {
   const router = useRouter();
@@ -27,7 +28,7 @@ const Chat = () => {
     }
 
     const userInfo = async () => {
-      const response = await fetch('http://localhost:3130/token', {
+      const response = await fetch(`${Ohgnoy_BackendAPI}/token`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
