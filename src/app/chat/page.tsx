@@ -77,10 +77,13 @@ const Chat = () => {
   };
 
   return (
-    <div className="dark:text-stone-50 flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-      <div className="grid pb-11 overflow-y-auto max-h-[400px]"> {/* max-height 설정 */}
+    <div className="dark:text-stone-50 flex flex-col min-h-screen justify-between px-6 py-12 lg:px-8">
+      <div className="flex-grow overflow-y-auto">
+        {' '}
+        {/* 채팅 영역이 화면 크기에 맞게 늘어남 */}
         {messages.map((msg, index) => {
-          const isSameUser = index > 0 && msg.user_id === messages[index - 1].user_id;
+          const isSameUser =
+            index > 0 && msg.user_id === messages[index - 1].user_id;
           return msg.user_id === user.user_id ? (
             <div key={index} className="flex gap-2.5 justify-end">
               <div className="">
