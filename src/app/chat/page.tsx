@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { socket } from '@/lib/socket';
 import moment from 'moment';
@@ -76,6 +76,14 @@ const Chat = () => {
     setMessage('');
   };
 
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      buttonRef.current?.click(); // 버튼 클릭 이벤트 트리거
+    }
+  };
+
   return (
     <div className="dark:text-stone-50 flex flex-col min-h-screen justify-between px-6 py-12 lg:px-8">
       <div className="flex-grow overflow-y-auto">
@@ -138,6 +146,7 @@ const Chat = () => {
             className="flex-grow text-xs font-medium leading-4 focus:outline-none dark:bg-gray-50 dark:text-black"
             placeholder="Type here..."
             value={message}
+            onKeyDown={handleKeyDown}
             onChange={(e) => {
               setMessage(e.target.value);
             }}
@@ -145,6 +154,7 @@ const Chat = () => {
         </div>
         <div className="flex items-center gap-2">
           <button
+            ref={buttonRef}
             onClick={sendMessage}
             className="items-center flex px-3 py-2 bg-indigo-600 rounded-full shadow"
           >
