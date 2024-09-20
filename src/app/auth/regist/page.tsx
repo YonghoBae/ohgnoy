@@ -39,6 +39,8 @@ const Regist = () => {
       const result = await response.json();
 
       setAuth({ ...auth, auth_code: result.data });
+
+      alert("인증번호를 발송했습니다.");
     } catch (err) {
       console.log('백엔드 API 오류:http://localhost:3130/email\n', err);
     }
