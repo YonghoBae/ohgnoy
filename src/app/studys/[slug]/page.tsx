@@ -20,9 +20,7 @@ export default async function Study({ params }: Params) {
 
   return (
     <main>
-      <Alert preview={post.preview} />
-      <Container>
-        <Header />
+      {/* <Alert preview={post.preview} /> */}
         <article className="mb-32">
           <PostHeader
             title={post.title}
@@ -32,7 +30,6 @@ export default async function Study({ params }: Params) {
           />
           <PostBody content={content} />
         </article>
-      </Container>
     </main>
   );
 }
