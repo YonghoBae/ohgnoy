@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { socket } from '@/lib/socket';
 import moment from 'moment';
@@ -76,11 +76,22 @@ const Chat = () => {
     setMessage('');
   };
 
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      buttonRef.current?.click(); // 버튼 클릭 이벤트 트리거
+    }
+  };
+
   return (
-    <div className="dark:text-stone-50 flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-      <div className="grid pb-11 overflow-y-auto max-h-[400px]"> {/* max-height 설정 */}
+    <div className="dark:text-stone-50 flex flex-col min-h-screen justify-between px-6 py-12 lg:px-8">
+      <div className="flex-grow overflow-y-auto">
+        {' '}
+        {/* 채팅 영역이 화면 크기에 맞게 늘어남 */}
         {messages.map((msg, index) => {
-          const isSameUser = index > 0 && msg.user_id === messages[index - 1].user_id;
+          const isSameUser =
+            index > 0 && msg.user_id === messages[index - 1].user_id;
           return msg.user_id === user.user_id ? (
             <div key={index} className="flex gap-2.5 justify-end">
               <div className="">
@@ -135,6 +146,7 @@ const Chat = () => {
             className="flex-grow text-xs font-medium leading-4 focus:outline-none dark:bg-gray-50 dark:text-black"
             placeholder="Type here..."
             value={message}
+            onKeyDown={handleKeyDown}
             onChange={(e) => {
               setMessage(e.target.value);
             }}
@@ -142,6 +154,7 @@ const Chat = () => {
         </div>
         <div className="flex items-center gap-2">
           <button
+            ref={buttonRef}
             onClick={sendMessage}
             className="items-center flex px-3 py-2 bg-indigo-600 rounded-full shadow"
           >
