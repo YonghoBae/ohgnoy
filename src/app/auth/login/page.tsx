@@ -63,7 +63,7 @@ const Login = () => {
             {/* <div>
               <Link
                 href="/"
-                className="text-center mx-auto h-10 w-auto first-letter:hover:underline"
+                className="text-center mx-auto h-10 w-auto first-lettr:hover:underline"
               >
                 {BLOG_NAME}
               </Link>
