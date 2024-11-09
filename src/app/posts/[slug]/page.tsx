@@ -20,7 +20,7 @@ export default async function Post({ params }: Params) {
 
   return (
     <main>
-      <Alert preview={post.preview} />
+      {/* <Alert preview={post.preview} /> */}
         <article className="mb-32">
           <PostHeader
             title={post.title}
