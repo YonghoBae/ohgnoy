@@ -15,7 +15,7 @@ export function Intro() {
           Study
         </Link>{' '}
         <Link
-          href="/chat"
+          href="/chat/user"
           className="hover:underline hover:text-blue-600 duration-200 transition-colors"
         >
           Chat
