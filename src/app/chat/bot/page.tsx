@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { socket } from '@/lib/socket';
 import moment from 'moment';
 import { Message } from '@/interfaces/message';
 import { UserInfo } from '@/interfaces/user';
@@ -41,26 +40,6 @@ const Chat = () => {
     };
 
     userInfo();
-
-    socket.connect();
-
-    socket.on('connect', () => {
-      console.log('socket connect');
-    });
-
-    socket.on('disconnect', () => {
-      console.log('socket disconnect');
-    });
-
-    socket.on('receiveAll', (msg: Message) => {
-      setMessages((prev) => [...prev, msg]);
-    });
-
-    return () => {
-      socket.off('connect');
-      socket.off('disconnect');
-      socket.off('receiveAll');
-    };
   }, []);
 
   const sendMessage = () => {
@@ -72,7 +51,6 @@ const Chat = () => {
       send_date: Date.now(),
     };
 
-    socket.emit('broadcast', msgData);
     setMessage('');
   };
 
