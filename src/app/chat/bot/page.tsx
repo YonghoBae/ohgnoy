@@ -42,7 +42,7 @@ const Chat = () => {
     userInfo();
   }, []);
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     const msgData: Message = {
       user_id: user.user_id,
       nick_name: user.nick_name,
@@ -50,6 +50,15 @@ const Chat = () => {
       message: message,
       send_date: Date.now(),
     };
+
+    const response = await fetch(`${Ohgnoy_BackendAPI}/chatbot`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const result = await response.json();
 
     setMessage('');
   };
