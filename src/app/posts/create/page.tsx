@@ -8,17 +8,22 @@ import { Ohgnoy_BackendAPI } from '@/lib/constants';
 const CreatePost = () => {
   const router = useRouter();
 
-  const [post, setPost] = useState({
+  const [post, setPost] = useState<{
+    title: string;
+    excerpt: string;
+    coverImage: File | null;
+  }>({
     title: '',
     excerpt: '',
     coverImage: null,
   });
+  
 
   const [titleErr, setTitleErr] = useState(false);
   const [excerptErr, setExcerptErr] = useState(false);
 
   const changePost = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, files } = e.target;
+    const { name, value, files } = e.target as HTMLInputElement;
     if (name === 'coverImage') {
       setPost({ ...post, coverImage: files ? files[0] : null });
     } else {
