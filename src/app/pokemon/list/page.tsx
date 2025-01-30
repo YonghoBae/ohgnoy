@@ -9,11 +9,11 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-} from '@/components/ui/select';
+} from '@/app/_components/select';
 import useGeneration from '@/lib/pokemon/getGenerationMons';
 import usePokemon from '@/lib/pokemon/getPokemon';
 
-import PokemonCard from './PokemonCard';
+import PokemonCard from '@/app/_components/pokemonCard';
 
 const pokemonList = () => {
   const searchBarRef = React.useRef<HTMLInputElement>(null);
