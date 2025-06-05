@@ -1,7 +1,7 @@
 'use client';
 
 import { GameClient, Pokemon, PokemonClient } from 'pokenode-ts';
-import React from 'react';
+import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { FaMagnifyingGlass } from 'react-icons/fa6';
 
 import {
@@ -14,20 +14,44 @@ import useGeneration from '@/lib/pokemon/getGenerationMons';
 import usePokemon from '@/lib/pokemon/getPokemon';
 
 import PokemonCard from '@/app/_components/pokemonCard';
+import { UserInfo } from '@/interfaces/user';
+import { Router } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Ohgnoy_BackendAPI } from '@/lib/constants';
+import { userInfo } from '@/lib/user/token';
 
 const pokemonList = () => {
-  const searchBarRef = React.useRef<HTMLInputElement>(null);
-  const [generations, setGenerations] = React.useState<string[]>([]);
-  const [generation, setGeneration] = React.useState(1);
+  const searchBarRef = useRef<HTMLInputElement>(null);
+  const [generations, setGenerations] = useState<string[]>([]);
+  const [generation, setGeneration] = useState(1);
   const generationList = useGeneration(generation);
   const pokemonList = usePokemon();
-  const [searchData, setSearchData] = React.useState<Map<number, Pokemon>>(
+  const [searchData, setSearchData] = useState<Map<number, Pokemon>>(new Map());
+  const [pokemonData, setPokemonData] = useState<Map<number, Pokemon>>(
     new Map(),
   );
-  const [pokemonData, setPokemonData] = React.useState<Map<number, Pokemon>>(
-    new Map(),
-  );
-  React.useEffect(() => {
+
+  const [user, setUser] = useState<UserInfo>({
+    user_id: 0,
+    nick_name: '',
+    email: '',
+  });
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        router.push('/auth/login');
+        return;
+      }
+
+      const userData = await userInfo(token);
+      setUser(userData);
+    };
+
+    checkAuth();
+
     async function getGenerations(): Promise<void> {
       const api = new GameClient();
       const _generations = await api.listGenerations();
@@ -38,7 +62,8 @@ const pokemonList = () => {
     }
     void getGenerations();
   }, []);
-  React.useEffect(() => {
+
+  useEffect(() => {
     if (generationList.length === 0) return;
     setPokemonData(new Map());
     async function getPokemonData(): Promise<void> {
@@ -50,8 +75,9 @@ const pokemonList = () => {
     }
     void getPokemonData();
   }, [generationList]);
-  const HandleSearch = React.useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
+
+  const HandleSearch = useCallback(
+    async (e: ChangeEvent<HTMLInputElement>): Promise<void> => {
       if (e.target.value.trim() === '') return setSearchData(new Map());
       setSearchData(new Map());
       const api = new PokemonClient();
@@ -110,12 +136,11 @@ const pokemonList = () => {
         )
           .sort((a, b) => a.id - b.id)
           .map((pokemon) => (
-            <PokemonCard key={pokemon.id} pokemon={pokemon} />
+            <PokemonCard key={pokemon.id} pokemon={pokemon} userInfo={user}/>
           ))}
       </div>
     </div>
   );
 };
-
 
 export default pokemonList;

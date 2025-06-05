@@ -3,13 +3,13 @@
 import { useSession } from "next-auth/react";
 import React from "react";
 import { LikedMon, UserSession } from "@/interfaces/pokemon";
+import { UserInfo } from "@/interfaces/user";
 
-export default function useUserLikedMons(): number[] {
-	const { data: session } = useSession() as { data: UserSession | undefined };
+export default function useUserLikedMons(userInfo:UserInfo): number[] {
 	const [userLikedMons, setUserLikedMons] = React.useState<number[]>([]);
 
 	React.useEffect(() => {
-		const userId = session?.token?.sub;
+		const userId = userInfo?.user_id;
 		if (!userId) {
 			return;
 		}
@@ -29,7 +29,7 @@ export default function useUserLikedMons(): number[] {
 		};
 
 		fetchLikedMons();
-	}, [session?.token?.sub]);
+	}, [userInfo?.user_id]);
 
 	return userLikedMons;
 }

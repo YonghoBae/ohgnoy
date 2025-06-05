@@ -7,6 +7,7 @@ import moment from 'moment';
 import { Message } from '@/interfaces/message';
 import { UserInfo } from '@/interfaces/user';
 import { Ohgnoy_BackendAPI } from '@/lib/constants';
+import { userInfo } from '@/lib/user/token';
 
 const Chat = () => {
   const router = useRouter();
@@ -21,47 +22,39 @@ const Chat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-
-    if (!token) {
-      router.push('/auth/login');
-    }
-
-    const userInfo = async () => {
-      const response = await fetch(`${Ohgnoy_BackendAPI}/token`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+    const init = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        router.push('/auth/login');
+        return;
+      }
+  
+      const userData = await userInfo(token);
+      setUser(userData);
+  
+      if (!socket.connected) {
+        socket.connect();
+      }
+  
+      // 중복 방지: 먼저 기존 리스너 제거
+      socket.off('receiveAll');
+      socket.on('receiveAll', (msg: Message) => {
+        setMessages((prev) => [...prev, msg]);
       });
-
-      const result = await response.json();
-      setUser(result.data);
+  
+      socket.on('connect', () => console.log('socket connect'));
+      socket.on('disconnect', () => console.log('socket disconnect'));
     };
-
-    userInfo();
-
-    socket.connect();
-
-    socket.on('connect', () => {
-      console.log('socket connect');
-    });
-
-    socket.on('disconnect', () => {
-      console.log('socket disconnect');
-    });
-
-    socket.on('receiveAll', (msg: Message) => {
-      setMessages((prev) => [...prev, msg]);
-    });
-
+  
+    init();
+  
     return () => {
       socket.off('connect');
       socket.off('disconnect');
       socket.off('receiveAll');
     };
   }, []);
+  
 
   const sendMessage = () => {
     const msgData: Message = {

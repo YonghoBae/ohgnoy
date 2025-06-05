@@ -16,6 +16,7 @@ import { Intro } from '@/app/_components/intro';
 // 전역 스타일을 import (앱 전체에 적용될 CSS 파일)
 import './globals.css';
 import Container from './_components/container';
+import RecoilProvider from './_components/RecoilProvider';
 
 // Google의 Inter 폰트를 설정하고, 라틴 문자 집합을 서브셋으로 사용
 const inter = Inter({ subsets: ['latin'] });
@@ -80,15 +81,17 @@ export default function RootLayout({
         // Inter 폰트를 사용하고, 다크 모드에서 배경 및 텍스트 색상을 설정
         className={cn(inter.className, 'dark:bg-stone-900 dark:text-stone-50')}
       >
-        {/* 테마 전환기 컴포넌트를 렌더링 */}
-        <ThemeSwitcher />
-        <Container>
-          <Intro />
-          {/* 페이지 콘텐츠를 포함할 div 요소, 최소 화면 크기 설정 */}
-          <div className="min-h-screen">{children}</div>
-          {/* 하단에 Footer 컴포넌트를 렌더링 */}
-        </Container>
-        <Footer />
+        <RecoilProvider>
+          {/* 테마 전환기 컴포넌트를 렌더링 */}
+          <ThemeSwitcher />
+          <Container>
+            <Intro />
+            {/* 페이지 콘텐츠를 포함할 div 요소, 최소 화면 크기 설정 */}
+            <div className="min-h-screen">{children}</div>
+            {/* 하단에 Footer 컴포넌트를 렌더링 */}
+          </Container>
+          <Footer />
+        </RecoilProvider>
       </body>
     </html>
   );
