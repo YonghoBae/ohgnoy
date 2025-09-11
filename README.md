@@ -42,3 +42,6 @@ npm install
 ```bash
 npm run dev
 ```
+
+## URL
+- https://ohgnoy.vercel.app
