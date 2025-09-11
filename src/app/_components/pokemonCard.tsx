@@ -133,21 +133,21 @@ export default function PokemonCard({
         />
       </div>
       <div className="mt-1 flex flex-row items-center justify-center space-x-10">
-        {pokemon.types.map((type) => (
+        {pokemon.types.map(({type:{name}}) => (
           <div
             className="flex flex-col items-center justify-center"
-            key={type.type.name}
+            key={name}
           >
             <Image
-              src={`/types/${type.type.name}.png`} // ✅ public/types 경로에서 안전하게 로드됨
-              alt={type.type.name}
+              src={`/types/${name}.png`} // ✅ public/types 경로에서 안전하게 로드됨
+              alt={name}
               width={200}
               height={200}
               className="h-10 w-10 cursor-pointer"
             />
-            <h1 className="text-center text-sm font-bold">
-              {type.type.name.toLocaleUpperCase()}
-            </h1>
+            {/* <h1 className="text-center text-sm font-bold">
+              {name.toLocaleUpperCase()}
+            </h1> */}
           </div>
         ))}
       </div>

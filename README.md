@@ -1,63 +1,44 @@
-# A statically generated blog example using Next.js, Markdown, and TypeScript
+# OhGnoy Frontend (Next.js)
 
-This is the existing [blog-starter](https://github.com/vercel/next.js/tree/canary/examples/blog-starter) plus TypeScript.
+이 프로젝트는 "OhGnoy" 웹 애플리케이션의 프론트엔드입니다. Next.js, React, TypeScript를 사용하여 개발되었습니다.
 
-This example showcases Next.js's [Static Generation](https://nextjs.org/docs/app/building-your-application/routing/layouts-and-templates) feature using Markdown files as the data source.
+## 주요 기능
 
-The blog posts are stored in `/_posts` as Markdown files with front matter support. Adding a new Markdown file in there will create a new blog post.
+- 마크다운(.md) 파일 기반 블로그 게시글 렌더링
+- 백엔드 API와 연동한 게시글 CRUD, 댓글, 좋아요 기능
+- Socket.IO 기반의 실시간 채팅
+- Pokemon API를 활용한 포켓몬 도감
+- NextAuth.js를 이용한 사용자 세션 관리
 
-To create the blog posts we use [`remark`](https://github.com/remarkjs/remark) and [`remark-html`](https://github.com/remarkjs/remark-html) to convert the Markdown files into an HTML string, and then send it down as a prop to the page. The metadata of every post is handled by [`gray-matter`](https://github.com/jonschlinkert/gray-matter) and also sent in props to the page.
+## 기술 스택
 
-## Demo
+- **Framework**: Next.js, React
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **State Management**: Recoil
+- **Data Fetching**: Axios
+- **Authentication**: NextAuth.js
+- **Real-time**: Socket.IO Client
 
-[https://next-blog-starter.vercel.app/](https://next-blog-starter.vercel.app/)
+## 시작하기
 
-## Deploy your own
+### 1. 의존성 설치
 
-Deploy the example using [Vercel](https://vercel.com?utm_source=github&utm_medium=readme&utm_campaign=next-example) or preview live with [StackBlitz](https://stackblitz.com/github/vercel/next.js/tree/canary/examples/blog-starter)
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/vercel/next.js/tree/canary/examples/blog-starter&project-name=blog-starter&repository-name=blog-starter)
-
-### Related examples
-
-- [WordPress](/examples/cms-wordpress)
-- [DatoCMS](/examples/cms-datocms)
-- [Sanity](/examples/cms-sanity)
-- [TakeShape](/examples/cms-takeshape)
-- [Prismic](/examples/cms-prismic)
-- [Contentful](/examples/cms-contentful)
-- [Strapi](/examples/cms-strapi)
-- [Agility CMS](/examples/cms-agilitycms)
-- [Cosmic](/examples/cms-cosmic)
-- [ButterCMS](/examples/cms-buttercms)
-- [Storyblok](/examples/cms-storyblok)
-- [GraphCMS](/examples/cms-graphcms)
-- [Kontent](/examples/cms-kontent)
-- [Umbraco Heartcore](/examples/cms-umbraco-heartcore)
-- [Builder.io](/examples/cms-builder-io)
-- [TinaCMS](/examples/cms-tina/)
-- [Enterspeed](/examples/cms-enterspeed)
-
-## How to use
-
-Execute [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) with [npm](https://docs.npmjs.com/cli/init), [Yarn](https://yarnpkg.com/lang/en/docs/cli/create/), or [pnpm](https://pnpm.io) to bootstrap the example:
+프로젝트 루트 디렉토리에서 다음 명령어를 실행하여 필요한 패키지를 설치합니다.
 
 ```bash
-npx create-next-app --example blog-starter blog-starter-app
+npm install
 ```
+
+### 2. 환경 변수 설정
+
+프로젝트 루트에 `.env.local` 파일을 생성하고 백엔드 API 서버 주소 등 필요한 환경 변수를 설정합니다.
+
+
+### 3. 개발 서버 실행
+
+다음 명령어를 사용하여 개발 서버를 시작합니다.
 
 ```bash
-yarn create next-app --example blog-starter blog-starter-app
+npm run dev
 ```
-
-```bash
-pnpm create next-app --example blog-starter blog-starter-app
-```
-
-Your blog should be up and running on [http://localhost:3000](http://localhost:3000)! If it doesn't work, post on [GitHub discussions](https://github.com/vercel/next.js/discussions).
-
-Deploy it to the cloud with [Vercel](https://vercel.com/new?utm_source=github&utm_medium=readme&utm_campaign=next-example) ([Documentation](https://nextjs.org/docs/deployment)).
-
-# Notes
-
-`blog-starter` uses [Tailwind CSS](https://tailwindcss.com) [(v3.0)](https://tailwindcss.com/blog/tailwindcss-v3).
