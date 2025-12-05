@@ -1,6 +1,9 @@
 'use client';
+
 import { motion } from 'motion/react';
 import { XIcon, DownloadIcon } from 'lucide-react';
+import Link from 'next/link';
+
 import { Spotlight } from '@/app/_components/ui/spotlight';
 import { Magnetic } from '@/app/_components/ui/magnetic';
 import {
@@ -10,8 +13,9 @@ import {
   MorphingDialogClose,
   MorphingDialogContainer,
 } from '@/app/_components/ui/morphing-dialog';
-import Link from 'next/link';
 import { AnimatedBackground } from '@/app/_components/ui/animated-background';
+import { TextEffect } from '@/app/_components/ui/text-effect';
+
 import {
   PROJECTS,
   WORK_EXPERIENCE,
@@ -19,12 +23,11 @@ import {
   EMAIL,
   SOCIAL_LINKS,
   SKILLS,
-  EDUCATION, // 학력 데이터 import 추가
+  EDUCATION,
   RESUME_LINK,
 } from './data';
-import { TextEffect } from '../_components/ui/text-effect';
 
-// --- 상수 및 유틸리티 컴포넌트 ---
+// --- 애니메이션 설정 ---
 
 const VARIANTS_CONTAINER = {
   hidden: { opacity: 0 },
@@ -44,6 +47,8 @@ const VARIANTS_SECTION = {
 const TRANSITION_SECTION = {
   duration: 0.3,
 };
+
+// --- 유틸리티 컴포넌트 ---
 
 type ProjectVideoProps = {
   src: string;
@@ -80,7 +85,7 @@ function ProjectVideo({ src }: ProjectVideoProps) {
           />
         </MorphingDialogContent>
         <MorphingDialogClose
-          className="fixed top-6 right-6 h-fit w-fit rounded-full bg-white p-1"
+          className="fixed right-6 top-6 h-fit w-fit rounded-full bg-white p-1"
           variants={{
             initial: { opacity: 0 },
             animate: {
@@ -111,7 +116,9 @@ function MagneticSocialLink({
       <a
         href={link}
         className="group relative inline-flex shrink-0 items-center gap-1.5 rounded-full bg-zinc-100 px-3 py-1.5 text-sm text-black transition-colors duration-200 hover:bg-zinc-950 hover:text-zinc-50 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
-        {...(isDownload ? { download: true } : { target: '_blank', rel: 'noopener noreferrer' })}
+        {...(isDownload
+          ? { download: true }
+          : { target: '_blank', rel: 'noopener noreferrer' })}
       >
         {children}
         {isDownload ? (
@@ -161,7 +168,7 @@ export default function Personal() {
             className="text-zinc-600 dark:text-zinc-500"
             delay={0.5}
           >
-            Backend & AR/VR Developer
+            Backend · Agent & Infrastructure Developer
           </TextEffect>
         </div>
       </header>
@@ -173,10 +180,10 @@ export default function Personal() {
       >
         <div className="flex-1">
           <p className="text-zinc-600 dark:text-zinc-400">
-            견고한 백엔드 인프라 위에서 사용자에게 새로운 가치를 주는
-            인터랙티브 경험을 만드는 것을 목표로 합니다. 서버 구축 및 배포
-            자동화부터 3D 모델링과 AR 앱 개발까지, 아이디어를 현실로 만드는
-            풀스택 개발 역량을 갖추고 있습니다.
+            서버와 에이전트 아키텍처를 중심으로, 안정적인 백엔드 위에 의미
+            있는 인터랙션을 쌓는 개발자입니다. API 설계와 데이터 모델링,
+            캐시·배포·모니터링 같은 인프라 레이어까지 고민하며, 필요한 경우
+            AR/3D와 같은 표현 기술을 더해 사용자에게 새로운 경험을 제공합니다.
           </p>
         </div>
       </motion.section>
@@ -194,27 +201,27 @@ export default function Personal() {
                 <ProjectVideo src={project.video} />
               </div>
               <div className="flex-1 space-y-2 px-1">
-                 <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between">
+                  <a
+                    className="group relative inline-block font-[450] text-zinc-900 dark:text-zinc-50"
+                    href={project.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {project.name}
+                    <span className="absolute bottom-0.5 left-0 block h-[1px] w-full max-w-0 bg-zinc-900 transition-all duration-200 group-hover:max-w-full dark:bg-zinc-50"></span>
+                  </a>
+                  {project.architectureImg && (
                     <a
-                      className="group relative inline-block font-[450] text-zinc-900 dark:text-zinc-50"
-                      href={project.link}
+                      href={project.architectureImg}
                       target="_blank"
                       rel="noopener noreferrer"
+                      className="text-xs text-zinc-500 underline hover:text-zinc-700 dark:hover:text-zinc-300"
                     >
-                      {project.name}
-                      <span className="absolute bottom-0.5 left-0 block h-[1px] w-full max-w-0 bg-zinc-900 transition-all duration-200 group-hover:max-w-full dark:bg-zinc-50"></span>
+                      Architecture
                     </a>
-                    {project.architectureImg && (
-                      <a
-                        href={project.architectureImg}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-zinc-500 underline hover:text-zinc-700 dark:hover:text-zinc-300"
-                      >
-                        Architecture
-                      </a>
-                    )}
-                  </div>
+                  )}
+                </div>
                 <p className="text-base text-zinc-600 dark:text-zinc-400">
                   {project.description}
                 </p>
@@ -311,8 +318,8 @@ export default function Personal() {
           ))}
         </div>
       </motion.section>
-      
-      {/* --- 학력 (신규) --- */}
+
+      {/* --- 학력 --- */}
       <motion.section
         variants={VARIANTS_SECTION}
         transition={TRANSITION_SECTION}
@@ -320,10 +327,17 @@ export default function Personal() {
         <h3 className="mb-5 text-lg font-medium">Education</h3>
         <div className="flex flex-col space-y-3">
           {EDUCATION.map((edu, index) => (
-            <div key={index} className="rounded-lg bg-zinc-100 p-4 dark:bg-zinc-900">
-              <h4 className="font-normal text-zinc-900 dark:text-zinc-100">{edu.school}</h4>
+            <div
+              key={index}
+              className="rounded-lg bg-zinc-100 p-4 dark:bg-zinc-900"
+            >
+              <h4 className="font-normal text-zinc-900 dark:text-zinc-100">
+                {edu.school}
+              </h4>
               <p className="text-zinc-600 dark:text-zinc-400">{edu.major}</p>
-              <p className="text-sm text-zinc-500 dark:text-zinc-500">{edu.period}</p>
+              <p className="text-sm text-zinc-500 dark:text-zinc-500">
+                {edu.period}
+              </p>
             </div>
           ))}
         </div>
@@ -374,10 +388,7 @@ export default function Personal() {
         <h3 className="mb-5 text-lg font-medium">Connect</h3>
         <p className="mb-5 text-zinc-600 dark:text-zinc-400">
           Feel free to contact me at{' '}
-          <a
-            className="underline dark:text-zinc-300"
-            href={`mailto:${EMAIL}`}
-          >
+          <a className="underline dark:text-zinc-300" href={`mailto:${EMAIL}`}>
             {EMAIL}
           </a>
         </p>
