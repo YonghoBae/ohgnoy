@@ -1,232 +1,208 @@
-// 이메일 / 링크는 실제 값으로 교체해서 사용하세요.
-export const EMAIL = 'you@example.com';
-export const RESUME_LINK = '/files/resume.pdf';
+// 연락처 & 리소스
+export const EMAIL = 'your-email@example.com'; // TODO: 실제 이메일 입력
+export const RESUME_LINK = '/files/BaeYongHo_Resume_2025.pdf'; // TODO: 실제 파일명/경로 입력
 
 export const SOCIAL_LINKS = [
-  {
-    label: 'GitHub',
-    link: 'https://github.com/your-github', // TODO: 실제 계정으로 교체
-  },
-  {
-    label: 'Tech Blog',
-    link: 'https://blog.example.com', // TODO: ohgnoy 블로그 주소로 교체
-  },
-  {
-    label: 'LinkedIn',
-    link: 'https://www.linkedin.com/in/your-linkedin', // 없으면 이 항목 삭제해도 됨
-  },
+  { label: 'GitHub', link: 'https://github.com/your-github' }, // TODO
+  { label: 'Tech Blog', link: 'https://blog.example.com' }, // TODO
+  { label: 'LinkedIn', link: 'https://www.linkedin.com/in/your-linkedin' }, // TODO
 ];
 
+// ----------------------------------------------------------------------------
+// 프로젝트 (정예화된 3개)
+// ----------------------------------------------------------------------------
 export const PROJECTS = [
   {
-    name: 'Leafy – Hybrid AI 반려 식물 정서 케어 시스템',
-    video: '/videos/leafy-demo.mp4',
-    link: 'https://github.com/your-name/leafy',
+    name: 'Leafy – Hybrid AI 정서 케어 시스템',
+    video: '/videos/leafy-demo.mp4', // [전략] AR 반응 속도 증명용 영상
+    link: 'https://github.com/your-name/leafy', // TODO
     architectureImg: '/images/leafy-architecture.png',
-
     description:
-      '사용자의 감정 상태를 분석하고 대화 맥락을 단기/장기로 분리해 관리하는 AI 반려식물 서비스입니다. 백엔드 중심으로 LLM 메모리 구조, Multi-Agent Router, 실시간 음성 대화 아키텍처를 직접 설계했으며, “감정 기반 대화 품질 안정화”를 주요 목표로 개발했습니다.',
-
+      '1인 가구의 정서적 고립 해결을 위한 AR 반려식물 & AI 상담 서비스입니다. 감정 분석 모델과 Multi-Agent LLM을 결합하여 사용자의 감정 원인을 추론하고, AR 시각 효과와 실시간 음성 대화를 통해 능동적인 정서 케어를 제공합니다.',
     details: [
-      // --- S: Situation ---
-      '기존 함수형 구조는 기능이 늘어날수록 테스트와 수정이 어려워지고, 대화 맥락이 불안정해지는 문제가 있었습니다. 또한 음성 기반 상호작용은 WebSocket 기반 STT/TTS에서 지연이 크게 발생하며 사용자 경험을 저해하고 있었습니다.',
-
-      // --- T: Task ---
-      '백엔드 전반을 안정적이고 확장 가능하게 재설계하고, 감정 기반 서비스 특성에 맞는 메모리·에이전트·음성 아키텍처를 구축하는 역할을 맡았습니다.',
-
-      // --- A: Action ---
-      'Layered Architecture 적용: 기존 함수형 코드를 컨트롤러·서비스·도메인 레이어로 분리해 테스트 가능성과 유지보수성을 확보했습니다.',
-      'Hybrid Memory 구축: Redis를 단기 기억, MySQL + Vector Store를 장기 기억으로 사용해 LLM에 필요한 정보만 전달하도록 최적화했습니다.',
-      'Multi-Agent Router 구현: 기본 응답, 성찰, 행동 제안 에이전트를 Intent에 따라 자동 라우팅하여 대화 품질을 향상시켰습니다.',
-      '행동 활성화(Behavioral Activation) 기반 미션 추천: 감정·각성 지표가 낮을 때 Micro Mode로 전환하고 “즉시 완료 가능한 저부담 미션”을 자동 추천하도록 설계했습니다.',
-      '대화 안전성 강화: 생성 에이전트와 검토 에이전트를 분리해 응답 톤과 위험 표현을 2단계로 점검하는 구조를 실험 적용했습니다.',
-      'WebRTC + OpenAI Realtime API로 실시간 음성 구조 재설계: 지연 문제를 해결하기 위해 WebSocket 구조를 폐기하고 Realtime 기반으로 재구축했으며, 서버를 Proxy로 두어 에이전트·메모리 상태가 음성과 동기화되도록 했습니다.',
-      'Docker + GitHub Actions 기반 CI/CD 구축: 백엔드, DB, Redis를 컨테이너화하고 main 브랜치 기준으로 자동 배포되도록 파이프라인을 설계했습니다.',
-
-      // --- R: Result ---
-      '결과적으로 음성 지연이 크게 감소하고, 대화 맥락 유지가 안정되었으며, 프롬프트와 토큰 사용량이 줄어들어 LLM 비용 효율이 개선되었습니다. 리팩토링 후 기능 추가 속도도 향상되어 장기적인 확장성을 확보했습니다.',
+      'S. 텍스트 위주의 챗봇은 감정 전달에 한계가 있고, 단순 AR 앱은 지속적인 사용 동기가 부족했습니다.',
+      'T. 사용자가 부담 없이 감정을 털어놓고 행동 변화까지 이어질 수 있는 "실재감 있는" 정서 케어 시스템 구축이 필요했습니다.',
+      'A1. Multi-Agent Router를 설계하여 상황(공감/성찰/제안)에 맞는 페르소나를 스위칭하고, Redis(단기) + Vector DB(장기) 하이브리드 메모리 구조로 대화의 맥락 정확도를 높였습니다.',
+      'A2. WebRTC + OpenAI Realtime API를 통해 끊김 없는 음성 대화를 구현하고, 서버를 Proxy로 두어 보안성과 연결 안정성을 확보했습니다.',
+      'A3. 감정 원인 추론 파이프라인을 구축하여 단순 감정 라벨링을 넘어 "왜 슬픈지"를 파악하고 맞춤형 행동 미션을 제안하도록 로직을 설계했습니다.',
+      'R1. 하이브리드 메모리 도입으로 LLM 토큰 비용을 약 40% 절감하면서도 장기 기억 회상 정확도를 유지·개선했습니다.',
+      'R2. WebRTC 도입으로 음성 지연 시간을 500ms 이내로 단축하여 실시간 대화 몰입감을 크게 높였습니다.',
     ],
-
     techStack: [
-      'Node.js', 'TypeScript', 'Express', 'MySQL', 'Sequelize',
-      'Redis', 'Upstash Vector', 'OpenAI API', 'LLM Agents',
-      'WebRTC', 'Socket.IO', 'Docker', 'GitHub Actions',
-      'Ubuntu Server', 'React Native', 'AR (React Viro)',
+      'Node.js',
+      'TypeScript',
+      'LLM Agents',
+      'OpenAI Realtime API',
+      'Vector DB',
+      'Redis',
+      'WebRTC',
+      'React Native (AR)',
+      'Docker',
     ],
   },
-
   {
-    name: 'Home Server & CI/CD Platform',
-    video: '/videos/home-server.mp4',
-    link: 'https://your-blog-or-docs/home-server',
+    name: 'Home Server & DevOps Platform',
+    video: '/videos/home-server.mp4', // [전략] 아키텍처 다이어그램을 영상화하거나 이미지로 대체 추천
+    link: 'https://your-blog-or-docs/home-server', // TODO
     architectureImg: '/images/home-server-architecture.svg',
-
     description:
-      '여러 개인 프로젝트를 안정적으로 운영하기 위해 구축한 홈서버 기반 인프라입니다. Docker 컨테이너 분리, Reverse Proxy, SSL 인증, CI/CD 자동 배포 환경을 직접 설계·운영하며 DevOps 경험을 쌓았습니다.',
-
+      '유휴 장비를 활용해 구축한 온프레미스 Docker 환경입니다. Nginx Proxy Manager와 GitHub Actions를 연동하여 개인 프로젝트의 배포 자동화(CI/CD) 및 HTTPS 보안 환경을 0원으로 구축했습니다.',
     details: [
-      // --- S ---
-      '[S] WSL 기반 개발 환경에서는 포트 충돌, 네트워크 지연, 서버 지속 구동 문제 등이 반복적으로 발생했고, 여러 프로젝트를 동시에 운영하기 위한 통합 인프라가 부재했습니다.',
-
-      // --- T ---
-      '[T] 비용 없이 상시 운영 가능한 서버 환경을 구축하고, 프로젝트별로 독립적인 배포/운영 체계를 만드는 것이 목표였습니다.',
-
-      // --- A ---
-      '[A] 사용하지 않던 노트북을 Ubuntu Server로 리빌드하고, 모든 프로젝트를 Docker 컨테이너 단위로 분리 운영했습니다.',
-      '[A] Nginx Proxy Manager를 활용해 도메인/서브도메인을 프로젝트별 컨테이너로 라우팅하고, Let’s Encrypt로 SSL을 자동 발급·갱신하도록 구성했습니다.',
-      '[A] GitHub Actions 기반 CI/CD를 구축해 main 브랜치 머지 시 Docker 이미지 빌드 → 서버에 Pull → 컨테이너 재시작까지 자동화했습니다.',
-      '[A] 배포 과정에서 사람이 .env를 직접 수정하지 않도록 GitHub Secrets로 환경 변수를 주입하는 스크립트를 만들었습니다.',
-      '[A] WSL → Ubuntu Server 이전 과정에서 발생한 네트워크 지연 원인을 분석하고 Docker 네트워크 구조를 재설계하여 실시간 서비스(채팅/스트리밍)의 응답성을 개선했습니다.',
-
-      // --- R ---
-      '[R] 모든 프로젝트가 HTTPS 기반 독립 서비스로 운영 가능해졌고, 서버 안정성이 크게 향상되었습니다.',
-      '[R] 배포 자동화로 운영 비용과 작업 시간이 줄었으며, 실수 가능성이 크게 감소했습니다.',
-      '[R] DevOps 도구와 리버스 프록시, 컨테이너 오케스트레이션 개념을 실전에서 경험하게 되었습니다.',
+      'S. 로컬 개발 환경과 배포 환경의 차이로 인한 버그가 잦았고, 매번 수동으로 배포하는 과정이 비효율적이었습니다.',
+      'T. 상용 클라우드 비용 없이 실무와 유사한 수준의 자동화된 배포 파이프라인과 모니터링 환경을 구축하는 것이 목표였습니다.',
+      'A1. Ubuntu Server에 Docker 기반의 마이크로서비스 환경을 구성하고, Nginx Proxy Manager로 서브도메인 라우팅 및 SSL 인증서 발급을 자동화했습니다.',
+      'A2. GitHub Actions Self-hosted Runner를 활용해 메인 브랜치 병합 시 자동으로 이미지를 빌드하고 컨테이너를 교체하는 CD 파이프라인을 구축했습니다.',
+      'R1. 배포 시간을 기존 20분에서 3분 이내로 단축하고, "코드 푸시 = 배포 완료"라는 완전한 자동화를 달성했습니다.',
+      'R2. 실제 운영 중 발생하는 트래픽 이슈와 로그 관리를 경험하며 인프라 운영 역량을 확보했습니다.',
     ],
-
     techStack: [
-      'Ubuntu Server', 'Docker', 'Docker Compose',
-      'Nginx Proxy Manager', 'Let’s Encrypt',
-      'GitHub Actions', 'Node.js',
-      'PostgreSQL', 'MySQL', 'Linux',
+      'Ubuntu Server',
+      'Docker',
+      'Nginx Proxy Manager',
+      'GitHub Actions',
+      'CI/CD',
+      'Self-hosting',
     ],
   },
-
   {
-    name: 'Development Environment Automation (Vagrant & Ansible)',
-    video: '/videos/dev-env-automation.mp4',
-    link: 'https://your-blog-or-docs/dev-env-automation',
-    architectureImg: undefined,
-
+    name: '홈서버 모니터링 & Apollo 원격 데스크탑 관제 시스템',
+    video: 'assets/blog/portfolio/apollo.svg', // [전략] Grafana 대시보드 + Discord 알림 영상
+    link: 'https://github.com/YonghoBae/monitoring-agent',
+    architectureImg: '/images/apollo-monitoring-architecture.png',
     description:
-      '실습/개발 환경을 일관되게 재현하기 위해 Vagrant + Ansible 기반으로 VM 자동 생성·프로비저닝 환경을 구축한 프로젝트입니다. “어디서 실행해도 동일하게 동작하는 개발 환경”을 목표로 IaC 접근을 적용했습니다.',
-
+      '원격 데스크탑(Apollo) 호스트와 홈서버 상태를 관제하고, 장애 발생 시 Spring AI 에이전트가 원인을 분석해 리포트하는 모니터링 시스템입니다. C++ 오픈소스 수정부터 SRE 파이프라인 구축, AI 기반 장애 대응까지 엔지니어링 전 과정을 직접 구현했습니다.',
     details: [
-      // --- S ---
-      '[S] Cloud & Distributed Systems 수업에서 HTCondor 실습 환경을 매번 새로 구성해야 했고, WSL/Windows/VirtualBox 간 설정 충돌로 재현성이 낮았습니다.',
-
-      // --- T ---
-      '[T] 팀원 누구나 똑같은 개발/실습 환경을 즉시 재현할 수 있는 자동화된 VM·프로비저닝 시스템을 구축하는 것이 목표였습니다.',
-
-      // --- A ---
-      '[A] Vagrant로 Ubuntu 기반 VM을 자동 생성하고, 네트워크·폴더 매핑 등 호스트/VM 환경 차이를 고려하며 구성했습니다.',
-      '[A] Ansible Playbook으로 패키지 설치, 언어 런타임, 웹 서버, 프로젝트 클론, 사용자 생성 등 프로비저닝 과정을 코드로 정의했습니다.',
-      '[A] VM과 Ansible 간 SSH 권한 문제, 경로 충돌, 호스트 환경 차이(Windwos/WSL/VM)를 분석해 해결하며 안정적인 IaC 구성을 완성했습니다.',
-      '[A] Web 노드와 Worker 노드를 분리하는 구조를 설계해 분산 작업 실습(HTCondor)이 자동으로 재현되도록 환경을 구성했습니다.',
-
-      // --- R ---
-      '[R] vagrant up 한 번으로 동일한 실습 환경을 재현할 수 있게 되었고, 실습 준비 시간이 크게 단축되었습니다.',
-      '[R] IaC 개념과 VM 자동화·프로비저닝 경험을 쌓아 DevOps 역량 기반을 확보했습니다.',
+      'S. 팬 소음을 듣고서야 장애를 인지하는 수동적인 운영 방식과, 클라이언트 지표만으로는 호스트 내부 지연(Encoding/Input Queue) 원인을 파악할 수 없는 관측성 부재 문제를 겪었습니다.',
+      'T. 홈서버와 Apollo 호스트의 지표를 시각화하고, 장애 발생 시 "무슨 일이 벌어지고 있는지"를 자동으로 분석·리포트하는 프로액티브 모니터링 시스템 구축을 목표로 했습니다.',
+      'A1. Apollo(C++)의 stat_tracker 구조를 역공학하여 In-memory Metrics Exporter를 직접 구현했습니다. 이를 통해 File I/O 오버헤드 없이 Frame Processing Latency 등 핵심 지표를 Prometheus로 실시간 노출했습니다.',
+      'A2. 60fps 기준 Frame Budget(16.66ms) 초과 비율을 SLI로 정의하고, 임계치 초과 시 Alertmanager가 작동하도록 SLO 기반 알람 체계를 설계했습니다.',
+      'A3. Alertmanager Webhook을 수신하는 Spring AI 에이전트를 구현하고, PostgreSQL(pgvector)에 저장된 과거 장애 이력을 RAG로 검색해 대응 가이드를 Discord로 자동 발송하게 했습니다.',
+      'A4. Android ZUI OS의 디코딩 스로틀링 문제를 분석하고, Vendor 설정 및 입력기 최적화를 통해 디코딩 Latency Spike를 제거하여 P99 지연을 약 7ms 이내로 안정화했습니다.',
+      'R1. 장애 감지 시점을 "사용자 체감 후"에서 "지표 이상 발생 직후"로 앞당겼고, 과거 해결 데이터를 기반으로 MTTR(평균 복구 시간)을 단축할 기반을 마련했습니다.',
     ],
-
     techStack: [
-      'Vagrant', 'Ansible', 'VirtualBox',
-      'WSL', 'Ubuntu', 'Shell Script',
-      'Infrastructure as Code',
+      'C++',
+      'Spring Boot',
+      'Spring AI',
+      'Prometheus',
+      'Grafana',
+      'PostgreSQL',
+      'pgvector',
+      'Docker',
     ],
-  }
-
+  },
 ] as const;
 
+// ----------------------------------------------------------------------------
+// 경험 / 활동 (IaC 프로젝트 흡수됨)
+// ----------------------------------------------------------------------------
 export const WORK_EXPERIENCE = [
   {
-    id: 'fullstack-bootcamp',
-    title: 'Full-stack Web Development Program (Trainee)',
-    company: 'University Full-stack Training (Summer Intensive)',
+    id: 'bootcamp',
+    title: 'Full-stack Web Development (Intensive)',
+    company: 'University Special Program',
     start: '2024.07',
     end: '2024.08',
-    link: 'https://your-univ-program-link.example.com',
+    link: 'https://program-link.com', // TODO
     achievements: [
-      'Node.js 백엔드, Next.js 프론트엔드, RAG(LangChain) 기초를 포함한 풀스택 커리큘럼 이수',
-      '클론 코딩 중심 수업에서 한 단계 나아가, 개인 개발 블로그를 기획·구현하며 실전 환경에 가까운 개발·배포 프로세스 경험',
-      '팀 프로젝트와 코드 리뷰를 통해 Git 기반 협업, 브랜치 전략, PR 리뷰 문화를 경험',
+      'Node.js/Next.js 기반의 웹 서비스 기획부터 배포까지 전 과정 리딩',
+      'Git Flow 전략 도입 및 코드 리뷰 문화를 주도하여 팀 협업 효율 향상',
+      '개인 기술 블로그 구축 및 SEO 적용을 통한 학습 기록 공유',
     ],
   },
   {
-    id: 'cloud-computing-course',
-    title: 'Cloud Computing & Distributed Systems (Student)',
-    company: 'Computer Science Department',
+    id: 'cloud-course',
+    title: 'Cloud Computing & Distributed Systems',
+    company: 'Computer Science Dept.',
     start: '2024.03',
     end: '2024.06',
-    link: 'https://your-univ-cloud-course.example.com',
+    link: 'https://github.com/your-name/iac-project', // [전략] IaC 레포지토리 링크 연결
     achievements: [
-      'HTCondor를 활용한 분산 작업 실행 및 모니터링 실습 수행',
-      'Vagrant + Ansible을 이용한 개발/실습 환경 자동화 설계 및 구현',
-      'WSL/Windows/VirtualBox 간 제약 사항을 분석하고, 실제 사용 가능한 인프라 구성으로 우회',
+      'HTCondor를 활용한 대규모 분산 작업 스케줄링 및 처리량 분석 수행',
+      // [전략] IaC 프로젝트 내용을 강력한 성과로 요약
+      'Vagrant와 Ansible을 도입하여 OS 종속성 문제를 해결하고, 명령어 한 줄로 5분 만에 클러스터 환경을 완벽히 재현하는 자동화 스크립트 구현',
+      '팀원 간 개발 환경 불일치(Works on my machine) 문제를 0건으로 만들어 실습 효율 극대화',
     ],
   },
 ];
 
+// ----------------------------------------------------------------------------
+// 스킬
+// ----------------------------------------------------------------------------
 export const SKILLS: Record<string, string[]> = {
-  'Backend & Agents': [
+  'Backend Core': [
     'Node.js',
     'TypeScript',
+    'Spring Boot',
     'Express',
     'REST API Design',
-    'JWT Auth',
-    'LLM Agents (Basic)',
-    'WebSocket (Basic)',
+    'Auth (JWT/OAuth)',
   ],
-  Databases: ['MySQL', 'PostgreSQL', 'ERD 설계', '기본 정규화', '트랜잭션 기초'],
-  'Infra & DevOps': [
-    'Ubuntu Server',
+  Database: [
+    'MySQL',
+    'PostgreSQL',
+    'Redis',
+    'Vector DB',
+    'ORM (Sequelize / TypeORM)',
+  ],
+  'AI & Architecture': [
+    'LLM Agent Patterns',
+    'RAG Pipeline',
+    'Spring AI',
+    'Event-Driven Architecture',
+  ],
+  'DevOps & Infra': [
     'Docker',
-    'docker-compose',
-    'Nginx / Reverse Proxy',
+    'Docker Compose',
+    'Nginx',
     'GitHub Actions',
-    'WSL',
+    'Prometheus',
+    'Grafana',
+    'Linux',
   ],
   'Frontend & Mobile': [
     'React',
     'Next.js',
     'React Native',
     'Tailwind CSS',
-    'Basic UI/UX',
   ],
-  'AI & AR/3D (Support)': [
-    'React Viro (AR)',
-    '3D Modeling (Maya, Basic)',
-    'KoELECTRA 기반 감정 분류 활용',
-    'LangChain (RAG 기초)',
-  ],
-  'Tools & Workflow': [
-    'Git / GitHub',
-    'Obsidian',
-    'Digital Garden',
-    'VS Code',
-    'Postman',
-    'Linux CLI',
-  ],
+  Tools: ['Git', 'Postman', 'VS Code', 'Obsidian', 'Figma'],
 };
 
+// ----------------------------------------------------------------------------
+// 학력
+// ----------------------------------------------------------------------------
 export const EDUCATION = [
   {
-    school: 'OO대학교',
-    major: '컴퓨터공학과 (재학 중)',
-    period: '2021.03 - Present', // TODO: 실제 연도로 수정
+    school: 'OO대학교', // TODO
+    major: '컴퓨터공학과 (Computer Science)',
+    period: '2021.03 - Present',
   },
 ];
 
+// ----------------------------------------------------------------------------
+// 블로그 / 글
+// ----------------------------------------------------------------------------
 export const BLOG_POSTS = [
   {
-    uid: 'home-server-journey',
-    title: 'WSL에서 Ubuntu Server로 – 홈서버 인프라 재구성기',
+    uid: '1',
+    title: '홈서버 구축기: WSL에서 Ubuntu Server로 이사하기',
     description:
-      'WSL 메모리 이슈와 네트워크 병목을 분석하고, Ubuntu Server + Docker 기반으로 홈서버를 재구성한 과정 정리.',
-    link: 'https://blog.example.com/home-server-journey',
+      'Docker 컨테이너 운영 중 겪은 메모리·네트워크 병목 현상 분석과, Ubuntu Server 마이그레이션을 통한 성능 개선 과정.',
+    link: 'https://blog.example.com/1', // TODO
   },
   {
-    uid: 'leafy-architecture',
-    title: 'Leafy: AR 반려식물 서비스의 아키텍처와 감정 파이프라인',
+    uid: '2',
+    title: 'AI 에이전트의 기억법: Redis와 Vector DB 하이브리드 설계',
     description:
-      'React Native AR 클라이언트, 감정 분석 모델, 백엔드 서버를 어떻게 나누고 연결했는지에 대한 기술적 회고.',
-    link: 'https://blog.example.com/leafy-architecture',
+      '단기/장기 기억을 분리해 LLM 컨텍스트 윈도우를 최적화하는 구조와 Leafy 프로젝트 적용 사례.',
+    link: 'https://blog.example.com/2', // TODO
   },
   {
-    uid: 'obsidian-workflow',
-    title: '개발자를 위한 Obsidian 활용: 공부 기록에서 Digital Garden까지',
+    uid: '3',
+    title: '개발자의 기록 습관: Obsidian으로 만드는 Digital Garden',
     description:
-      '굿노트에서 Obsidian으로 넘어오면서 생긴 변화와, 개발 학습을 쌓고 공유하는 워크플로우 정리.',
-    link: 'https://blog.example.com/obsidian-workflow',
+      '파편화된 지식을 연결된 네트워크로 관리하기 위한 Obsidian 기반 학습 및 지식 관리 워크플로우.',
+    link: 'https://blog.example.com/3', // TODO
   },
 ];
