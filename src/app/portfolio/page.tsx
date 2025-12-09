@@ -66,7 +66,7 @@ const LABEL_MAP: Record<StarKey, string> = {
 };
 type StarGroups = Record<StarKey, string[]>;
 
-function groupDetailsBySTAR(details?: string[]): StarGroups {
+function groupDetailsBySTAR(details?: readonly string[]): StarGroups {
   const groups: StarGroups = { S: [], T: [], A: [], R: [] };
   if (!details) return groups;
   details.forEach((detail) => {
