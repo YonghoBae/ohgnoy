@@ -1,11 +1,10 @@
 'use client';
 
-import { useId, useMemo, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { useMemo } from 'react';
+import { motion } from 'motion/react';
 import { 
   XIcon, 
   DownloadIcon, 
-  ChevronDown, 
   ArrowUpRight,
   PlayIcon
 } from 'lucide-react';
@@ -32,7 +31,6 @@ import {
   SOCIAL_LINKS,
   SKILLS,
   EDUCATION,
-  RESUME_LINK,
 } from './data';
 
 // --- 애니메이션 설정 ---
@@ -84,8 +82,16 @@ function groupDetailsBySTAR(details?: readonly string[]): StarGroups {
 
 const VIDEO_PATTERN = /\.(mp4|webm|mov|m4v)$/i;
 
+function resolveMediaSrc(src: string) {
+  if (!src) return src;
+  if (/^(https?:)?\/\//.test(src)) return src;
+  const normalized = src.replace(/^\/+/, '');
+  return `/${normalized}`;
+}
+
 function ProjectMedia({ src, alt }: { src: string; alt: string }) {
-  const isVideo = VIDEO_PATTERN.test(src);
+  const resolvedSrc = resolveMediaSrc(src);
+  const isVideo = VIDEO_PATTERN.test(resolvedSrc);
   return (
     <MorphingDialog transition={{ type: 'spring', bounce: 0, duration: 0.3 }}>
       <MorphingDialogTrigger>
@@ -93,12 +99,12 @@ function ProjectMedia({ src, alt }: { src: string; alt: string }) {
           {isVideo ? (
             <>
               <video
-                src={src}
+                src={resolvedSrc}
                 autoPlay
                 loop
                 muted
                 playsInline
-                className="aspect-video w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                className="aspect-video w-full object-cover transition-transform duration-500 group-hover:scale-105 print:hidden"
               />
               <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                 <div className="rounded-full bg-white/30 p-3 backdrop-blur-md">
@@ -109,7 +115,7 @@ function ProjectMedia({ src, alt }: { src: string; alt: string }) {
           ) : (
             <>
               <img
-                src={src}
+                src={resolvedSrc}
                 alt={alt}
                 loading="lazy"
                 className="aspect-video w-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -127,20 +133,19 @@ function ProjectMedia({ src, alt }: { src: string; alt: string }) {
         <MorphingDialogContent className="relative aspect-video rounded-2xl bg-zinc-50 p-1 ring-1 ring-zinc-200/50 ring-inset dark:bg-zinc-950 dark:ring-zinc-800/50">
           {isVideo ? (
             <video
-              src={src}
+              src={resolvedSrc}
               autoPlay
               loop
               muted
               playsInline
-              className="aspect-video h-[50vh] w-full rounded-xl bg-black object-contain md:h-[70vh]"
+              className="aspect-video h-[50vh] w-full rounded-xl bg-black object-contain md:h-[70vh] print:hidden"
             />
           ) : (
             <div className="flex h-[50vh] w-full items-center justify-center rounded-xl bg-white dark:bg-zinc-900 md:h-[70vh]">
               <img
-                src={src}
+                src={resolvedSrc}
                 alt={alt}
-                className="max-h-full max-w-full object-contain"
-                loading="lazy"
+                className="h-full w-full object-contain"
               />
             </div>
           )}
@@ -169,16 +174,13 @@ function MagneticSocialLink({ children, link, isDownload = false }: { children: 
 }
 
 function ProjectCard({ project }: { project: (typeof PROJECTS)[number] }) {
-  const [expanded, setExpanded] = useState(false);
-  const detailsId = useId();
-
   const starGroups = useMemo(() => groupDetailsBySTAR(project.details), [project.details]);
   const summaryTech = useMemo(() => project.techStack.slice(0, CORE_TECH_LIMIT), [project.techStack]);
   const remainingTechCount = project.techStack.length - summaryTech.length;
   const hasStarDetails = (['S', 'T', 'A', 'R'] as StarKey[]).some((key) => starGroups[key].length > 0);
 
   return (
-    <div className="flex flex-col space-y-4">
+    <div className="flex flex-col space-y-4 print:space-y-3 print-break-avoid">
       <div className="flex items-start justify-between px-1">
         <div className="space-y-1">
             <a
@@ -220,61 +222,62 @@ function ProjectCard({ project }: { project: (typeof PROJECTS)[number] }) {
         <ProjectMedia src={project.video} alt={project.name} />
       </div>
 
-      <div className="px-1">
+      <div className="px-1 print:px-0">
         <p className="mb-3 text-[15px] leading-relaxed text-zinc-600 dark:text-zinc-400">
           {project.description}
         </p>
 
+        {project.relatedLinks?.length ? (
+          <div className="mb-3 flex flex-wrap gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+            {project.relatedLinks.map((resource) => (
+              <a
+                key={resource.link}
+                href={resource.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 rounded-full border border-zinc-200 px-2.5 py-1 transition hover:border-zinc-400 hover:text-zinc-900 dark:border-zinc-800 dark:hover:border-zinc-600"
+              >
+                {resource.label}
+                <ArrowUpRight className="h-3 w-3" />
+              </a>
+            ))}
+          </div>
+        ) : null}
+
         {hasStarDetails && (
-          <div className="mt-2">
-            <button
-              type="button"
-              onClick={() => setExpanded(!expanded)}
-              aria-expanded={expanded}
-              aria-controls={detailsId}
-              className="group inline-flex items-center gap-1.5 text-xs font-medium text-zinc-500 transition-colors hover:text-zinc-900 dark:hover:text-zinc-200"
-            >
-              {/* [수정] 버튼 텍스트를 더 전문적으로 변경 */}
-              <span className={expanded ? '' : 'underline underline-offset-4'}>
-                {expanded ? '접기' : '기술적 의사결정 (Deep Dive)'}
-              </span>
-              <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
-            </button>
-            
-            <AnimatePresence>
-                {expanded && (
-                <motion.div
-                    id={detailsId}
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="overflow-hidden"
-                >
-                    {/* [수정] 박스 제거하고 깔끔한 텍스트 계층 구조로 변경 */}
-                    <div className="mt-4 space-y-6 border-t border-dashed border-zinc-200 pt-4 dark:border-zinc-800">
-                        {(['S', 'T', 'A', 'R'] as StarKey[]).map((key) => {
-                        const items = starGroups[key];
-                        if (!items.length) return null;
-                        
-                        return (
-                            <div key={key} className="pl-1">
-                                <h5 className="mb-1.5 text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-200">
-                                    {LABEL_MAP[key]}
-                                </h5>
-                                <ul className="list-disc space-y-1.5 pl-4">
-                                    {items.map((item, i) => (
-                                    <li key={i} className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                                        {item}
-                                    </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        );
-                        })}
-                    </div>
-                </motion.div>
-                )}
-            </AnimatePresence>
+          <div className="mt-6 border-t border-dashed border-zinc-200 pt-6 dark:border-zinc-800">
+            <div className="mb-4 text-xs font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+              Technical Deep Dive
+            </div>
+            <div className="relative">
+              <div className="absolute left-2 top-0 h-full w-px bg-gradient-to-b from-zinc-200 to-transparent dark:from-zinc-800" aria-hidden />
+              <ul className="space-y-6">
+                {(['S', 'T', 'A', 'R'] as StarKey[]).map((key, index) => {
+                  const items = starGroups[key];
+                  if (!items.length) return null;
+
+                  return (
+                    <li key={key} className="relative pl-8">
+                      <span className="absolute left-0 top-1 flex h-5 w-5 items-center justify-center rounded-full border border-zinc-300 bg-white text-[10px] font-semibold text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
+                        {index + 1}
+                      </span>
+                      <div className="space-y-2 rounded-2xl bg-zinc-50/70 p-3 ring-1 ring-zinc-100 dark:bg-zinc-900/50 dark:ring-zinc-800/60">
+                        <h5 className="text-xs font-bold uppercase tracking-wide text-zinc-900 dark:text-zinc-100">
+                          {LABEL_MAP[key]}
+                        </h5>
+                        <ul className="space-y-1.5 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                          {items.map((item, i) => (
+                            <li key={i} className="list-disc pl-4 marker:text-zinc-400">
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           </div>
         )}
       </div>
@@ -287,13 +290,14 @@ function ProjectCard({ project }: { project: (typeof PROJECTS)[number] }) {
 export default function Personal() {
   return (
     <motion.main
-      className="mx-auto max-w-2xl space-y-20 px-6 py-24"
+      id="portfolio-shell-root"
+      className="mx-auto max-w-2xl space-y-20 px-6 py-24 print:max-w-none print:space-y-12 print:px-10 print:py-10"
       variants={VARIANTS_CONTAINER}
       initial="hidden"
       animate="visible"
     >
       {/* --- 헤더 --- */}
-      <header className="space-y-4">
+      <header className="space-y-4 print:space-y-2 print-break-avoid">
         <div className='space-y-1'>
           <Link href="/" className="font-semibold text-zinc-900 dark:text-zinc-50">
             배용호 (Bae Yong-ho)
@@ -311,7 +315,7 @@ export default function Personal() {
       </header>
 
       {/* --- 자기소개 --- */}
-      <motion.section variants={VARIANTS_SECTION} transition={TRANSITION_SECTION}>
+      <motion.section variants={VARIANTS_SECTION} transition={TRANSITION_SECTION} className="print-break-avoid">
         <p className="leading-relaxed text-zinc-600 dark:text-zinc-300">
             <span className='font-medium text-zinc-900 dark:text-zinc-100'>안정적인 백엔드 위에 의미 있는 인터랙션</span>을 설계합니다.
             서버 아키텍처와 AI 에이전트 파이프라인 설계를 주력으로 하며, 
@@ -320,81 +324,87 @@ export default function Personal() {
       </motion.section>
 
       {/* --- 프로젝트 --- */}
-      <motion.section variants={VARIANTS_SECTION} transition={TRANSITION_SECTION}>
-        <h3 className="mb-6 font-medium text-zinc-900 dark:text-zinc-100">Selected Projects</h3>
-        <div className="flex flex-col space-y-12">
+      <motion.section variants={VARIANTS_SECTION} transition={TRANSITION_SECTION} className="print-break-avoid">
+        <h3 className="mb-6 font-medium text-zinc-900 dark:text-zinc-100 print:mb-3">Selected Projects</h3>
+        <div className="flex flex-col space-y-12 print:space-y-6">
           {PROJECTS.map((project) => (
             <ProjectCard key={project.name} project={project} />
           ))}
         </div>
       </motion.section>
 
-      {/* --- 업무 경험 --- */}
-      <motion.section variants={VARIANTS_SECTION} transition={TRANSITION_SECTION}>
-        <h3 className="mb-4 font-medium text-zinc-900 dark:text-zinc-100">Work Experience</h3>
-        <div className="flex flex-col space-y-2">
-          {WORK_EXPERIENCE.map((job) => (
-            <a
-              className="group relative overflow-hidden rounded-2xl bg-zinc-100/50 p-[1px] dark:bg-zinc-800/50"
-              href={job.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              key={job.id}
-            >
-              <Spotlight
-                className="-top-40 left-0 from-zinc-500/10 via-zinc-400/10 to-zinc-300/10 blur-2xl"
-                size={300}
-              />
-              <div className="relative h-full w-full rounded-[15px] bg-white p-5 transition-colors group-hover:bg-zinc-50 dark:bg-zinc-950 dark:group-hover:bg-zinc-900">
-                <div className="flex w-full flex-col justify-between gap-1 sm:flex-row sm:items-baseline">
-                   <h4 className="font-medium text-zinc-900 dark:text-zinc-100">
-                    {job.title}
-                  </h4>
-                  <span className="text-xs text-zinc-400 font-mono">
-                    {job.start} — {job.end}
-                  </span>
-                </div>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                    {job.company}
-                </p>
-                <ul className="mt-3 list-disc space-y-1 pl-4 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-                  {job.achievements.map((achievement, index) => (
-                    <li key={index}>{achievement}</li>
-                  ))}
-                </ul>
-              </div>
-            </a>
-          ))}
-        </div>
-      </motion.section>
-
-      {/* --- 기술 스택 --- */}
-      <motion.section variants={VARIANTS_SECTION} transition={TRANSITION_SECTION}>
-        <h3 className="mb-4 font-medium text-zinc-900 dark:text-zinc-100">Skills</h3>
-        <div className="space-y-4">
-          {Object.entries(SKILLS).map(([category, skills]) => (
-            <div key={category} className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
-              <h4 className="w-32 shrink-0 text-sm font-medium text-zinc-500 dark:text-zinc-400 pt-1">
-                {category}
-              </h4>
-              <div className="flex flex-wrap gap-1.5">
-                {skills.map((skill) => (
-                  <span
-                    key={skill}
-                    className="rounded bg-zinc-100 px-2 py-1 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
-                  >
-                    {skill}
-                  </span>
-                ))}
-              </div>
+      {/* --- 과정 프로젝트 & 스킬 --- */}
+      <motion.section variants={VARIANTS_SECTION} transition={TRANSITION_SECTION} className="print-break-avoid">
+        <h3 className="mb-4 font-medium text-zinc-900 dark:text-zinc-100 print:mb-2">Course Projects & Skills</h3>
+        <div className="space-y-8">
+          <div>
+            <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+              Course Projects
             </div>
-          ))}
+            <div className="flex flex-col space-y-2">
+              {WORK_EXPERIENCE.map((job) => (
+                <a
+                  className="group relative overflow-hidden rounded-2xl bg-zinc-100/50 p-[1px] dark:bg-zinc-800/50 print-break-avoid"
+                  href={job.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  key={job.id}
+                >
+                  <Spotlight
+                    className="-top-40 left-0 from-zinc-500/10 via-zinc-400/10 to-zinc-300/10 blur-2xl"
+                    size={300}
+                  />
+                  <div className="relative h-full w-full rounded-[15px] bg-white p-5 transition-colors group-hover:bg-zinc-50 dark:bg-zinc-950 dark:group-hover:bg-zinc-900">
+                    <div className="flex w-full flex-col justify-between gap-1 sm:flex-row sm:items-baseline">
+                       <h4 className="font-medium text-zinc-900 dark:text-zinc-100">
+                        {job.title}
+                      </h4>
+                      <span className="text-xs text-zinc-400 font-mono">
+                        {job.start} — {job.end}
+                      </span>
+                    </div>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                        {job.company}
+                    </p>
+                    <ul className="mt-3 list-disc space-y-1 pl-4 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+                      {job.achievements.map((achievement, index) => (
+                        <li key={index}>{achievement}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+              Skills Snapshot
+            </div>
+            <div className="space-y-4 print:space-y-2">
+              {SKILLS.map((group) => (
+                <div key={group.category} className="space-y-1">
+                  <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                    {group.category}
+                  </div>
+                  <p className="text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+                    {group.skills.join(', ')}
+                  </p>
+                  {group.note && (
+                    <p className="text-xs text-zinc-400 dark:text-zinc-500">
+                      {group.note}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </motion.section>
 
       {/* --- 학력 --- */}
-      <motion.section variants={VARIANTS_SECTION} transition={TRANSITION_SECTION}>
-        <h3 className="mb-4 font-medium text-zinc-900 dark:text-zinc-100">Education</h3>
+      <motion.section variants={VARIANTS_SECTION} transition={TRANSITION_SECTION} className="print-break-avoid">
+        <h3 className="mb-4 font-medium text-zinc-900 dark:text-zinc-100 print:mb-2">Education</h3>
           {EDUCATION.map((edu, index) => (
             <div key={index} className="flex items-center justify-between py-2">
               <div>
@@ -407,9 +417,9 @@ export default function Personal() {
       </motion.section>
 
       {/* --- 블로그 --- */}
-      <motion.section variants={VARIANTS_SECTION} transition={TRANSITION_SECTION}>
-        <h3 className="mb-2 font-medium text-zinc-900 dark:text-zinc-100">Writing</h3>
-        <div className="-mx-3">
+      <motion.section variants={VARIANTS_SECTION} transition={TRANSITION_SECTION} className="print-break-avoid">
+        <h3 className="mb-2 font-medium text-zinc-900 dark:text-zinc-100 print:mb-1">Writing</h3>
+        <div className="-mx-3 print:mx-0">
             <AnimatedBackground
                 enableHover
                 className="h-full w-full rounded-lg bg-zinc-100 dark:bg-zinc-800/50"
@@ -435,17 +445,14 @@ export default function Personal() {
       </motion.section>
 
       {/* --- 연락처 --- */}
-      <motion.section variants={VARIANTS_SECTION} transition={TRANSITION_SECTION}>
-        <h3 className="mb-4 font-medium text-zinc-900 dark:text-zinc-100">Connect</h3>
+      <motion.section variants={VARIANTS_SECTION} transition={TRANSITION_SECTION} className="print-break-avoid">
+        <h3 className="mb-4 font-medium text-zinc-900 dark:text-zinc-100 print:mb-2">Connect</h3>
         <div className="flex flex-wrap items-center gap-3">
           {SOCIAL_LINKS.map((link) => (
             <MagneticSocialLink key={link.label} link={link.link}>
               {link.label}
             </MagneticSocialLink>
           ))}
-          <MagneticSocialLink link={RESUME_LINK} isDownload>
-            Resume
-          </MagneticSocialLink>
         </div>
       </motion.section>
     </motion.main>
