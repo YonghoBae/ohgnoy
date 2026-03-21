@@ -9,8 +9,22 @@ export async function fetchPokemon(idOrName: number | string): Promise<Pokemon> 
   return res.json() as Promise<Pokemon>;
 }
 
+async function chunkPromiseAll<T>(
+  items: number[],
+  fn: (id: number) => Promise<T>,
+  chunkSize = 20
+): Promise<T[]> {
+  const results: T[] = [];
+  for (let i = 0; i < items.length; i += chunkSize) {
+    const chunk = items.slice(i, i + chunkSize);
+    const chunkResults = await Promise.all(chunk.map(fn));
+    results.push(...chunkResults);
+  }
+  return results;
+}
+
 export async function fetchPokemonBatch(ids: number[]): Promise<Pokemon[]> {
-  return Promise.all(ids.map((id) => fetchPokemon(id)));
+  return chunkPromiseAll(ids, fetchPokemon);
 }
 
 export async function fetchAllPokemonNames(): Promise<string[]> {

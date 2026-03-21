@@ -9,8 +9,22 @@ export async function fetchSpecies(id: number): Promise<PokemonSpecies> {
   return res.json() as Promise<PokemonSpecies>;
 }
 
+async function chunkPromiseAll<T>(
+  items: number[],
+  fn: (id: number) => Promise<T>,
+  chunkSize = 20
+): Promise<T[]> {
+  const results: T[] = [];
+  for (let i = 0; i < items.length; i += chunkSize) {
+    const chunk = items.slice(i, i + chunkSize);
+    const chunkResults = await Promise.all(chunk.map(fn));
+    results.push(...chunkResults);
+  }
+  return results;
+}
+
 export async function fetchSpeciesBatch(ids: number[]): Promise<PokemonSpecies[]> {
-  return Promise.all(ids.map((id) => fetchSpecies(id)));
+  return chunkPromiseAll(ids, fetchSpecies);
 }
 
 export function extractKoNames(speciesList: PokemonSpecies[]): Record<number, string> {
