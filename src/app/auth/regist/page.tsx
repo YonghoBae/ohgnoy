@@ -42,7 +42,7 @@ const Regist = () => {
 
       alert("인증번호를 발송했습니다.");
     } catch (err) {
-      console.log('백엔드 API 오류:http://localhost:3130/email\n', err);
+      console.log(`백엔드 API 오류:${Ohgnoy_BackendAPI}/email\n`, err);
     }
   };
 
@@ -54,7 +54,7 @@ const Regist = () => {
         alert('잘못된 인증번호입니다. 다시 입력해주세요.');
       }
     } catch (err) {
-      console.log('백엔드 API 오류:http://localhost:3130/email\n', err);
+      console.log(`백엔드 API 오류:${Ohgnoy_BackendAPI}/email\n`, err);
     }
   };
 
@@ -75,7 +75,7 @@ const Regist = () => {
         router.push('/auth/login');
       }
     } catch (err) {
-      console.error('API 에러발생 : http://localhost:3130/entry');
+      console.error(`API 에러발생 : ${Ohgnoy_BackendAPI}/entry`);
     }
   };
 

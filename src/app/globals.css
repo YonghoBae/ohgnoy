@@ -1,3 +1,43 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@media print {
+  body {
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  video,
+  .print-hidden {
+    display: none !important;
+  }
+
+  .print-break-avoid {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .print-break-before {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .screen-only {
+    display: none !important;
+  }
+}
+
+body:has(#portfolio-shell-root) .switch,
+body:has(#portfolio-shell-root) footer,
+body:has(#portfolio-shell-root) .container > section:first-of-type {
+  display: none !important;
+}
+
+body:has(#portfolio-shell-root) .container {
+  padding-top: 0;
+}

@@ -43,7 +43,7 @@ const Login = () => {
         setPasswordErr(true);
       }
     } catch (err) {
-      console.error('API 에러발생 : http://localhost:3130/login');
+      console.error(`API 에러발생 : ${Ohgnoy_BackendAPI}/login`);
     }
   };
 
