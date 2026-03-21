@@ -10,9 +10,21 @@ export function Intro() {
       <h4 className="text-center md:text-left text-lg mt-5 md:pl-8">
         <Link
           href="/pokemon/list"
-          className="hover:uderline hover:text-blue-600 duration-200 transition-colors"
+          className="hover:underline hover:text-blue-600 duration-200 transition-colors"
         >
           Pokemon
+        </Link>{' '}
+        <Link
+          href="/pokemon/meta"
+          className="hover:underline hover:text-blue-600 duration-200 transition-colors"
+        >
+          Meta
+        </Link>{' '}
+        <Link
+          href="/pokemon/builder"
+          className="hover:underline hover:text-blue-600 duration-200 transition-colors"
+        >
+          Builder
         </Link>{' '}
         <Link
           href="/studys/list"
