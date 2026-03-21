@@ -9,10 +9,12 @@ import { BiGitCompare } from 'react-icons/bi';
 import { FaPlus, FaTrashCan } from 'react-icons/fa6';
 import { useRecoilState } from 'recoil';
 
-import useUserLikedMons from '@/lib/pokemon/getUserLikedMons';
+import useLikedMons from '@/lib/pokemon/hooks/useLikedMons';
 
 import { compareMons } from '@/app/_components/compareMons';
 import { UserInfo } from '@/interfaces/user';
+import TypeBadge from '@/app/_components/TypeBadge';
+import { PokemonTypeName } from '@/types/pokemon/domain';
 
 export const toggleLike = async (
   pokemon: Pokemon,
@@ -55,7 +57,7 @@ export default function PokemonCard({
 }): React.JSX.Element {
   const [compare, setCompare] = useRecoilState(compareMons);
   const router = useRouter();
-  const likedPokemon = useUserLikedMons(userInfo);
+  const { likedMons: likedPokemon, toggle: toggleLikeLocal } = useLikedMons(userInfo);
   const toggleCompare = (pokemon: Pokemon): void => {
     if (compare.mon_1 && compare.mon_1.id === pokemon.id) {
       setCompare({ ...compare, mon_1: undefined });
@@ -88,18 +90,12 @@ export default function PokemonCard({
           (likedPokemon.includes(pokemon.id) ? (
             <FaTrashCan
               className="h-5 w-5 transform cursor-pointer text-red-600 transition-all duration-300 ease-in-out hover:scale-125"
-              /* eslint-disable-next-line @typescript-eslint/no-misused-promises */
-              onClick={(): Promise<void> =>
-                toggleLike(pokemon, userInfo?.user_id, true)
-              }
+              onClick={() => toggleLikeLocal(pokemon.id)}
             />
           ) : (
             <FaPlus
               className="h-5 w-5 transform cursor-pointer text-green-600 transition-all duration-300 ease-in-out hover:scale-125"
-              /* eslint-disable-next-line @typescript-eslint/no-misused-promises */
-              onClick={(): Promise<void> =>
-                toggleLike(pokemon, userInfo?.user_id, false)
-              }
+              onClick={() => toggleLikeLocal(pokemon.id)}
             />
           ))}
         {(compare.mon_1 && compare.mon_1.id === pokemon.id) ||
@@ -132,24 +128,9 @@ export default function PokemonCard({
           className="cursor-pointer"
         />
       </div>
-      <div className="mt-1 flex flex-row items-center justify-center space-x-10">
+      <div className="mt-1 flex flex-row items-center justify-center gap-2">
         {pokemon.types.map(({type:{name}}) => (
-          <div
-            className="flex flex-col items-center justify-center"
-            key={name}
-          >
-            <Image
-              src={`/types/${name}.png`} // ✅ public/types 경로에서 안전하게 로드됨
-              alt={name}
-              width={200}
-              height={200}
-              className="h-10 w-10 cursor-pointer"
-            />
-            {/* <h1 className="text-center text-sm font-bold">
-              {name.toLocaleUpperCase()}
-            </h1> */}
-          </div>
-        ))}
+          <TypeBadge key={name} type={name as PokemonTypeName} size="sm" />
       </div>
     </div>
   );
