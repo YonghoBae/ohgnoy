@@ -1,146 +1,36 @@
-'use client';
+import { fetchAllPokemonNames, fetchPokemonBatch } from "@/lib/pokemon/fetchers/fetchPokemon";
+import { fetchGenerationIds, fetchGenerationList } from "@/lib/pokemon/fetchers/fetchGeneration";
+import { extractKoNames, fetchSpeciesBatch } from "@/lib/pokemon/fetchers/fetchSpecies";
+import PokemonGrid from "./_components/PokemonGrid";
 
-import { GameClient, Pokemon, PokemonClient } from 'pokenode-ts';
-import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
-import { FaMagnifyingGlass } from 'react-icons/fa6';
+interface Props {
+  searchParams: { gen?: string };
+}
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from '@/app/_components/select';
-import useGeneration from '@/lib/pokemon/getGenerationMons';
-import usePokemon from '@/lib/pokemon/getPokemon';
+export default async function PokemonListPage({ searchParams }: Props) {
+  const gen = Math.max(1, Number(searchParams.gen ?? "1"));
 
-import PokemonCard from '@/app/_components/pokemonCard';
-import { UserInfo } from '@/interfaces/user';
-import { Router } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { Ohgnoy_BackendAPI } from '@/lib/constants';
-import { userInfo } from '@/lib/user/token';
+  const [generationList, ids, allNames] = await Promise.all([
+    fetchGenerationList(),
+    fetchGenerationIds(gen),
+    fetchAllPokemonNames(),
+  ]);
 
-const pokemonList = () => {
-  const searchBarRef = useRef<HTMLInputElement>(null);
-  const [generations, setGenerations] = useState<string[]>([]);
-  const [generation, setGeneration] = useState(1);
-  const generationList = useGeneration(generation);
-  const pokemonList = usePokemon();
-  const [searchData, setSearchData] = useState<Map<number, Pokemon>>(new Map());
-  const [pokemonData, setPokemonData] = useState<Map<number, Pokemon>>(
-    new Map(),
-  );
+  const [pokemons, speciesList] = await Promise.all([
+    fetchPokemonBatch(ids),
+    fetchSpeciesBatch(ids),
+  ]);
 
-  const [user, setUser] = useState<UserInfo>({
-    user_id: 0,
-    nick_name: '',
-    email: '',
-  });
-  const router = useRouter();
+  const koNames = extractKoNames(speciesList);
+  const generations = generationList.results.map((g) => g.name);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        router.push('/auth/login');
-        return;
-      }
-
-      const userData = await userInfo(token);
-      setUser(userData);
-    };
-
-    checkAuth();
-
-    async function getGenerations(): Promise<void> {
-      const api = new GameClient();
-      const _generations = await api.listGenerations();
-      const _generations_list = _generations.results.map(
-        (generation) => generation.name,
-      );
-      setGenerations(_generations_list);
-    }
-    void getGenerations();
-  }, []);
-
-  useEffect(() => {
-    if (generationList.length === 0) return;
-    setPokemonData(new Map());
-    async function getPokemonData(): Promise<void> {
-      const api = new PokemonClient();
-      const _pokemon = await Promise.all(
-        generationList.map((pokemon) => api.getPokemonById(pokemon)),
-      );
-      setPokemonData(new Map(_pokemon.map((p) => [p.id, p])));
-    }
-    void getPokemonData();
-  }, [generationList]);
-
-  const HandleSearch = useCallback(
-    async (e: ChangeEvent<HTMLInputElement>): Promise<void> => {
-      if (e.target.value.trim() === '') return setSearchData(new Map());
-      setSearchData(new Map());
-      const api = new PokemonClient();
-      const search = pokemonList
-        .filter((pokemon) =>
-          pokemon.toLocaleLowerCase().startsWith(e.target.value.toLowerCase()),
-        )
-        .slice(0, 10);
-      const _pokemon = await Promise.all(
-        search.map((pokemon) => api.getPokemonByName(pokemon)),
-      );
-      setSearchData(new Map(_pokemon.map((p) => [p.id, p])));
-    },
-    [searchBarRef, pokemonList],
-  );
   return (
-    <div className="flex h-full w-full flex-col items-center border-x bg-gray-500 bg-opacity-20 backdrop-blur-sm backdrop-filter dark:bg-gray-800 dark:bg-opacity-20">
-      <div className="relative mt-5 flex w-4/5 flex-row rounded-full shadow-lg sm:w-2/3">
-        <FaMagnifyingGlass className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-neutral-900 dark:text-neutral-100" />
-        <input
-          ref={searchBarRef}
-          /* eslint-disable-next-line @typescript-eslint/no-misused-promises */
-          onChange={HandleSearch}
-          className="w-full truncate rounded-full bg-neutral-300 bg-opacity-40 p-2 px-5 pl-10 text-neutral-900 dark:bg-neutral-500 dark:bg-opacity-40 dark:text-neutral-100"
-          type="text"
-          placeholder="Search for a Pokemon"
-        />
-        {Boolean(generations.length) && (
-          <Select
-            onValueChange={(value): void => {
-              if (searchBarRef.current) searchBarRef.current.value = '';
-              setGeneration(generations.indexOf(value) + 1);
-            }}
-            value={generations[generation - 1]}
-          >
-            <SelectTrigger className="absolute right-0 w-auto border-0 outline-none ring-0" />
-            <SelectContent align="center">
-              {generations.map((gen) => (
-                <SelectItem
-                  key={gen.toLocaleUpperCase()}
-                  value={gen}
-                  className="text-center text-neutral-900 dark:text-neutral-100"
-                >
-                  {gen.toLocaleUpperCase()}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </div>
-      <div className="mt-5 flex h-[70vh] flex-wrap justify-center overflow-y-scroll scrollbar-hide">
-        {Array.from(
-          searchData.size && searchBarRef.current?.value
-            ? searchData.values()
-            : pokemonData.values(),
-        )
-          .sort((a, b) => a.id - b.id)
-          .map((pokemon) => (
-            <PokemonCard key={pokemon.id} pokemon={pokemon} userInfo={user}/>
-          ))}
-      </div>
-    </div>
+    <PokemonGrid
+      pokemons={pokemons}
+      generations={generations}
+      currentGen={gen}
+      allNames={allNames}
+      koNames={koNames}
+    />
   );
-};
-
-export default pokemonList;
+}
