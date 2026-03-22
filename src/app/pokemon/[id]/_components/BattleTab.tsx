@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PokemonBattleData, BattleSet } from "@/types/pokemon/battle";
+import { FORMATS } from "@/lib/battle/constants";
 import TypeBadge from "@/app/_components/TypeBadge";
 import { PokemonTypeName } from "@/types/pokemon/domain";
 
@@ -148,8 +149,26 @@ function SetCard({ set }: { set: BattleSet }) {
 
 type BattleInnerTab = "sets" | "usage" | "teammates" | "counters";
 
-export default function BattleTab({ data }: { data: PokemonBattleData }) {
+export default function BattleTab({ data, pokemonName }: { data: PokemonBattleData; pokemonName: string }) {
   const [tab, setTab] = useState<BattleInnerTab>("sets");
+  const [format, setFormat] = useState(data.format);
+  const [battleData, setBattleData] = useState<PokemonBattleData>(data);
+  const [formatLoading, setFormatLoading] = useState(false);
+
+  useEffect(() => {
+    if (format === data.format) {
+      setBattleData(data);
+      return;
+    }
+    setFormatLoading(true);
+    // 포켓몬 이름은 data.usage?.nameEn 또는 URL에서 추출
+    const encodedName = encodeURIComponent(pokemonName);
+    fetch(`/api/pokemon/battle?name=${encodedName}&format=${format}`)
+      .then((r) => r.json() as Promise<PokemonBattleData>)
+      .then(setBattleData)
+      .catch(() => setBattleData({ ...data, format, usage: null, sets: [] }))
+      .finally(() => setFormatLoading(false));
+  }, [format, data]);
 
   const tabs: { key: BattleInnerTab; label: string }[] = [
     { key: "sets", label: "추천 세트" },
@@ -158,17 +177,38 @@ export default function BattleTab({ data }: { data: PokemonBattleData }) {
     { key: "counters", label: "카운터" },
   ];
 
-  const { usage, sets } = data;
+  const { usage, sets } = battleData;
 
   return (
     <div className="flex flex-col gap-4 rounded-2xl bg-neutral-200 bg-opacity-50 p-5 dark:bg-neutral-700 dark:bg-opacity-50">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold">실전 데이터</h2>
-        {usage && (
-          <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700 dark:bg-blue-900 dark:text-blue-300">
-            {data.format.toUpperCase()} {usage.usagePercent.toFixed(1)}%
-          </span>
-        )}
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold">실전 데이터</h2>
+          {usage && !formatLoading && (
+            <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+              {format.toUpperCase()} {usage.usagePercent.toFixed(1)}%
+            </span>
+          )}
+          {formatLoading && (
+            <span className="text-xs text-neutral-500">로딩 중...</span>
+          )}
+        </div>
+        {/* 포맷 선택 */}
+        <div className="flex flex-wrap gap-1">
+          {FORMATS.map((f) => (
+            <button
+              key={f.id}
+              onClick={() => setFormat(f.id)}
+              className={`rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors ${
+                format === f.id
+                  ? "bg-blue-600 text-white"
+                  : "bg-neutral-200 text-neutral-600 hover:bg-neutral-300 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {!usage && !sets.length ? (

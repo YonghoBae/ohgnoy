@@ -20,6 +20,8 @@ interface SearchResult {
   nameKo: string;
 }
 
+const isKorean = (s: string) => /[가-힣]/.test(s);
+
 export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -27,11 +29,24 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
   const [selectedPokemon, setSelectedPokemon] = useState<SearchResult | null>(null);
   const [sets, setSets] = useState<BattleSet[]>([]);
   const [setsLoading, setSetsLoading] = useState(false);
+  const [koIndex, setKoIndex] = useState<Record<string, string> | null>(null);
+  const [koIndexLoading, setKoIndexLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  // 한국어 입력 감지 시 인덱스 로드
+  useEffect(() => {
+    if (!isKorean(query) || koIndex !== null || koIndexLoading) return;
+    setKoIndexLoading(true);
+    fetch("/api/pokemon/ko-names")
+      .then((r) => r.json() as Promise<Record<string, string>>)
+      .then(setKoIndex)
+      .catch(() => setKoIndex({}))
+      .finally(() => setKoIndexLoading(false));
+  }, [query, koIndex, koIndexLoading]);
 
   useEffect(() => {
     if (!query.trim()) {
@@ -39,9 +54,19 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
       return;
     }
 
-    const matched = allNames
-      .filter((n) => n.toLowerCase().startsWith(query.toLowerCase()))
-      .slice(0, 8);
+    let matched: string[];
+
+    if (isKorean(query)) {
+      if (!koIndex) return; // 인덱스 로드 전
+      const enNames = Object.entries(koIndex)
+        .filter(([ko]) => ko.startsWith(query))
+        .map(([, en]) => en);
+      matched = enNames.slice(0, 8);
+    } else {
+      matched = allNames
+        .filter((n) => n.toLowerCase().startsWith(query.toLowerCase()))
+        .slice(0, 8);
+    }
 
     if (!matched.length) {
       setResults([]);
@@ -64,7 +89,7 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
       .then(setResults)
       .catch(() => setResults([]))
       .finally(() => setLoading(false));
-  }, [query, allNames]);
+  }, [query, allNames, koIndex]);
 
   const handleSelectPokemon = async (result: SearchResult) => {
     setSelectedPokemon(result);
@@ -135,9 +160,12 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
               ref={inputRef}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="영어 이름으로 검색 (예: garchomp)"
+              placeholder="이름으로 검색 (예: 이상해씨, garchomp)"
               className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2 text-sm outline-none focus:border-blue-400 dark:border-neutral-600 dark:bg-neutral-700"
             />
+            {koIndexLoading && (
+              <p className="text-center text-xs text-neutral-500">한국어 이름 인덱스 로딩 중...</p>
+            )}
             {loading && (
               <p className="text-center text-xs text-neutral-500">검색 중...</p>
             )}

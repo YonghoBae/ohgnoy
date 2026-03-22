@@ -2,14 +2,21 @@ import Image from "next/image";
 import Link from "next/link";
 import { EvolutionNode } from "@/types/pokemon/domain";
 import { fetchPokemon } from "@/lib/pokemon/fetchers/fetchPokemon";
+import { fetchSpecies } from "@/lib/pokemon/fetchers/fetchSpecies";
 
 async function EvolutionNodeCard({ node }: { node: EvolutionNode }) {
   let spriteUrl = "";
+  let koName = node.speciesName;
   try {
-    const pokemon = await fetchPokemon(node.speciesId);
+    const [pokemon, species] = await Promise.all([
+      fetchPokemon(node.speciesId),
+      fetchSpecies(node.speciesId),
+    ]);
     spriteUrl = pokemon.sprites.other?.["official-artwork"].front_default ?? "";
+    const ko = species.names.find((n) => n.language.name === "ko");
+    if (ko) koName = ko.name;
   } catch {
-    // 이미지 없으면 빈칸
+    // 이미지/이름 없으면 기본값 유지
   }
 
   return (
@@ -19,10 +26,10 @@ async function EvolutionNodeCard({ node }: { node: EvolutionNode }) {
     >
       {spriteUrl && (
         <div className="relative h-20 w-20">
-          <Image src={spriteUrl} alt={node.speciesName} fill className="object-contain" />
+          <Image src={spriteUrl} alt={koName} fill className="object-contain" />
         </div>
       )}
-      <span className="text-xs font-semibold capitalize">{node.speciesName}</span>
+      <span className="text-xs font-semibold">{koName}</span>
       {node.minLevel && (
         <span className="text-xs text-neutral-500">Lv. {node.minLevel}</span>
       )}

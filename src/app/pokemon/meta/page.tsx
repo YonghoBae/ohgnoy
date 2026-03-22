@@ -29,7 +29,7 @@ export default async function MetaPage({ searchParams }: Props) {
       </div>
 
       <Suspense fallback={null}>
-        <FormatSelector current={formatId} />
+        <FormatSelector current={formatId} currentMonth={searchParams.month} />
       </Suspense>
 
       <div className="rounded-2xl bg-neutral-200 bg-opacity-50 p-4 dark:bg-neutral-700 dark:bg-opacity-50">

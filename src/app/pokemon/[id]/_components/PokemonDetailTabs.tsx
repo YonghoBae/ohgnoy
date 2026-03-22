@@ -13,6 +13,7 @@ interface Props {
   levelUpMoves: PokemonMove[];
   tmMoves: PokemonMove[];
   battleData: PokemonBattleData;
+  pokemonName: string;
 }
 
 export default function PokemonDetailTabs({
@@ -20,6 +21,7 @@ export default function PokemonDetailTabs({
   levelUpMoves,
   tmMoves,
   battleData,
+  pokemonName,
 }: Props) {
   const [tab, setTab] = useState<Tab>("info");
 
@@ -55,7 +57,7 @@ export default function PokemonDetailTabs({
         <MoveList levelUpMoves={levelUpMoves} tmMoves={tmMoves} />
       )}
 
-      {tab === "battle" && <BattleTab data={battleData} />}
+      {tab === "battle" && <BattleTab data={battleData} pokemonName={pokemonName} />}
     </div>
   );
 }

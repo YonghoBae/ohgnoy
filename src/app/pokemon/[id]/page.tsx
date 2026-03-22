@@ -69,6 +69,7 @@ export default async function PokemonDetailPage({ params }: Props) {
           levelUpMoves={detail.levelUpMoves}
           tmMoves={detail.tmMoves}
           battleData={battleData}
+          pokemonName={pokemon.name}
         />
       </div>
     );
