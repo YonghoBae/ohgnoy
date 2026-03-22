@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { UsageStat } from "@/types/pokemon/battle";
 
 const SMOGON_STATS_BASE = "https://www.smogon.com/stats";
@@ -28,16 +29,15 @@ interface RawUsageStat {
   "Tera Types"?: Record<string, number>;
 }
 
-export async function fetchUsageStats(
+async function _fetchUsageStats(
   format: string,
-  month?: string,
-  cutoff: number = DEFAULT_CUTOFF
+  month: string,
+  cutoff: number
 ): Promise<Record<string, UsageStat> | null> {
-  const targetMonth = month ?? getLatestMonth();
-  const url = `${SMOGON_STATS_BASE}/${targetMonth}/chaos/${format}-${cutoff}.json`;
-
+  const url = `${SMOGON_STATS_BASE}/${month}/chaos/${format}-${cutoff}.json`;
   try {
-    const res = await fetch(url, { next: { revalidate: false } } as RequestInit);
+    // 17MB 원본을 fetch cache에 넣지 않고, no-store로 받아 처리된 결과만 unstable_cache에 저장
+    const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) return null;
 
     const chaos = await res.json() as ChaosData;
@@ -63,6 +63,19 @@ export async function fetchUsageStats(
   } catch {
     return null;
   }
+}
+
+export function fetchUsageStats(
+  format: string,
+  month?: string,
+  cutoff: number = DEFAULT_CUTOFF
+): Promise<Record<string, UsageStat> | null> {
+  const targetMonth = month ?? getLatestMonth();
+  return unstable_cache(
+    () => _fetchUsageStats(format, targetMonth, cutoff),
+    [`usage-stats-${format}-${targetMonth}-${cutoff}`],
+    { revalidate: false }
+  )();
 }
 
 export interface UsageRankEntry {
