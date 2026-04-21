@@ -131,6 +131,7 @@ export default function PokemonCard({
       <div className="mt-1 flex flex-row items-center justify-center gap-2">
         {pokemon.types.map(({type:{name}}) => (
           <TypeBadge key={name} type={name as PokemonTypeName} size="sm" />
+        ))}
       </div>
     </div>
   );
