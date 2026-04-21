@@ -3,6 +3,8 @@ import { fetchGenerationIds, fetchGenerationList } from "@/lib/pokemon/fetchers/
 import { extractKoNames, fetchSpeciesBatch } from "@/lib/pokemon/fetchers/fetchSpecies";
 import PokemonGrid from "./_components/PokemonGrid";
 
+export const dynamic = 'force-dynamic';
+
 interface Props {
   searchParams: { gen?: string };
 }
