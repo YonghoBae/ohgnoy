@@ -26,7 +26,7 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch(`${Ohgnoy_BackendAPI}/login`, {
+      const response = await fetch(`${Ohgnoy_BackendAPI}/user/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(user),

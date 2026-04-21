@@ -30,7 +30,7 @@ const Regist = () => {
 
   const sendMail = async (e: React.MouseEvent<HTMLButtonElement>) => {
     try {
-      const response = await fetch(`${Ohgnoy_BackendAPI}/email`, {
+      const response = await fetch(`${Ohgnoy_BackendAPI}/user/email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(user),
