@@ -3,9 +3,10 @@ import { Ohgnoy_BackendAPI } from "@/lib/constants";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
-  const response = await fetch(`${Ohgnoy_BackendAPI}/users/${params.userId}/likedMons`, {
+  const { userId } = await params;
+  const response = await fetch(`${Ohgnoy_BackendAPI}/users/${userId}/likedMons`, {
     headers: { "Content-Type": "application/json" },
   });
 
