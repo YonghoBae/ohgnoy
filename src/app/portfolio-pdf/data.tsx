@@ -50,6 +50,7 @@ export const PROJECTS = [
     video: '/assets/blog/portfolio/homeserver_diagram.svg', // [전략] 아키텍처 다이어그램을 영상화하거나 이미지로 대체 추천
     link: 'https://ohgnoy.vercel.app/',
     architectureImg: '/images/home-server-architecture.svg',
+    relatedLinks: [],
     description:
       '유휴 장비를 활용해 구축한 온프레미스 Docker 환경입니다. Nginx Proxy Manager와 GitHub Actions를 연동하여 개인 프로젝트의 배포 자동화(CI/CD) 및 HTTPS 보안 환경을 0원으로 구축했습니다.',
     details: [

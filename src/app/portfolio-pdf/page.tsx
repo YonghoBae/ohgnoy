@@ -55,7 +55,7 @@ const LABEL_MAP: Record<StarKey, string> = {
 };
 type StarGroups = Record<StarKey, string[]>;
 
-function groupDetailsBySTAR(details?: string[]): StarGroups {
+function groupDetailsBySTAR(details?: readonly string[]): StarGroups {
   const groups: StarGroups = { S: [], T: [], A: [], R: [] };
   if (!details) return groups;
   details.forEach((detail) => {
@@ -130,7 +130,7 @@ function ProjectCard({ project }: { project: (typeof PROJECTS)[number] }) {
   const summaryTech = useMemo(() => project.techStack.slice(0, CORE_TECH_LIMIT), [project.techStack]);
   const remainingTechCount = project.techStack.length - summaryTech.length;
   const hasStarDetails = (['S', 'T', 'A', 'R'] as StarKey[]).some((key) => starGroups[key].length > 0);
-  const mediaSrc = project.architectureImg || project.video;
+  const mediaSrc = project.architectureImg;
 
   return (
     <div className="flex flex-col space-y-4 print:space-y-2 print:break-inside-avoid">
