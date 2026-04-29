@@ -44,7 +44,7 @@ const CreatePost = () => {
     try {
       const token = localStorage.getItem('token');
 
-      const response = await fetch(`${Ohgnoy_BackendAPI}/create`, {
+      const response = await fetch(`${Ohgnoy_BackendAPI}/post`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,

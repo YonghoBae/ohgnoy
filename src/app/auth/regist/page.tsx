@@ -62,7 +62,7 @@ const Regist = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch(`${Ohgnoy_BackendAPI}/entry`, {
+      const response = await fetch(`${Ohgnoy_BackendAPI}/user/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(user),

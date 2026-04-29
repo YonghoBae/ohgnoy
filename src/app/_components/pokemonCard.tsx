@@ -23,8 +23,7 @@ export const toggleLike = async (
 ): Promise<void> => {
   try {
     if (liked) {
-      // 좋아요 취소: REST API를 통해 좋아요 삭제 요청
-      await fetch(`/api/likes`, {
+      await fetch(`/api/like/${pokemon.id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -32,8 +31,7 @@ export const toggleLike = async (
         body: JSON.stringify({ user_id, pokemon_id: pokemon.id }),
       });
     } else {
-      // 좋아요 추가: REST API를 통해 좋아요 추가 요청
-      await fetch(`/api/likes`, {
+      await fetch(`/api/like/${pokemon.id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
