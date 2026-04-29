@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Ohgnoy_BackendAPI } from "@/lib/constants";
 
-export async function POST(req: NextRequest, { params }: { params: { postId: string } }) {
-  const { postId } = params;
+export async function POST(req: NextRequest, { params }: { params: Promise<{ postId: string }> }) {
+  const { postId } = await params;
   const body = await req.json();
   const response = await fetch(`${Ohgnoy_BackendAPI}/like/${postId}`, {
     method: "POST",
@@ -14,8 +14,8 @@ export async function POST(req: NextRequest, { params }: { params: { postId: str
   return NextResponse.json(data, { status: response.status });
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { postId: string } }) {
-  const { postId } = params;
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ postId: string }> }) {
+  const { postId } = await params;
   const body = await req.json();
   const response = await fetch(`${Ohgnoy_BackendAPI}/like/${postId}`, {
     method: "DELETE",
@@ -27,8 +27,8 @@ export async function DELETE(req: NextRequest, { params }: { params: { postId: s
   return NextResponse.json(data, { status: response.status });
 }
 
-export async function GET(req: NextRequest, { params }: { params: { postId: string } }) {
-  const { postId } = params;
+export async function GET(req: NextRequest, { params }: { params: Promise<{ postId: string }> }) {
+  const { postId } = await params;
   const response = await fetch(`${Ohgnoy_BackendAPI}/like/${postId}`, {
     method: "GET",
   });
