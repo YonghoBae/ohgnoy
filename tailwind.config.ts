@@ -20,6 +20,21 @@ const config: Config = {
         "accent-7": "#333",
         success: "#0070f3",
         cyan: "#79FFE1",
+        /* Nord semantic tokens */
+        surface:    "rgb(var(--color-surface) / <alpha-value>)",
+        "surface-2":"rgb(var(--color-surface-2) / <alpha-value>)",
+        border:     "rgb(var(--color-border) / <alpha-value>)",
+        "text-base":"rgb(var(--color-text) / <alpha-value>)",
+        "text-muted":"rgb(var(--color-text-muted) / <alpha-value>)",
+        primary:    "rgb(var(--color-primary) / <alpha-value>)",
+        "primary-hover":"rgb(var(--color-primary-hover) / <alpha-value>)",
+        /* shadcn-compatible tokens (select.tsx) */
+        popover:    "rgb(var(--popover) / <alpha-value>)",
+        "popover-foreground":"rgb(var(--popover-foreground) / <alpha-value>)",
+        accent:     "rgb(var(--accent) / <alpha-value>)",
+        "accent-foreground":"rgb(var(--accent-foreground) / <alpha-value>)",
+        muted:      "rgb(var(--muted) / <alpha-value>)",
+        "muted-foreground":"rgb(var(--muted-foreground) / <alpha-value>)",
       },
       spacing: {
         28: "7rem",
