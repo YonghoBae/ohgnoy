@@ -5,18 +5,19 @@ import FormatSelector from "./_components/FormatSelector";
 import UsageRankingTable from "./_components/UsageRankingTable";
 
 interface Props {
-  searchParams: { format?: string; month?: string };
+  searchParams: Promise<{ format?: string; month?: string }>;
 }
 
 export default async function MetaPage({ searchParams }: Props) {
-  const formatId = FORMATS.find((f) => f.id === searchParams.format)
-    ? searchParams.format!
+  const { format, month } = await searchParams;
+  const formatId = FORMATS.find((f) => f.id === format)
+    ? format!
     : DEFAULT_FORMAT;
 
   const cutoff = CUTOFF_BY_FORMAT[formatId] ?? 1695;
   const formatLabel = FORMATS.find((f) => f.id === formatId)?.label ?? formatId;
 
-  const statsMap = await fetchUsageStats(formatId, searchParams.month, cutoff);
+  const statsMap = await fetchUsageStats(formatId, month, cutoff);
   const ranking = statsMap ? getUsageRanking(statsMap, 50) : [];
 
   return (
@@ -29,7 +30,7 @@ export default async function MetaPage({ searchParams }: Props) {
       </div>
 
       <Suspense fallback={null}>
-        <FormatSelector current={formatId} currentMonth={searchParams.month} />
+        <FormatSelector current={formatId} currentMonth={month} />
       </Suspense>
 
       <div className="rounded-2xl bg-neutral-200 bg-opacity-50 p-4 dark:bg-neutral-700 dark:bg-opacity-50">

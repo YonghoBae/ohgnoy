@@ -1,12 +1,14 @@
 export default function Loading() {
   return (
-    <div className="flex h-full w-full flex-col items-center border-x bg-gray-500 bg-opacity-20 backdrop-blur-sm backdrop-filter dark:bg-gray-800 dark:bg-opacity-20">
-      <div className="relative mt-5 h-10 w-4/5 animate-pulse rounded-full bg-neutral-300 dark:bg-neutral-600 sm:w-2/3" />
-      <div className="mt-5 flex h-[70vh] flex-wrap justify-center overflow-hidden">
+    <div className="-mx-5 flex flex-col border-x border-border bg-surface-2/20 backdrop-blur-sm">
+      <div className="py-3 px-4">
+        <div className="relative mx-auto h-10 w-full animate-pulse rounded-full bg-surface-2 sm:w-2/3" />
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 px-4 py-4">
         {Array.from({ length: 20 }).map((_, i) => (
           <div
             key={i}
-            className="m-5 h-[260px] w-[14rem] animate-pulse rounded-2xl bg-neutral-300 dark:bg-neutral-600"
+            className="h-[220px] w-full animate-pulse rounded-2xl bg-surface-2"
           />
         ))}
       </div>

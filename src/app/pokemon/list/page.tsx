@@ -6,11 +6,12 @@ import PokemonGrid from "./_components/PokemonGrid";
 export const dynamic = 'force-dynamic';
 
 interface Props {
-  searchParams: { gen?: string };
+  searchParams: Promise<{ gen?: string }>;
 }
 
 export default async function PokemonListPage({ searchParams }: Props) {
-  const gen = Math.max(1, Number(searchParams.gen ?? "1"));
+  const { gen: genParam } = await searchParams;
+  const gen = Math.max(1, Number(genParam ?? "1"));
 
   const [generationList, ids, allNames] = await Promise.all([
     fetchGenerationList(),

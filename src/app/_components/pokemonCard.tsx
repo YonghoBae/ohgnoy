@@ -2,43 +2,25 @@
 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
 import { Pokemon } from 'pokenode-ts';
 import React from 'react';
 import { BiGitCompare } from 'react-icons/bi';
 import { FaPlus, FaTrashCan } from 'react-icons/fa6';
-import { useRecoilState } from 'recoil';
 
 import useLikedMons from '@/lib/pokemon/hooks/useLikedMons';
+import { likeApi } from '@/lib/api/like';
 
-import { compareMons } from '@/app/_components/compareMons';
+import { useCompareStore } from '@/app/_components/compareMons';
 import { UserInfo } from '@/interfaces/user';
 import TypeBadge from '@/app/_components/TypeBadge';
 import { PokemonTypeName } from '@/types/pokemon/domain';
 
 export const toggleLike = async (
   pokemon: Pokemon,
-  user_id: number,
-  liked: boolean,
+  userId: number,
 ): Promise<void> => {
   try {
-    if (liked) {
-      await fetch(`/api/like/${pokemon.id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ user_id, pokemon_id: pokemon.id }),
-      });
-    } else {
-      await fetch(`/api/like/${pokemon.id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ user_id, pokemon_id: pokemon.id }),
-      });
-    }
+    await likeApi.toggle(pokemon.id, { userId, pokemon_id: pokemon.id });
   } catch (error) {
     console.error('Error toggling like:', error);
   }
@@ -46,31 +28,36 @@ export const toggleLike = async (
 
 export default function PokemonCard({
   pokemon,
-  path = '',
   userInfo,
 }: {
   pokemon: Pokemon;
   path?: string;
   userInfo: UserInfo;
 }): React.JSX.Element {
-  const [compare, setCompare] = useRecoilState(compareMons);
+  const { compare, setCompare } = useCompareStore();
   const router = useRouter();
   const { likedMons: likedPokemon, toggle: toggleLikeLocal } = useLikedMons(userInfo);
+
   const toggleCompare = (pokemon: Pokemon): void => {
     if (compare.mon_1 && compare.mon_1.id === pokemon.id) {
       setCompare({ ...compare, mon_1: undefined });
+      return;
     }
     if (compare.mon_2 && compare.mon_2.id === pokemon.id) {
       setCompare({ ...compare, mon_2: undefined });
+      return;
     }
     if (!compare.mon_1 && !compare.mon_2) {
       setCompare({ ...compare, mon_1: pokemon });
+      return;
     }
     if (compare.mon_1 && !compare.mon_2 && compare.mon_1.id !== pokemon.id) {
       setCompare({ ...compare, mon_2: pokemon });
+      return;
     }
     if (!compare.mon_1 && compare.mon_2 && compare.mon_2.id !== pokemon.id) {
       setCompare({ ...compare, mon_1: pokemon });
+      return;
     }
     if (
       compare.mon_1 &&
@@ -81,10 +68,11 @@ export default function PokemonCard({
       setCompare({ ...compare, mon_1: pokemon });
     }
   };
+
   return (
     <div className="m-5 flex h-fit w-[14rem] flex-col items-center justify-center rounded-2xl bg-neutral-300 bg-opacity-50 px-3 py-2 shadow-xl shadow-neutral-500 backdrop-blur-sm backdrop-filter dark:bg-neutral-500 dark:bg-opacity-50 dark:shadow-neutral-900">
       <div className="mb-1 flex w-full flex-row justify-between">
-        {Boolean(userInfo?.user_id) &&
+        {Boolean(userInfo?.userId) &&
           (likedPokemon.includes(pokemon.id) ? (
             <FaTrashCan
               className="h-5 w-5 transform cursor-pointer text-red-600 transition-all duration-300 ease-in-out hover:scale-125"

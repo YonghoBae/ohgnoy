@@ -29,41 +29,51 @@ export default function PokemonCard({
   const comparing = isComparing(pokemon);
 
   return (
-    <div className="m-5 flex h-fit w-[14rem] flex-col items-center justify-center rounded-2xl bg-neutral-300 bg-opacity-50 px-3 py-2 shadow-xl shadow-neutral-500 backdrop-blur-sm backdrop-filter dark:bg-neutral-500 dark:bg-opacity-50 dark:shadow-neutral-900">
+    <div className="flex h-fit w-full flex-col items-center justify-center rounded-2xl bg-surface-2/60 px-3 py-2 shadow-md backdrop-blur-sm dark:shadow-none dark:border dark:border-border">
       <div className="mb-1 flex w-full flex-row justify-between">
-        {Boolean(userInfo?.user_id) &&
+        {Boolean(userInfo?.userId) &&
           (liked ? (
             <FaTrashCan
-              className="h-5 w-5 transform cursor-pointer text-red-600 transition-all duration-300 ease-in-out hover:scale-125"
+              role="button"
+              tabIndex={0}
+              aria-label="좋아요 취소"
+              className="h-5 w-5 transform cursor-pointer text-red-500 transition-all duration-300 ease-in-out hover:scale-125"
               onClick={() => toggle(pokemon.id)}
             />
           ) : (
             <FaPlus
+              role="button"
+              tabIndex={0}
+              aria-label="좋아요 추가"
               className="h-5 w-5 transform cursor-pointer text-green-600 transition-all duration-300 ease-in-out hover:scale-125"
               onClick={() => toggle(pokemon.id)}
             />
           ))}
         <BiGitCompare
+          role="button"
+          tabIndex={0}
+          aria-label={comparing ? "비교 취소" : "비교에 추가"}
           onClick={() => toggleCompare(pokemon)}
-          className={`h-5 w-5 transform cursor-pointer transition-all duration-300 ease-in-out hover:scale-125 ${
-            comparing ? "text-red-700" : "text-blue-700"
+          className={`h-5 w-5 transform cursor-pointer transition-all duration-300 ease-in-out hover:scale-125 ml-auto ${
+            comparing ? "text-red-600" : "text-primary"
           }`}
         />
       </div>
-      <h1 className="w-11/12 truncate text-center text-xl font-extrabold">
+      <h1 className="w-11/12 truncate text-center text-base font-extrabold">
         {koName ?? pokemon.name.toUpperCase()}
       </h1>
-      <div
-        className="cursor-pointer"
+      <button
+        className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary rounded-xl"
         onClick={() => router.push(`/pokemon/${pokemon.id}`)}
+        aria-label={`${koName ?? pokemon.name} 상세 보기`}
       >
         <Image
           src={String(pokemon.sprites.other?.["official-artwork"].front_default)}
           alt={pokemon.name}
-          width={170}
-          height={170}
+          width={130}
+          height={130}
         />
-      </div>
+      </button>
       <div className="mt-1 flex flex-row items-center justify-center gap-2">
         {pokemon.types.map(({ type: { name } }) => (
           <TypeBadge key={name} type={name as PokemonTypeName} size="sm" />

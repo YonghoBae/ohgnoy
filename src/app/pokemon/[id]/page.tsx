@@ -17,11 +17,12 @@ import PokemonDetailTabs from "./_components/PokemonDetailTabs";
 const DEFAULT_FORMAT = "gen9ou";
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default async function PokemonDetailPage({ params }: Props) {
-  const idOrName = isNaN(Number(params.id)) ? params.id : Number(params.id);
+  const { id } = await params;
+  const idOrName = isNaN(Number(id)) ? id : Number(id);
 
   try {
     const pokemon = await fetchPokemon(idOrName);
