@@ -88,6 +88,7 @@ const Switch = () => {
       suppressHydrationWarning
       className={styles.switch}
       onClick={handleModeSwitch}
+      aria-label={`테마 전환 (현재: ${mode})`}
     />
   );
 };
