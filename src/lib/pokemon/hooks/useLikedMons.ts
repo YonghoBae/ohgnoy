@@ -34,10 +34,10 @@ export default function useLikedMons(userInfo: UserInfo): {
   const [likedMons, setLikedMons] = React.useState<number[]>([]);
 
   React.useEffect(() => {
-    if (!userInfo?.user_id) return;
+    if (!userInfo?.userId) return;
     // 백엔드 준비 전까지 localStorage 사용
     setLikedMons(getLocalLikedMons());
-  }, [userInfo?.user_id]);
+  }, [userInfo?.userId]);
 
   const toggle = React.useCallback((pokemonId: number) => {
     setLikedMons(toggleLocalLike(pokemonId));

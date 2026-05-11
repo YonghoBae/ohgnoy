@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import FormAlert from '@/app/_components/formAlert';
-import { Ohgnoy_BackendAPI } from '@/lib/constants';
+import { postApi } from '@/lib/api/post';
+import { inputClass, buttonPrimaryClass } from '@/lib/utils';
 
 const CreatePost = () => {
   const router = useRouter();
@@ -42,17 +43,8 @@ const CreatePost = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
-
-      const response = await fetch(`${Ohgnoy_BackendAPI}/post`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      const result = await response.json();
+      const token = localStorage.getItem('token') ?? '';
+      const result = await postApi.create(formData, token);
 
       if (result.msg === 'Success') {
         router.push('/');
@@ -68,7 +60,7 @@ const CreatePost = () => {
 
   return (
     <>
-      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
+      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8 text-text-base">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
           <h2 className="mt-10 text-center text-2xl font-bold leading-9">
             게시글 작성
@@ -92,7 +84,7 @@ const CreatePost = () => {
                   onChange={changePost}
                   type="text"
                   required
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  className={inputClass}
                 />
                 {titleErr && <FormAlert message="제목을 입력해주세요." onClose={() => setTitleErr(false)} />}
               </div>
@@ -112,7 +104,7 @@ const CreatePost = () => {
                   value={post.excerpt}
                   onChange={changePost}
                   required
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  className={inputClass}
                 />
                 {excerptErr && <FormAlert message="내용 요약을 입력해주세요." onClose={() => setExcerptErr(false)} />}
               </div>
@@ -131,7 +123,7 @@ const CreatePost = () => {
                   name="coverImage"
                   onChange={changePost}
                   type="file"
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  className={inputClass}
                 />
               </div>
             </div>
@@ -139,7 +131,7 @@ const CreatePost = () => {
             <div>
               <button
                 type="submit"
-                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                className={buttonPrimaryClass}
               >
                 게시글 작성
               </button>

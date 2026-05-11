@@ -1,15 +1,14 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import React from "react";
-import { LikedMon, UserSession } from "@/interfaces/pokemon";
+import { LikedMon } from "@/interfaces/pokemon";
 import { UserInfo } from "@/interfaces/user";
 
 export default function useUserLikedMons(userInfo:UserInfo): number[] {
 	const [userLikedMons, setUserLikedMons] = React.useState<number[]>([]);
 
 	React.useEffect(() => {
-		const userId = userInfo?.user_id;
+		const userId = userInfo?.userId;
 		if (!userId) {
 			return;
 		}
@@ -29,7 +28,7 @@ export default function useUserLikedMons(userInfo:UserInfo): number[] {
 		};
 
 		fetchLikedMons();
-	}, [userInfo?.user_id]);
+	}, [userInfo?.userId]);
 
 	return userLikedMons;
 }

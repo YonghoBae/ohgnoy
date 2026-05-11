@@ -1,11 +1,11 @@
 'use client';
 
-import { ReactHTML, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { UserLogin } from '@/interfaces/user';
 import { useRouter } from 'next/navigation';
 import FormAlert from '@/app/_components/formAlert';
-import Link from 'next/link';
-import { BLOG_NAME, Ohgnoy_BackendAPI } from '@/lib/constants';
+import { userApi } from '@/lib/api/user';
+import { inputClass, buttonPrimaryClass } from '@/lib/utils';
 
 const Login = () => {
   const router = useRouter();
@@ -26,140 +26,101 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch(`${Ohgnoy_BackendAPI}/user/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(user),
-      });
+      const result = await userApi.login(user);
 
-      const result = await response.json();
-
-      if (result.code == 200) {
+      if (result.code == 2000) {
         localStorage.setItem('token', result.data);
         router.push('/');
-      } else if (result.code == 400 && result.msg == 'NotExitEmail') {
+      } else if (result.message == 'NotExitEmail') {
         setEmailErr(true);
-      } else if (result.code == 400 && result.msg == 'InCorrectPassword') {
+      } else if (result.message == 'InCorrectPassword') {
         setPasswordErr(true);
       }
     } catch (err) {
-      console.error(`API 에러발생 : ${Ohgnoy_BackendAPI}/login`);
+      console.error('API 에러발생 : /user/login');
     }
   };
 
   return (
-    <>
-      {/*
-            This example requires updating your template:
-    
-            ```
-            <html class="h-full bg-white">
-            <body class="h-full">
-            ```
-          */}
-      <div className="dark:text-stone-50 flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight">
-            {/* <div>
-              <Link
-                href="/"
-                className="text-center mx-auto h-10 w-auto first-lettr:hover:underline"
-              >
-                {BLOG_NAME}
-              </Link>
-            </div> */}
-            로그인
-          </h2>
-        </div>
+    <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-sm">
+        <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight">
+          로그인
+        </h2>
+      </div>
 
-        <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-          <form className="space-y-6" onSubmit={loginSubmit}>
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium leading-6"
-              >
-                Email address
+      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+        <form className="space-y-6" onSubmit={loginSubmit}>
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium leading-6">
+              Email address
+            </label>
+            <div className="mt-2">
+              <input
+                id="email"
+                name="email"
+                value={user.email}
+                onChange={changeUser}
+                type="email"
+                required
+                autoComplete="email"
+                className={inputClass}
+              />
+            </div>
+            {emailErr && (
+              <FormAlert
+                message="존재하지 않는 이메일입니다."
+                onClose={() => setEmailErr(false)}
+              />
+            )}
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between">
+              <label htmlFor="password" className="block text-sm font-medium leading-6">
+                Password
               </label>
-              <div className="mt-2">
-                <input
-                  id="email"
-                  name="email"
-                  value={user.email}
-                  onChange={changeUser}
-                  type="email"
-                  required
-                  autoComplete="email"
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                />
+              <div className="text-sm">
+                <a href="/auth/forgot" className="font-semibold text-primary hover:text-primary-hover transition-colors">
+                  Forgot password?
+                </a>
               </div>
-              {emailErr && (
+            </div>
+            <div className="mt-2">
+              <input
+                id="password"
+                name="password"
+                value={user.password}
+                onChange={changeUser}
+                type="password"
+                required
+                autoComplete="current-password"
+                className={inputClass}
+              />
+              {passwordErr && (
                 <FormAlert
-                  message="NotExitEmail"
-                  onClose={() => setEmailErr(false)}
+                  message="비밀번호가 올바르지 않습니다."
+                  onClose={() => setPasswordErr(false)}
                 />
               )}
             </div>
+          </div>
 
-            <div>
-              <div className="flex items-center justify-between">
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium leading-6"
-                >
-                  Password
-                </label>
-                <div className="text-sm">
-                  <a
-                    href="/auth/forgot"
-                    className="font-semibold text-indigo-600 hover:text-indigo-500"
-                  >
-                    Forgot password?
-                  </a>
-                </div>
-              </div>
-              <div className="mt-2">
-                <input
-                  id="password"
-                  name="password"
-                  value={user.password}
-                  onChange={changeUser}
-                  type="password"
-                  required
-                  autoComplete="current-password"
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                />
-                {passwordErr && (
-                  <FormAlert
-                    message="Wrong Passowrd"
-                    onClose={() => setPasswordErr(false)}
-                  />
-                )}
-              </div>
-            </div>
+          <div>
+            <button type="submit" className={buttonPrimaryClass}>
+              Sign in
+            </button>
+          </div>
+        </form>
 
-            <div>
-              <button
-                type="submit"
-                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              >
-                Sign in
-              </button>
-            </div>
-          </form>
-
-          <p className="mt-10 text-center text-sm text-gray-500">
-            Not a member?{' '}
-            <a
-              href="/auth/regist"
-              className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500"
-            >
-              Start a 14 day free trial
-            </a>
-          </p>
-        </div>
+        <p className="mt-10 text-center text-sm text-text-muted">
+          Not a member?{' '}
+          <a href="/auth/regist" className="font-semibold leading-6 text-primary hover:text-primary-hover transition-colors">
+            Start a 14 day free trial
+          </a>
+        </p>
       </div>
-    </>
+    </div>
   );
 };
 

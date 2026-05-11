@@ -1,5 +1,5 @@
 export type UserRegist = {
-  nick_name: string;
+  nickname: string;
   email: string;
   password: string;
 };
@@ -10,12 +10,12 @@ export type UserLogin = {
 };
 
 export type UserInfo = {
-  user_id: number;
-  nick_name: string;
+  userId: number;
+  nickname: string;
   email: string;
 };
 
 export type EmailAuth = {
-  auth_code: number|undefined;
-  auth_code_input: number|undefined;
+  auth_code: number | undefined;
+  auth_code_input: number | undefined;
 };
