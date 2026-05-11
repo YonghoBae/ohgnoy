@@ -1,56 +1,46 @@
 import { BLOG_NAME } from '@/lib/constants';
 import Link from 'next/link';
+import { ThemeSwitcher } from './theme-switcher';
+import PokemonDropdown from './PokemonDropdown';
+import { FaRegUser } from 'react-icons/fa';
+
+const navLinks = [
+  { href: '/studys/list', label: 'Study' },
+  { href: '/portfolio', label: 'Portfolio' },
+];
 
 export function Intro() {
   return (
-    <section className="flex-col md:flex-row flex items-center md:justify-between mt-16 mb-16 md:mb-12">
-      <h1 className="text-5xl md:text-8xl font-bold tracking-tighter leading-tight md:pr-8">
-        <Link href="/">{BLOG_NAME}.</Link>
-      </h1>
-      <h4 className="text-center md:text-left text-lg mt-5 md:pl-8">
-        <Link
-          href="/pokemon/list"
-          className="hover:underline hover:text-blue-600 duration-200 transition-colors"
-        >
-          Pokemon
-        </Link>{' '}
-        <Link
-          href="/pokemon/meta"
-          className="hover:underline hover:text-blue-600 duration-200 transition-colors"
-        >
-          Meta
-        </Link>{' '}
-        <Link
-          href="/pokemon/builder"
-          className="hover:underline hover:text-blue-600 duration-200 transition-colors"
-        >
-          Builder
-        </Link>{' '}
-        <Link
-          href="/studys/list"
-          className="hover:underline hover:text-blue-600 duration-200 transition-colors"
-        >
-          Study
-        </Link>{' '}
-        <Link
-          href="/chat/user"
-          className="hover:underline hover:text-blue-600 duration-200 transition-colors"
-        >
-          Chat
-        </Link>{' '}
+    <section className="flex items-center justify-between py-3">
+      <Link
+        href="/"
+        className="text-xl font-bold tracking-tight hover:opacity-70 transition-opacity"
+      >
+        {BLOG_NAME}.
+      </Link>
+      <nav aria-label="주요 메뉴" className="flex items-center gap-3 min-w-0">
+        <PokemonDropdown />
+        <ul className="flex flex-nowrap overflow-x-auto gap-3 text-sm scrollbar-hide">
+          {navLinks.map(({ href, label }) => (
+            <li key={href} className="flex-shrink-0">
+              <Link
+                href={href}
+                className="hover:text-primary transition-colors duration-200 whitespace-nowrap"
+              >
+                {label}
+              </Link>
+            </li>
+          ))}
+        </ul>
         <Link
           href="/auth/login"
-          className="hover:underline hover:text-blue-600 duration-200 transition-colors"
+          aria-label="로그인"
+          className="text-text-muted hover:text-primary transition-colors duration-200 flex-shrink-0"
         >
-          Login
-        </Link>{' '}
-        <Link
-          href="/auth/regist"
-          className="hover:underline hover:text-blue-600 duration-200 transition-colors"
-        >
-          Regist
-        </Link>{' '}
-      </h4>
+          <FaRegUser size={18} />
+        </Link>
+        <ThemeSwitcher />
+      </nav>
     </section>
   );
 }

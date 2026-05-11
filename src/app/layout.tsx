@@ -6,17 +6,13 @@ import { BLOG_NAME, HOME_OG_IMAGE_URL } from '@/lib/constants';
 import type { Metadata } from 'next';
 // Google Fonts에서 Inter 폰트를 불러옴 (글꼴 스타일링에 사용)
 import { Inter } from 'next/font/google';
-// 클래스 이름을 동적으로 구성하기 위한 classnames 라이브러리를 import
 import cn from 'classnames';
-// 테마 전환기 컴포넌트를 import (테마 변경 기능을 제공)
-import { ThemeSwitcher } from './_components/theme-switcher';
-
 import { Intro } from '@/app/_components/intro';
 
 // 전역 스타일을 import (앱 전체에 적용될 CSS 파일)
 import './globals.css';
 import Container from './_components/container';
-import RecoilProvider from './_components/RecoilProvider';
+import ChatWidget from './_components/ChatWidget';
 
 // Google의 Inter 폰트를 설정하고, 라틴 문자 집합을 서브셋으로 사용
 const inter = Inter({ subsets: ['latin'] });
@@ -41,8 +37,7 @@ export default function RootLayout({
   children: React.ReactNode; // 자식 요소를 React의 노드로 받음
 }>) {
   return (
-    // HTML 문서의 시작 (언어는 영어로 설정)
-    <html lang="en">
+    <html lang="ko" suppressHydrationWarning>
       <head>
         {/* 다양한 크기의 favicon과 애플 터치 아이콘을 설정 */}
         {/* <link
@@ -82,20 +77,21 @@ export default function RootLayout({
         {/* <link rel="alternate" type="application/rss+xml" href="/feed.xml" /> */}
       </head>
       <body
-        // Inter 폰트를 사용하고, 다크 모드에서 배경 및 텍스트 색상을 설정
-        className={cn(inter.className, 'dark:bg-stone-900 dark:text-stone-50')}
+        className={cn(
+          inter.className,
+          'bg-[#ECEFF4] dark:bg-[#2E3440] text-[#2E3440] dark:text-[#ECEFF4]',
+        )}
       >
-        <RecoilProvider>
-          {/* 테마 전환기 컴포넌트를 렌더링 */}
-          <ThemeSwitcher />
+          <header className="sticky top-0 z-50 border-b border-border bg-[#ECEFF4]/90 dark:bg-[#2E3440]/90 backdrop-blur-md">
+            <Container>
+              <Intro />
+            </Container>
+          </header>
           <Container>
-            <Intro />
-            {/* 페이지 콘텐츠를 포함할 div 요소, 최소 화면 크기 설정 */}
-            <div className="min-h-screen">{children}</div>
-            {/* 하단에 Footer 컴포넌트를 렌더링 */}
+            <div className="min-h-screen pt-8">{children}</div>
           </Container>
           <Footer />
-        </RecoilProvider>
+          <ChatWidget />
       </body>
     </html>
   );
