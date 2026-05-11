@@ -1,7 +1,8 @@
 export type Message = {
-    user_id:number;
-    nick_name:string;
-    profile:string;
-    message:string|null;
-    send_date:number;
-}
+  type: 'ENTER' | 'TALK' | 'LEAVE';
+  roomId: string;
+  sender: string;
+  message: string | null;
+  userId: number;
+  sendDate: number;
+};

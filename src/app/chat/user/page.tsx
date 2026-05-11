@@ -2,22 +2,26 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { socket } from '@/lib/socket';
-import moment from 'moment';
+import { createStompClient } from '@/lib/socket';
+import { Client, IMessage } from '@stomp/stompjs';
+import { format } from 'date-fns';
 import { Message } from '@/interfaces/message';
 import { UserInfo } from '@/interfaces/user';
-import { Ohgnoy_BackendAPI } from '@/lib/constants';
 import { userInfo } from '@/lib/user/token';
+
+const ROOM_ID = '1';
 
 const Chat = () => {
   const router = useRouter();
+  const stompClient = useRef<Client | null>(null);
+  const userRef = useRef<UserInfo>({ userId: 0, nickname: '', email: '' });
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [user, setUser] = useState<UserInfo>({
-    user_id: 0,
-    nick_name: '',
+    userId: 0,
+    nickname: '',
     email: '',
   });
-
   const [message, setMessage] = useState<string>('');
   const [messages, setMessages] = useState<Message[]>([]);
 
@@ -28,44 +32,76 @@ const Chat = () => {
         router.push('/auth/login');
         return;
       }
-  
+
       const userData = await userInfo(token);
       setUser(userData);
-  
-      if (!socket.connected) {
-        socket.connect();
-      }
-  
-      // 중복 방지: 먼저 기존 리스너 제거
-      socket.off('receiveAll');
-      socket.on('receiveAll', (msg: Message) => {
-        setMessages((prev) => [...prev, msg]);
-      });
-  
-      socket.on('connect', () => console.log('socket connect'));
-      socket.on('disconnect', () => console.log('socket disconnect'));
+      userRef.current = userData;
+
+      const client = createStompClient();
+      stompClient.current = client;
+
+      client.onConnect = () => {
+        client.subscribe(`/sub/chat/room${ROOM_ID}`, (frame: IMessage) => {
+          const msg: Message = JSON.parse(frame.body);
+          setMessages((prev) => [...prev, msg]);
+        });
+
+        client.publish({
+          destination: '/pub/chat/message',
+          body: JSON.stringify({
+            type: 'ENTER',
+            roomId: ROOM_ID,
+            sender: userData.nickname,
+            message: '',
+            userId: userData.userId,
+            sendDate: Date.now(),
+          }),
+        });
+      };
+
+      client.activate();
     };
-  
+
     init();
-  
+
     return () => {
-      socket.off('connect');
-      socket.off('disconnect');
-      socket.off('receiveAll');
+      const client = stompClient.current;
+      if (client?.connected) {
+        client.publish({
+          destination: '/pub/chat/message',
+          body: JSON.stringify({
+            type: 'LEAVE',
+            roomId: ROOM_ID,
+            sender: userRef.current.nickname,
+            message: '',
+            userId: userRef.current.userId,
+            sendDate: Date.now(),
+          }),
+        });
+      }
+      client?.deactivate();
     };
   }, []);
-  
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const sendMessage = () => {
-    const msgData: Message = {
-      user_id: user.user_id,
-      nick_name: user.nick_name,
-      profile: '',
-      message: message,
-      send_date: Date.now(),
-    };
+    if (!stompClient.current?.connected || !message.trim()) return;
 
-    socket.emit('broadcast', msgData);
+    stompClient.current.publish({
+      destination: '/pub/chat/message',
+      body: JSON.stringify({
+        type: 'TALK',
+        roomId: ROOM_ID,
+        sender: user.nickname,
+        message,
+        userId: user.userId,
+        sendDate: Date.now(),
+      }),
+    });
+
     setMessage('');
   };
 
@@ -73,37 +109,39 @@ const Chat = () => {
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
-      buttonRef.current?.click(); // 버튼 클릭 이벤트 트리거
+      buttonRef.current?.click();
     }
   };
 
   return (
-    <div className="dark:text-stone-50 flex flex-col min-h-screen justify-between px-6 py-12 lg:px-8">
+    <div className="flex flex-col min-h-screen justify-between px-6 py-6 lg:px-8">
       <div className="flex-grow overflow-y-auto">
-        {' '}
-        {/* 채팅 영역이 화면 크기에 맞게 늘어남 */}
         {messages.map((msg, index) => {
-          const isSameUser =
-            index > 0 && msg.user_id === messages[index - 1].user_id;
-          return msg.user_id === user.user_id ? (
+          const isSameUser = index > 0 && msg.userId === messages[index - 1].userId;
+          if (msg.type !== 'TALK') {
+            return (
+              <div key={index} className="text-center text-text-muted text-xs py-2">
+                {msg.message}
+              </div>
+            );
+          }
+          return msg.userId === user.userId ? (
             <div key={index} className="flex gap-2.5 justify-end">
-              <div className="">
-                <div className="grid mb-2">
-                  {isSameUser || (
-                    <h5 className="text-right block text-sm font-medium leading-6">
-                      {msg.nick_name}
-                    </h5>
-                  )}
-                  <div className="px-3 py-2 bg-indigo-600 rounded">
-                    <h2 className="text-white text-sm font-normal leading-snug">
-                      {msg.message}
-                    </h2>
-                  </div>
-                  <div className="justify-start items-center inline-flex">
-                    <h3 className="text-gray-500 text-xs font-normal leading-4 py-1">
-                      {moment(msg.send_date).format('YYYY-MM-DD HH:mm:ss')}
-                    </h3>
-                  </div>
+              <div className="grid mb-2">
+                {isSameUser || (
+                  <h5 className="text-right block text-sm font-medium leading-6">
+                    {msg.sender}
+                  </h5>
+                )}
+                <div className="px-3 py-2 bg-primary rounded">
+                  <p className="text-white text-sm font-normal leading-snug">
+                    {msg.message}
+                  </p>
+                </div>
+                <div className="justify-start items-center inline-flex">
+                  <span className="text-text-muted text-xs font-normal leading-4 py-1">
+                    {format(new Date(msg.sendDate), 'HH:mm')}
+                  </span>
                 </div>
               </div>
             </div>
@@ -112,48 +150,49 @@ const Chat = () => {
               <div className="grid">
                 {isSameUser || (
                   <h5 className="block text-sm font-medium leading-6">
-                    {msg.nick_name}
+                    {msg.sender}
                   </h5>
                 )}
                 <div className="w-max grid">
-                  <div className="px-3.5 py-2 bg-gray-100 rounded justify-start items-center gap-3 inline-flex">
-                    <h5 className="text-gray-900 text-sm font-normal leading-snug">
+                  <div className="px-3.5 py-2 bg-surface-2 rounded justify-start items-center gap-3 inline-flex">
+                    <p className="text-text-base text-sm font-normal leading-snug">
                       {msg.message}
-                    </h5>
+                    </p>
                   </div>
                   <div className="justify-end items-center inline-flex mb-2.5">
-                    <h6 className="text-gray-500 text-xs font-normal leading-4 py-1">
-                      {moment(msg.send_date).format('YYYY-MM-DD HH:mm:ss')}
-                    </h6>
+                    <span className="text-text-muted text-xs font-normal leading-4 py-1">
+                      {format(new Date(msg.sendDate), 'HH:mm')}
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
           );
         })}
+        <div ref={messagesEndRef} />
       </div>
-      {/* 채팅 입력 영역 */}
-      <div className="w-full pl-3 pr-1 py-1 rounded-3xl border items-center gap-2 flex flex-wrap justify-between dark:bg-gray-50 dark:border-gray-50">
+
+      <div className="w-full pl-3 pr-1 py-1 rounded-3xl border border-border bg-surface items-center gap-2 flex flex-wrap justify-between mt-4 pb-4">
         <div className="flex items-center gap-2 flex-grow">
           <input
-            className="flex-grow text-xs font-medium leading-4 focus:outline-none dark:bg-gray-50 dark:text-black"
+            aria-label="메시지 입력"
+            className="flex-grow text-sm font-medium leading-4 bg-transparent text-text-base focus:outline-none placeholder:text-text-muted"
             placeholder="Type here..."
             value={message}
             onKeyDown={handleKeyDown}
-            onChange={(e) => {
-              setMessage(e.target.value);
-            }}
+            onChange={(e) => setMessage(e.target.value)}
           />
         </div>
         <div className="flex items-center gap-2">
           <button
             ref={buttonRef}
             onClick={sendMessage}
-            className="items-center flex px-3 py-2 bg-indigo-600 rounded-full shadow"
+            aria-label="메시지 전송"
+            className="items-center flex px-3 py-2 bg-primary hover:bg-primary-hover rounded-full shadow transition-colors"
           >
-            <h3 className="text-white text-xs font-semibold leading-4 px-2">
+            <span className="text-white text-xs font-semibold leading-4 px-2">
               Send
-            </h3>
+            </span>
           </button>
         </div>
       </div>

@@ -1,6 +1,10 @@
-import {io} from 'socket.io-client';
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
 import { Ohgnoy_BackendAPI } from './constants';
 
-const chatServerURL = `${Ohgnoy_BackendAPI}`;
-
-export const socket = io(chatServerURL,{autoConnect:false});
+export function createStompClient(): Client {
+  return new Client({
+    webSocketFactory: () => new SockJS(`${Ohgnoy_BackendAPI}/ws-chat`),
+    reconnectDelay: 5000,
+  });
+}
