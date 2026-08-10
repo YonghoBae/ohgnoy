@@ -23,7 +23,7 @@ function StatBar({ label, value }: { label: string; value: number }) {
 
   return (
     <div className="flex items-center gap-3">
-      <span className="w-14 text-right text-xs font-semibold text-neutral-500 dark:text-neutral-400">
+      <span className="w-14 text-right text-xs font-semibold text-text-muted">
         {label}
       </span>
       <span className="w-8 text-right text-sm font-bold font-mono-pixel">{value}</span>
@@ -48,7 +48,7 @@ export default function PokemonStatsSection({ stats }: { stats: PokemonStats }) 
           <StatBar key={key} label={STAT_LABELS[key]} value={value} />
         ))}
         <div className="mt-1 flex items-center gap-3 border-t border-neutral-300 pt-2 dark:border-neutral-600">
-          <span className="w-14 text-right text-xs font-semibold text-neutral-500 dark:text-neutral-400">
+          <span className="w-14 text-right text-xs font-semibold text-text-muted">
             합계
           </span>
           <span className="text-sm font-bold">{total}</span>

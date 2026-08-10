@@ -13,15 +13,15 @@ export default function PokemonInfo({ pokemon }: { pokemon: PokemonDetail }) {
       </p>
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div className="flex flex-col">
-          <span className="text-xs text-neutral-500 dark:text-neutral-400">분류</span>
+          <span className="text-xs text-text-muted">분류</span>
           <span className="font-semibold">{pokemon.genus}</span>
         </div>
         <div className="flex flex-col">
-          <span className="text-xs text-neutral-500 dark:text-neutral-400">키</span>
+          <span className="text-xs text-text-muted">키</span>
           <span className="font-semibold">{heightM} m</span>
         </div>
         <div className="flex flex-col">
-          <span className="text-xs text-neutral-500 dark:text-neutral-400">몸무게</span>
+          <span className="text-xs text-text-muted">몸무게</span>
           <span className="font-semibold">{weightKg} kg</span>
         </div>
       </div>

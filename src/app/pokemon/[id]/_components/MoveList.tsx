@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { PokemonMove } from "@/types/pokemon/domain";
 import TypeBadge from "@/app/_components/TypeBadge";
+import PixelCard from "@/app/_components/ui/pixel/PixelCard";
 
 const CATEGORY_BADGE: Record<PokemonMove["category"], string> = {
   physical: "bg-orange-200 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
@@ -49,17 +50,17 @@ export default function MoveList({
   const moves = tab === "level-up" ? levelUpMoves : tmMoves;
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl bg-neutral-200 bg-opacity-50 p-5 dark:bg-neutral-700 dark:bg-opacity-50">
-      <h2 className="text-lg font-bold">기술</h2>
+    <PixelCard className="flex flex-col gap-3 p-5">
+      <h2 className="font-pixel text-xs">기술</h2>
       <div className="flex flex-row gap-2">
         {(["level-up", "tm"] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`rounded-full px-4 py-1 text-sm font-semibold transition-colors ${
+            className={`rounded-none border-2 border-text-base px-4 py-1 text-sm font-semibold transition-colors ${
               tab === t
-                ? "bg-neutral-800 text-white dark:bg-neutral-200 dark:text-neutral-900"
-                : "bg-neutral-300 text-neutral-600 hover:bg-neutral-400 dark:bg-neutral-600 dark:text-neutral-300"
+                ? "bg-primary text-white"
+                : "bg-surface text-text-base hover:border-primary hover:text-primary"
             }`}
           >
             {t === "level-up" ? "레벨업" : "기술머신"}
@@ -89,6 +90,6 @@ export default function MoveList({
           <p className="mt-4 text-center text-sm text-neutral-500">기술 정보 없음</p>
         )}
       </div>
-    </div>
+    </PixelCard>
   );
 }
