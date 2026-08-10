@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Image from "next/image";
 import { Pokemon } from "pokenode-ts";
 import { BattleSet } from "@/types/pokemon/battle";
 import { PokemonTypeName } from "@/types/pokemon/domain";
 import { TeamMember } from "./TeamBuilder";
 import TypeBadge from "@/app/_components/TypeBadge";
 import { DEFAULT_FORMAT } from "@/lib/battle/constants";
+import PixelCard from "@/app/_components/ui/pixel/PixelCard";
+import PixelButton from "@/app/_components/ui/pixel/PixelButton";
+import PixelSprite, { getPixelSpriteUrl } from "@/app/_components/ui/pixel/PixelSprite";
 
 interface Props {
   allNames: string[];
@@ -140,7 +142,7 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
       id: pokemon.id,
       nameEn: pokemon.name,
       nameKo,
-      spriteUrl: pokemon.sprites.other?.["official-artwork"].front_default ?? "",
+      spriteUrl: getPixelSpriteUrl(pokemon),
       types: pokemon.types.map((t) => t.type.name as PokemonTypeName),
       set,
     });
@@ -148,7 +150,7 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <div className="flex w-full max-w-md flex-col gap-4 rounded-2xl bg-white p-5 shadow-2xl dark:bg-neutral-800">
+      <PixelCard className="flex w-full max-w-md flex-col gap-4 bg-surface p-5">
         <div className="flex items-center justify-between">
           <h3 className="font-bold">포켓몬 선택</h3>
           <button onClick={onClose} className="text-neutral-400 hover:text-neutral-700">✕</button>
@@ -177,12 +179,7 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
                   className="flex items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700"
                 >
                   <div className="relative h-10 w-10 flex-shrink-0">
-                    <Image
-                      src={r.pokemon.sprites.front_default ?? ""}
-                      alt={r.pokemon.name}
-                      fill
-                      className="object-contain"
-                    />
+                    <PixelSprite pokemon={r.pokemon} alt={r.pokemon.name} fill />
                   </div>
                   <div className="flex flex-col">
                     <span className="text-sm font-bold">{r.nameKo}</span>
@@ -202,12 +199,7 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
             {/* 포켓몬 확인 */}
             <div className="flex items-center gap-3 rounded-xl bg-neutral-100 px-4 py-3 dark:bg-neutral-700">
               <div className="relative h-14 w-14">
-                <Image
-                  src={selectedPokemon.pokemon.sprites.other?.["official-artwork"].front_default ?? ""}
-                  alt={selectedPokemon.nameKo}
-                  fill
-                  className="object-contain"
-                />
+                <PixelSprite pokemon={selectedPokemon.pokemon} alt={selectedPokemon.nameKo} fill />
               </div>
               <div>
                 <p className="font-bold">{selectedPokemon.nameKo}</p>
@@ -250,15 +242,12 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
               )}
             </div>
 
-            <button
-              onClick={() => handleConfirm(null)}
-              className="rounded-xl bg-neutral-800 py-2 text-sm font-semibold text-white hover:bg-neutral-700 dark:bg-neutral-200 dark:text-neutral-900"
-            >
+            <PixelButton variant="primary" onClick={() => handleConfirm(null)}>
               세트 없이 추가
-            </button>
+            </PixelButton>
           </>
         )}
-      </div>
+      </PixelCard>
     </div>
   );
 }

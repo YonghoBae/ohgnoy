@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { BattleSet } from "@/types/pokemon/battle";
 import { PokemonTypeName } from "@/types/pokemon/domain";
 import TypeBadge from "@/app/_components/TypeBadge";
 import PokemonPicker from "./PokemonPicker";
 import TypeCoverage from "./TypeCoverage";
 import TeamExport from "./TeamExport";
+import PixelCard from "@/app/_components/ui/pixel/PixelCard";
+import PixelButton from "@/app/_components/ui/pixel/PixelButton";
+import PixelSprite from "@/app/_components/ui/pixel/PixelSprite";
 
 export interface TeamMember {
   id: number;
@@ -24,10 +26,10 @@ function EmptySlot({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="flex h-36 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-neutral-300 text-neutral-400 transition-colors hover:border-blue-400 hover:text-blue-400 dark:border-neutral-600 dark:hover:border-blue-500"
+      className="flex h-36 flex-col items-center justify-center gap-2 rounded-none border-2 border-dashed border-text-muted text-text-muted transition-colors hover:border-primary hover:text-primary"
     >
       <span className="text-3xl">+</span>
-      <span className="text-xs">포켓몬 추가</span>
+      <span className="font-mono-pixel text-xs">포켓몬 추가</span>
     </button>
   );
 }
@@ -35,33 +37,34 @@ function EmptySlot({ onClick }: { onClick: () => void }) {
 function FilledSlot({
   member,
   onRemove,
-  onSetChange,
+  onSetChange: _onSetChange,
 }: {
   member: TeamMember;
   onRemove: () => void;
   onSetChange: (set: BattleSet | null) => void;
 }) {
   return (
-    <div className="relative flex h-36 flex-col items-center justify-center gap-1 rounded-2xl bg-neutral-200 px-2 py-2 dark:bg-neutral-700">
+    <PixelCard className="relative flex h-36 flex-col items-center justify-center gap-1 px-2 py-2">
       <button
         onClick={onRemove}
-        className="absolute right-2 top-2 text-xs text-neutral-400 hover:text-red-500"
+        aria-label="팀에서 제거"
+        className="absolute right-2 top-2 text-xs text-text-muted hover:text-red-500"
       >
         ✕
       </button>
       <div className="relative h-16 w-16">
-        <Image src={member.spriteUrl} alt={member.nameEn} fill className="object-contain" />
+        <PixelSprite spriteUrl={member.spriteUrl} alt={member.nameEn} fill />
       </div>
-      <span className="text-xs font-bold">{member.nameKo}</span>
+      <span className="font-mono-pixel text-xs font-bold">{member.nameKo}</span>
       <div className="flex gap-1">
         {member.types.map((t) => (
           <TypeBadge key={t} type={t} size="sm" />
         ))}
       </div>
       {member.set && (
-        <span className="text-xs text-blue-500">{member.set.name}</span>
+        <span className="text-xs text-primary">{member.set.name}</span>
       )}
-    </div>
+    </PixelCard>
   );
 }
 
@@ -125,12 +128,13 @@ export default function TeamBuilder({ allNames }: { allNames: string[] }) {
 
       {/* 내보내기 버튼 */}
       {filledMembers.length > 0 && (
-        <button
+        <PixelButton
+          variant="primary"
           onClick={() => setShowExport(true)}
-          className="self-end rounded-full bg-neutral-800 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-neutral-700 dark:bg-neutral-200 dark:text-neutral-900 dark:hover:bg-neutral-300"
+          className="self-end"
         >
           Pokémon Showdown 내보내기
-        </button>
+        </PixelButton>
       )}
 
       {/* 피커 모달 */}
