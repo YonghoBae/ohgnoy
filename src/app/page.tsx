@@ -2,6 +2,8 @@ import Link from "next/link";
 import { FaGithub, FaExternalLinkAlt } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import { DIGITAL_GARDEN_URL, GITHUB_URL, EMAIL } from "@/lib/constants";
+import PixelCard from "@/app/_components/ui/pixel/PixelCard";
+import PixelIconBox from "@/app/_components/ui/pixel/PixelIconBox";
 
 const sections = [
   {
@@ -38,33 +40,28 @@ export default function Home() {
   return (
     <main className="py-16 space-y-16">
       <section className="space-y-4">
-        <h1 className="text-4xl font-bold tracking-tight">Ohgnoy.</h1>
+        <h1 className="font-pixel text-xl tracking-tight sm:text-2xl">Ohgnoy.</h1>
         <p className="text-text-muted text-lg">개발하며 기록하는 공간</p>
-        <div className="flex items-center gap-4 pt-1">
-          <a
-            href={GITHUB_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="GitHub"
-            className="text-text-muted hover:text-primary transition-colors duration-200"
-          >
-            <FaGithub size={22} />
+        <div className="flex items-center gap-3 pt-1">
+          <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+            <PixelIconBox>
+              <FaGithub size={16} />
+            </PixelIconBox>
           </a>
           <a
             href={DIGITAL_GARDEN_URL}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="디지털가든"
-            className="text-text-muted hover:text-primary transition-colors duration-200"
           >
-            <FaExternalLinkAlt size={18} />
+            <PixelIconBox>
+              <FaExternalLinkAlt size={14} />
+            </PixelIconBox>
           </a>
-          <a
-            href={`mailto:${EMAIL}`}
-            aria-label="이메일"
-            className="text-text-muted hover:text-primary transition-colors duration-200"
-          >
-            <MdEmail size={22} />
+          <a href={`mailto:${EMAIL}`} aria-label="이메일">
+            <PixelIconBox>
+              <MdEmail size={16} />
+            </PixelIconBox>
           </a>
         </div>
       </section>
@@ -73,15 +70,18 @@ export default function Home() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {sections.map((section) => {
             const cardClass =
-              "flex flex-col gap-2 rounded-2xl bg-surface-2/60 px-6 py-5 shadow-md backdrop-blur-sm border border-transparent hover:border-primary/40 hover:bg-surface-2/80 transition-all duration-200 dark:shadow-none dark:border-border dark:hover:border-primary/60";
+              "flex flex-col gap-2 px-6 py-5 transition-transform hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-[4px_4px_0_0_rgb(var(--color-text)/1)]";
 
             const inner = (
               <>
                 <span className="text-2xl">{section.icon}</span>
-                <h2 className="text-base font-bold">{section.title}</h2>
-                <p className="text-sm text-text-muted">{section.description}</p>
+                <h2 className="font-pixel text-xs">{section.title}</h2>
+                <p className="text-sm text-text-muted font-mono-pixel">{section.description}</p>
               </>
             );
+
+            const linkClass =
+              "rounded-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
 
             return section.external ? (
               <a
@@ -89,13 +89,13 @@ export default function Home() {
                 href={section.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={cardClass}
+                className={linkClass}
               >
-                {inner}
+                <PixelCard className={cardClass}>{inner}</PixelCard>
               </a>
             ) : (
-              <Link key={section.href} href={section.href} className={cardClass}>
-                {inner}
+              <Link key={section.href} href={section.href} className={linkClass}>
+                <PixelCard className={cardClass}>{inner}</PixelCard>
               </Link>
             );
           })}
