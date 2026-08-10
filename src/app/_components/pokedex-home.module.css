@@ -12,6 +12,9 @@
   --text-muted: #8294A6;
   --blue-primary: #5E81AC;
   --blue-bright: #81A1C1;
+  --cyan: #88C0D0;
+  --purple: #8F7DB7;
+  --success: #8FBC8F;
 
   display: grid;
   grid-template-columns: 180px 1fr;
@@ -81,20 +84,56 @@
 }
 
 .main {
-  padding: 32px 24px;
+  padding: 32px 40px 48px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  max-width: 720px;
+  gap: 20px;
+  max-width: 1100px;
 }
 
 .panel {
   background: var(--bg-panel);
   border: 1px solid var(--border-default);
-  padding: 20px;
   box-shadow:
     inset 1px 1px 0 rgba(255, 255, 255, 0.04),
     inset -1px -1px 0 rgba(0, 0, 0, 0.35);
+}
+
+.panelHeader {
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-strong);
+  padding: 8px 16px;
+  font-family: "NeoDunggeunmo", monospace;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.panelBody {
+  padding: 20px;
+}
+
+/* Identity panel */
+
+.identityRow {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.avatarBox {
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  box-shadow: 2px 2px 0 #111821;
+  font-family: "NeoDunggeunmo", monospace;
+  font-size: 20px;
+  color: var(--blue-bright);
 }
 
 .identityNumber {
@@ -106,7 +145,7 @@
 .identityName {
   font-family: "NeoDunggeunmo", monospace;
   color: var(--text-primary);
-  font-size: 18px;
+  font-size: 20px;
   margin: 4px 0 8px;
 }
 
@@ -119,7 +158,7 @@
 .iconRow {
   display: flex;
   gap: 8px;
-  margin-top: 16px;
+  margin-top: 14px;
 }
 
 .iconBox {
@@ -142,54 +181,61 @@
   outline: none;
 }
 
-.menuTitle {
-  font-family: "NeoDunggeunmo", monospace;
-  font-size: 12px;
-  color: var(--text-muted);
-  margin: 0 0 12px;
+/* Menu tile grid */
+
+.menuGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1px;
+  background: var(--border-muted);
 }
 
-.menuRow {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 12px;
-  min-height: 40px;
-  padding: 8px 4px;
-  border-bottom: 1px solid var(--border-muted);
+.menuTile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--bg-panel);
+  padding: 16px 16px 16px 20px;
   color: var(--text-secondary);
   text-decoration: none;
-  font-size: 13px;
+  border-left: 3px solid var(--tile-accent, var(--blue-primary));
   transition: background-color 80ms linear, color 80ms linear;
 }
 
-.menuRow:last-child {
-  border-bottom: none;
-}
-
-.menuRow:hover,
-.menuRow:focus-visible {
+.menuTile:hover,
+.menuTile:focus-visible {
   background: var(--bg-panel-hover);
   color: var(--text-primary);
   outline: none;
 }
 
-.menuRowTitle {
+.menuTileIndex {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.menuTileTitle {
   font-weight: 600;
+  font-size: 14px;
   color: var(--text-primary);
 }
 
-.menuRowDesc {
+.menuTileDesc {
   color: var(--text-muted);
-  margin-left: 8px;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
-.menuRowArrow {
+.menuTileArrow {
+  position: absolute;
+  right: 16px;
+  bottom: 14px;
   color: var(--border-strong);
 }
 
-.menuRow:hover .menuRowArrow,
-.menuRow:focus-visible .menuRowArrow {
+.menuTile:hover .menuTileArrow,
+.menuTile:focus-visible .menuTileArrow {
   color: var(--blue-bright);
 }
 
