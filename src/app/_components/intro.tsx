@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { ThemeSwitcher } from './theme-switcher';
 import PokemonDropdown from './PokemonDropdown';
 import { FaRegUser } from 'react-icons/fa';
+import PixelIconBox from './ui/pixel/PixelIconBox';
 
 const navLinks = [
   { href: '/studys/list', label: 'Study' },
@@ -14,7 +15,7 @@ export function Intro() {
     <section className="flex items-center justify-between py-3">
       <Link
         href="/"
-        className="text-xl font-bold tracking-tight hover:opacity-70 transition-opacity"
+        className="font-pixel text-sm tracking-tight hover:opacity-70 transition-opacity whitespace-nowrap"
       >
         {BLOG_NAME}.
       </Link>
@@ -32,12 +33,10 @@ export function Intro() {
             </li>
           ))}
         </ul>
-        <Link
-          href="/auth/login"
-          aria-label="로그인"
-          className="text-text-muted hover:text-primary transition-colors duration-200 flex-shrink-0"
-        >
-          <FaRegUser size={18} />
+        <Link href="/auth/login" aria-label="로그인" className="flex-shrink-0">
+          <PixelIconBox>
+            <FaRegUser size={14} />
+          </PixelIconBox>
         </Link>
         <ThemeSwitcher />
       </nav>
