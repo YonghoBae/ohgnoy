@@ -7,8 +7,6 @@ import styles from "@/app/_components/pokedex-home.module.css";
 
 const SIDEBAR_SPRITE_URL = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png";
 
-const TILE_ACCENTS = ["var(--blue-primary)", "var(--cyan)", "var(--purple)", "var(--success)"];
-
 const sections = [
   {
     title: "포켓몬 도구",
@@ -117,7 +115,6 @@ export default function Home() {
           <div className={styles.panelHeader}>MAIN MENU</div>
           <div className={styles.menuGrid}>
             {sections.map((section, index) => {
-              const tileStyle = { "--tile-accent": TILE_ACCENTS[index % TILE_ACCENTS.length] } as React.CSSProperties;
               const inner = (
                 <>
                   <span className={styles.menuTileIndex}>{String(index + 1).padStart(2, "0")}</span>
@@ -134,12 +131,11 @@ export default function Home() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className={styles.menuTile}
-                  style={tileStyle}
                 >
                   {inner}
                 </a>
               ) : (
-                <Link key={section.href} href={section.href} className={styles.menuTile} style={tileStyle}>
+                <Link key={section.href} href={section.href} className={styles.menuTile}>
                   {inner}
                 </Link>
               );
