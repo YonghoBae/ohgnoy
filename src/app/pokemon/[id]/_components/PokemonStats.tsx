@@ -1,4 +1,5 @@
 import { PokemonStats } from "@/types/pokemon/domain";
+import PixelCard from "@/app/_components/ui/pixel/PixelCard";
 
 const STAT_LABELS: Record<keyof PokemonStats, string> = {
   hp: "HP",
@@ -25,7 +26,7 @@ function StatBar({ label, value }: { label: string; value: number }) {
       <span className="w-14 text-right text-xs font-semibold text-neutral-500 dark:text-neutral-400">
         {label}
       </span>
-      <span className="w-8 text-right text-sm font-bold">{value}</span>
+      <span className="w-8 text-right text-sm font-bold font-mono-pixel">{value}</span>
       <div className="flex-1 overflow-hidden rounded-full bg-neutral-300 dark:bg-neutral-600">
         <div
           className={`h-2 rounded-full ${color} transition-all duration-500`}
@@ -40,8 +41,8 @@ export default function PokemonStatsSection({ stats }: { stats: PokemonStats }) 
   const total = Object.values(stats).reduce((a, b) => a + b, 0);
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl bg-neutral-200 bg-opacity-50 p-5 dark:bg-neutral-700 dark:bg-opacity-50">
-      <h2 className="text-lg font-bold">기본 스탯</h2>
+    <PixelCard className="flex flex-col gap-3 p-5">
+      <h2 className="font-pixel text-xs">기본 스탯</h2>
       <div className="flex flex-col gap-2">
         {(Object.entries(stats) as [keyof PokemonStats, number][]).map(([key, value]) => (
           <StatBar key={key} label={STAT_LABELS[key]} value={value} />
@@ -53,6 +54,6 @@ export default function PokemonStatsSection({ stats }: { stats: PokemonStats }) 
           <span className="text-sm font-bold">{total}</span>
         </div>
       </div>
-    </div>
+    </PixelCard>
   );
 }
