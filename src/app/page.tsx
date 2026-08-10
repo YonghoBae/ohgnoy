@@ -1,8 +1,11 @@
 import Link from "next/link";
+import Image from "next/image";
 import { FaGithub, FaExternalLinkAlt } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import { DIGITAL_GARDEN_URL, GITHUB_URL, EMAIL } from "@/lib/constants";
 import styles from "@/app/_components/pokedex-home.module.css";
+
+const SIDEBAR_SPRITE_URL = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png";
 
 const TILE_ACCENTS = ["var(--blue-primary)", "var(--cyan)", "var(--purple)", "var(--success)"];
 
@@ -64,6 +67,12 @@ export default function Home() {
             ),
           )}
         </nav>
+        <div className={styles.sidebarSprite}>
+          <div className={styles.spriteFrame}>
+            <Image src={SIDEBAR_SPRITE_URL} alt="피카츄" width={72} height={72} />
+          </div>
+          <span className={styles.spriteCaption}>PARTNER</span>
+        </div>
       </aside>
 
       <main className={styles.main}>
