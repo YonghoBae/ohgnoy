@@ -6,6 +6,7 @@ import { BLOG_NAME, HOME_OG_IMAGE_URL } from '@/lib/constants';
 import type { Metadata } from 'next';
 // Google Fonts에서 Inter 폰트를 불러옴 (글꼴 스타일링에 사용)
 import { Inter } from 'next/font/google';
+import { pressStart2P, spaceMono } from '@/lib/fonts';
 import cn from 'classnames';
 import { Intro } from '@/app/_components/intro';
 
@@ -79,6 +80,8 @@ export default function RootLayout({
       <body
         className={cn(
           inter.className,
+          pressStart2P.variable,
+          spaceMono.variable,
           'bg-[#ECEFF4] dark:bg-[#2E3440] text-[#2E3440] dark:text-[#ECEFF4]',
         )}
       >
