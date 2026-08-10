@@ -1,6 +1,6 @@
 import { EvolutionChain, Move, Pokemon, PokemonSpecies } from "pokenode-ts";
 import { PokemonDetail, PokemonTypeName } from "@/types/pokemon/domain";
-import { getPixelSpriteUrl } from "@/app/_components/ui/pixel/PixelSprite";
+import { getPixelSpriteUrl } from "@/lib/pokemon/spriteUrl";
 import {
   getEnglishFlavorText,
   getKoreanFlavorText,

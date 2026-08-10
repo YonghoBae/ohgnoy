@@ -1,14 +1,9 @@
 import Image from "next/image";
 import { Pokemon } from "pokenode-ts";
 import { cn } from "@/lib/utils";
+import { getPixelSpriteUrl } from "@/lib/pokemon/spriteUrl";
 
-export function getPixelSpriteUrl(pokemon: Pick<Pokemon, "sprites">): string {
-  return (
-    pokemon.sprites.front_default ??
-    pokemon.sprites.other?.["official-artwork"].front_default ??
-    ""
-  );
-}
+export { getPixelSpriteUrl } from "@/lib/pokemon/spriteUrl";
 
 interface PixelSpriteProps {
   pokemon?: Pick<Pokemon, "sprites">;
