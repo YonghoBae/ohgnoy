@@ -91,7 +91,7 @@ export default function RootLayout({
             </Container>
           </header>
           <Container>
-            <div className="min-h-screen pt-8">{children}</div>
+            <div className="content-wrapper min-h-screen pt-8">{children}</div>
           </Container>
           <Footer />
           <ChatWidget />
