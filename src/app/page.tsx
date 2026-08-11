@@ -1,9 +1,10 @@
-import Link from "next/link";
 import Image from "next/image";
 import { FaGithub, FaExternalLinkAlt, FaGamepad, FaBook, FaBlog, FaBriefcase } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import { DIGITAL_GARDEN_URL, GITHUB_URL, EMAIL } from "@/lib/constants";
 import styles from "@/app/_components/pokedex-home.module.css";
+import BootScreen from "@/app/_components/BootScreen";
+import EncounterLink from "@/app/_components/EncounterLink";
 
 const SIDEBAR_SPRITE_URL = "/pokemon/pikachu.png";
 
@@ -46,9 +47,20 @@ export default function Home() {
         href="https://cdn.jsdelivr.net/gh/neodgm/neodgm-webfont@1.601/neodgm/style.css"
       />
 
+      <BootScreen />
+
       <div className={styles.screen}>
       <aside className={styles.sidebar}>
-        <span className={styles.logo}>POKEDEX</span>
+        <div className={styles.logoRow}>
+          <Image
+            src="/frames/pokeball.png"
+            alt="O"
+            width={18}
+            height={18}
+            className={styles.logoIcon}
+          />
+          <span className={styles.logo}>HGNOY</span>
+        </div>
         <nav className={styles.nav} aria-label="주요 메뉴">
           {sections.map((section) => {
             const Icon = section.icon;
@@ -71,9 +83,9 @@ export default function Home() {
                 {inner}
               </a>
             ) : (
-              <Link key={section.href} href={section.href} className={styles.navItem}>
+              <EncounterLink key={section.href} href={section.href} className={styles.navItem}>
                 {inner}
-              </Link>
+              </EncounterLink>
             );
           })}
         </nav>
@@ -149,9 +161,9 @@ export default function Home() {
                   {inner}
                 </a>
               ) : (
-                <Link key={section.href} href={section.href} className={styles.menuTile}>
+                <EncounterLink key={section.href} href={section.href} className={styles.menuTile}>
                   {inner}
-                </Link>
+                </EncounterLink>
               );
             })}
           </div>
