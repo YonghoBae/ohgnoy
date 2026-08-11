@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { FaGithub, FaExternalLinkAlt } from "react-icons/fa";
+import { FaGithub, FaExternalLinkAlt, FaGamepad, FaBook, FaBlog, FaBriefcase } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import { DIGITAL_GARDEN_URL, GITHUB_URL, EMAIL } from "@/lib/constants";
 import styles from "@/app/_components/pokedex-home.module.css";
@@ -13,24 +13,28 @@ const sections = [
     description: "포켓몬 도감, 메타 분석, 팀 빌더",
     href: "/pokemon/list",
     external: false,
+    icon: FaGamepad,
   },
   {
     title: "학습 노트",
     description: "개발하며 공부한 내용들",
     href: "/studys/list",
     external: false,
+    icon: FaBook,
   },
   {
     title: "블로그",
     description: "Obsidian으로 작성하는 디지털가든",
     href: DIGITAL_GARDEN_URL,
     external: true,
+    icon: FaBlog,
   },
   {
     title: "포트폴리오",
     description: "만들어온 것들과 기술 스택",
     href: "/portfolio",
     external: false,
+    icon: FaBriefcase,
   },
 ];
 
@@ -45,8 +49,17 @@ export default function Home() {
       <aside className={styles.sidebar}>
         <span className={styles.logo}>POKEDEX</span>
         <nav className={styles.nav} aria-label="주요 메뉴">
-          {sections.map((section) =>
-            section.external ? (
+          {sections.map((section) => {
+            const Icon = section.icon;
+            const inner = (
+              <>
+                <span className={styles.navCursor}>▶</span>
+                <Icon size={14} />
+                {section.title}
+              </>
+            );
+
+            return section.external ? (
               <a
                 key={section.href}
                 href={section.href}
@@ -54,16 +67,14 @@ export default function Home() {
                 rel="noopener noreferrer"
                 className={styles.navItem}
               >
-                <span className={styles.navCursor}>▶</span>
-                {section.title}
+                {inner}
               </a>
             ) : (
               <Link key={section.href} href={section.href} className={styles.navItem}>
-                <span className={styles.navCursor}>▶</span>
-                {section.title}
+                {inner}
               </Link>
-            ),
-          )}
+            );
+          })}
         </nav>
         <div className={styles.sidebarSprite}>
           <div className={styles.spriteFrame}>

@@ -1,31 +1,28 @@
 .shell {
-  --bg-app: #1D2733;
-  --bg-sidebar: #202C3A;
-  --bg-panel: #253342;
-  --bg-panel-hover: #2C3D4F;
-  --bg-elevated: #314357;
-  --border-default: #4C6278;
-  --border-strong: #607D98;
-  --border-muted: #34495D;
-  --text-primary: #ECEFF4;
-  --text-secondary: #C6D0DB;
-  --text-muted: #8294A6;
-  --blue-primary: #5E81AC;
-  --blue-bright: #81A1C1;
+  --screen-bg: #10161f;
+  --window-bg: #182432;
+  --window-bg-2: #1e2e3d;
+  --window-active: #2a4560;
+  --border-dark: #0b1119;
+  --border: #4c7fc0;
+  --border-light: #7fa6d9;
+  --text: #e6ebf0;
+  --text-muted: #7e93a8;
+  --accent-warm: #e0a458;
 
   display: grid;
-  grid-template-columns: 180px 1fr;
+  grid-template-columns: 176px 1fr;
   min-height: 100dvh;
   background:
     repeating-linear-gradient(
       0deg,
-      rgba(0, 0, 0, 0.12) 0px,
-      rgba(0, 0, 0, 0.12) 1px,
+      rgba(0, 0, 0, 0.16) 0px,
+      rgba(0, 0, 0, 0.16) 1px,
       transparent 1px,
       transparent 3px
     ),
-    var(--bg-app);
-  color: var(--text-primary);
+    var(--screen-bg);
+  color: var(--text);
   font-family: "IBM Plex Mono", "Pretendard", monospace;
 }
 
@@ -41,61 +38,98 @@
   }
 }
 
+/* Shared HUD frame: chamfered top-left / bottom-right corners */
+
+.frame {
+  background: var(--window-bg);
+  border: 1.5px solid var(--border);
+  box-shadow: inset 0 0 0 1px rgba(127, 166, 217, 0.22);
+  clip-path: polygon(
+    12px 0,
+    100% 0,
+    100% calc(100% - 12px),
+    calc(100% - 12px) 100%,
+    0 100%,
+    0 12px
+  );
+}
+
+.frameSmall {
+  background: var(--window-bg);
+  border: 1.5px solid var(--border);
+  box-shadow: inset 0 0 0 1px rgba(127, 166, 217, 0.22);
+  clip-path: polygon(
+    6px 0,
+    100% 0,
+    100% calc(100% - 6px),
+    calc(100% - 6px) 100%,
+    0 100%,
+    0 6px
+  );
+}
+
 .sidebar {
-  background: var(--bg-sidebar);
-  border-right: 1px solid var(--border-default);
-  padding: 24px 16px;
+  composes: frame;
+  margin: 8px 0 8px 8px;
+  padding: 16px 12px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 14px;
 }
 
 .logo {
   font-family: "NeoDunggeunmo", monospace;
   font-size: 16px;
-  color: var(--text-primary);
+  color: var(--text);
   letter-spacing: 0.02em;
 }
 
 .nav {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .navItem {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   min-height: 36px;
-  padding: 8px 12px;
-  color: var(--text-secondary);
+  padding: 8px 10px 8px 16px;
+  color: var(--text-muted);
   border: 1px solid transparent;
   text-decoration: none;
   font-size: 13px;
   transition: background-color 80ms linear, color 80ms linear, border-color 80ms linear;
 }
 
+.navItem svg {
+  flex-shrink: 0;
+}
+
 .navItem:hover,
 .navItem:focus-visible {
-  background: var(--bg-panel-hover);
-  color: var(--text-primary);
+  background: var(--window-active);
+  border-color: var(--border);
+  color: var(--text);
 }
 
 .navItem:focus-visible {
-  outline: 2px solid var(--blue-bright);
-  outline-offset: 2px;
+  outline: 2px solid var(--border-light);
+  outline-offset: 1px;
 }
 
 .navItem:active {
-  background: var(--bg-elevated);
+  background: var(--border-dark);
   transform: translateY(1px);
 }
 
 .navCursor {
-  color: var(--blue-bright);
+  position: absolute;
+  left: 4px;
+  color: var(--accent-warm);
   opacity: 0;
-  width: 10px;
 }
 
 .navItem:hover .navCursor,
@@ -104,22 +138,20 @@
 }
 
 .sidebarSprite {
+  composes: frame;
   margin-top: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border-muted);
+  gap: 6px;
+  padding: 12px;
 }
 
 .spriteFrame {
+  composes: frameSmall;
   position: relative;
-  width: 96px;
-  height: 96px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-strong);
-  box-shadow: 2px 2px 0 #111821;
+  width: 88px;
+  height: 88px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -136,25 +168,21 @@
 }
 
 .main {
-  padding: 32px 40px 48px;
+  padding: 16px 20px 24px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 10px;
   max-width: 1100px;
 }
 
 .panel {
-  background: var(--bg-panel);
-  border: 1px solid var(--border-default);
-  box-shadow:
-    inset 1px 1px 0 rgba(255, 255, 255, 0.04),
-    inset -1px -1px 0 rgba(0, 0, 0, 0.35);
+  composes: frame;
 }
 
 .panelHeader {
-  background: var(--bg-elevated);
-  border-bottom: 1px solid var(--border-strong);
-  padding: 8px 16px;
+  background: var(--window-bg-2);
+  border-bottom: 1px solid var(--border);
+  padding: 6px 14px;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -162,7 +190,7 @@
 }
 
 .panelBody {
-  padding: 20px;
+  padding: 14px;
 }
 
 /* Identity panel */
@@ -170,22 +198,20 @@
 .identityRow {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
 }
 
 .avatarBox {
+  composes: frameSmall;
   flex-shrink: 0;
-  width: 72px;
-  height: 72px;
+  width: 64px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-strong);
-  box-shadow: 2px 2px 0 #111821;
   font-family: "NeoDunggeunmo", monospace;
   font-size: 16px;
-  color: var(--blue-bright);
+  color: var(--border-light);
 }
 
 .identityNumber {
@@ -196,88 +222,85 @@
 
 .identityName {
   font-family: "NeoDunggeunmo", monospace;
-  color: var(--text-primary);
+  color: var(--text);
   font-size: 32px;
-  margin: 4px 0 8px;
+  margin: 4px 0 6px;
   letter-spacing: -0.01em;
 }
 
 .identityTagline {
-  color: var(--text-secondary);
+  color: var(--text-muted);
   font-size: 13px;
   margin: 0;
 }
 
 .iconRow {
   display: flex;
-  gap: 8px;
-  margin-top: 14px;
+  gap: 6px;
+  margin-top: 12px;
 }
 
 .iconBox {
+  composes: frameSmall;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: 1px solid var(--border-default);
-  color: var(--text-secondary);
-  background: var(--bg-elevated);
-  box-shadow: 2px 2px 0 #111821;
+  width: 30px;
+  height: 30px;
+  color: var(--text-muted);
   transition: background-color 80ms linear, color 80ms linear, transform 80ms linear;
 }
 
 .iconBox:hover,
 .iconBox:focus-visible {
-  background: var(--blue-primary);
-  color: #f8fafc;
+  background: var(--window-active);
+  color: var(--text);
 }
 
 .iconBox:focus-visible {
-  outline: 2px solid var(--blue-bright);
+  outline: 2px solid var(--border-light);
   outline-offset: 2px;
 }
 
 .iconBox:active {
-  transform: translate(2px, 2px);
-  box-shadow: none;
+  transform: translate(1px, 1px);
 }
 
 /* Menu tile grid */
 
 .menuGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 1px;
-  background: var(--border-muted);
+  background: var(--border-dark);
 }
 
 .menuTile {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  background: var(--bg-panel);
-  padding: 16px 16px 16px 20px;
-  color: var(--text-secondary);
+  gap: 4px;
+  background: var(--window-bg);
+  padding: 12px 14px 12px 16px;
+  color: var(--text-muted);
   text-decoration: none;
-  border-left: 3px solid var(--blue-bright);
+  border-left: 3px solid var(--border);
   transition: background-color 80ms linear, color 80ms linear;
 }
 
 .menuTile:hover,
 .menuTile:focus-visible {
-  background: var(--bg-panel-hover);
-  color: var(--text-primary);
+  background: var(--window-active);
+  color: var(--text);
 }
 
 .menuTile:focus-visible {
-  outline: 2px solid var(--blue-bright);
+  outline: 2px solid var(--border-light);
   outline-offset: -2px;
 }
 
 .menuTile:active {
-  background: var(--bg-elevated);
+  background: var(--border-dark);
 }
 
 .menuTileIndex {
@@ -288,7 +311,7 @@
 .menuTileTitle {
   font-weight: 600;
   font-size: 14px;
-  color: var(--text-primary);
+  color: var(--text);
 }
 
 .menuTileDesc {
@@ -299,27 +322,26 @@
 
 .menuTileArrow {
   position: absolute;
-  right: 16px;
-  bottom: 14px;
-  color: var(--border-strong);
+  right: 14px;
+  bottom: 12px;
+  color: var(--border);
 }
 
 .menuTile:hover .menuTileArrow,
 .menuTile:focus-visible .menuTileArrow {
-  color: var(--blue-bright);
+  color: var(--accent-warm);
 }
 
 .dialog {
-  background: #202e3b;
-  border: 2px solid var(--border-strong);
-  padding: 12px 16px;
+  composes: frame;
+  padding: 10px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   font-size: 13px;
 }
 
 .dialogCursor {
-  color: var(--blue-bright);
+  color: var(--accent-warm);
 }
