@@ -83,7 +83,8 @@ body:has(#portfolio-shell-root) .container {
 }
 
 body:has(#home-shell-root) header,
-body:has(#home-shell-root) footer {
+body:has(#home-shell-root) footer,
+body:has(#home-shell-root) .chat-widget-root {
   display: none !important;
 }
 
