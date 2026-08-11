@@ -38,33 +38,56 @@
   }
 }
 
-/* Shared HUD frame: chamfered top-left / bottom-right corners */
+/* Shared HUD frame: stepped (pixel-staircase) top-left / bottom-right corners,
+   plus an inset bevel and a hard outer drop-shadow for a raised "game window" feel. */
 
 .frame {
   background: var(--window-bg);
-  border: 1.5px solid var(--border);
-  box-shadow: inset 0 0 0 1px rgba(127, 166, 217, 0.22);
+  border: 2px solid var(--border);
+  box-shadow:
+    inset 1px 1px 0 var(--border-light),
+    inset -2px -2px 0 var(--border-dark);
+  filter: drop-shadow(3px 3px 0 var(--border-dark));
   clip-path: polygon(
+    0 12px,
+    4px 12px,
+    4px 8px,
+    8px 8px,
+    8px 4px,
+    12px 4px,
     12px 0,
     100% 0,
     100% calc(100% - 12px),
+    calc(100% - 4px) calc(100% - 12px),
+    calc(100% - 4px) calc(100% - 8px),
+    calc(100% - 8px) calc(100% - 8px),
+    calc(100% - 8px) calc(100% - 4px),
+    calc(100% - 12px) calc(100% - 4px),
     calc(100% - 12px) 100%,
-    0 100%,
-    0 12px
+    0 100%
   );
 }
 
 .frameSmall {
   background: var(--window-bg);
-  border: 1.5px solid var(--border);
-  box-shadow: inset 0 0 0 1px rgba(127, 166, 217, 0.22);
+  border: 2px solid var(--border);
+  box-shadow:
+    inset 1px 1px 0 var(--border-light),
+    inset -2px -2px 0 var(--border-dark);
+  filter: drop-shadow(2px 2px 0 var(--border-dark));
   clip-path: polygon(
+    0 6px,
+    3px 6px,
+    3px 3px,
+    6px 3px,
     6px 0,
     100% 0,
     100% calc(100% - 6px),
+    calc(100% - 3px) calc(100% - 6px),
+    calc(100% - 3px) calc(100% - 3px),
+    calc(100% - 6px) calc(100% - 3px),
     calc(100% - 6px) 100%,
-    0 100%,
-    0 6px
+    0 100%
   );
 }
 
