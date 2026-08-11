@@ -5,7 +5,7 @@ import { MdEmail } from "react-icons/md";
 import { DIGITAL_GARDEN_URL, GITHUB_URL, EMAIL } from "@/lib/constants";
 import styles from "@/app/_components/pokedex-home.module.css";
 
-const SIDEBAR_SPRITE_URL = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png";
+const SIDEBAR_SPRITE_URL = "/pokemon/pikachu.png";
 
 const sections = [
   {
@@ -46,6 +46,7 @@ export default function Home() {
         href="https://cdn.jsdelivr.net/gh/neodgm/neodgm-webfont@1.601/neodgm/style.css"
       />
 
+      <div className={styles.screen}>
       <aside className={styles.sidebar}>
         <span className={styles.logo}>POKEDEX</span>
         <nav className={styles.nav} aria-label="주요 메뉴">
@@ -89,7 +90,9 @@ export default function Home() {
           <div className={styles.panelHeader}>TRAINER DATA</div>
           <div className={styles.panelBody}>
             <div className={styles.identityRow}>
-              <div className={styles.avatarBox}>OG</div>
+              <div className={styles.avatarBox}>
+                <Image src={SIDEBAR_SPRITE_URL} alt="Ohgnoy의 트레이너 아바타" width={48} height={48} />
+              </div>
               <div>
                 <p className={styles.identityNumber}>No. 0001</p>
                 <h1 className={styles.identityName}>OHGNOY</h1>
@@ -159,6 +162,7 @@ export default function Home() {
           <span className={styles.dialogCursor}>▼</span>
         </div>
       </main>
+      </div>
     </div>
   );
 }

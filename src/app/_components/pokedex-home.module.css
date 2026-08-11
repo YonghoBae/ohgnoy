@@ -10,9 +10,8 @@
   --text-muted: #7e93a8;
   --accent-warm: #e0a458;
 
-  display: grid;
-  grid-template-columns: 176px 1fr;
   min-height: 100dvh;
+  padding: 10px;
   background:
     repeating-linear-gradient(
       0deg,
@@ -26,74 +25,64 @@
   font-family: "IBM Plex Mono", "Pretendard", monospace;
 }
 
+/* The ONE big HUD frame for the whole screen — stepped corners live here only.
+   Inner panels are plain bordered rectangles (see .simpleFrame). */
+
+.screen {
+  display: grid;
+  grid-template-columns: 176px 1fr;
+  min-height: calc(100dvh - 20px);
+  background: var(--window-bg);
+  border: 2px solid var(--border);
+  filter: drop-shadow(0 0 6px rgba(76, 127, 192, 0.35));
+  clip-path: polygon(
+    0 16px,
+    4px 16px,
+    4px 12px,
+    8px 12px,
+    8px 8px,
+    12px 8px,
+    12px 4px,
+    16px 4px,
+    16px 0,
+    100% 0,
+    100% calc(100% - 16px),
+    calc(100% - 4px) calc(100% - 16px),
+    calc(100% - 4px) calc(100% - 12px),
+    calc(100% - 8px) calc(100% - 12px),
+    calc(100% - 8px) calc(100% - 8px),
+    calc(100% - 12px) calc(100% - 8px),
+    calc(100% - 12px) calc(100% - 4px),
+    calc(100% - 16px) calc(100% - 4px),
+    calc(100% - 16px) 100%,
+    0 100%
+  );
+}
+
 @media (max-width: 900px) {
-  .shell {
+  .screen {
     grid-template-columns: 140px 1fr;
   }
 }
 
 @media (max-width: 640px) {
-  .shell {
+  .screen {
     grid-template-columns: 1fr;
   }
 }
 
-/* Shared HUD frame: stepped (pixel-staircase) top-left / bottom-right corners,
-   plus an inset bevel and a hard outer drop-shadow for a raised "game window" feel. */
+/* Plain bordered rectangle used by every inner panel — no chamfer, no bevel,
+   just an evenly-lit border with a faint uniform glow. */
 
-.frame {
-  background: var(--window-bg);
-  border: 2px solid var(--border);
-  box-shadow:
-    inset 1px 1px 0 var(--border-light),
-    inset -2px -2px 0 var(--border-dark);
-  filter: drop-shadow(3px 3px 0 var(--border-dark));
-  clip-path: polygon(
-    0 12px,
-    4px 12px,
-    4px 8px,
-    8px 8px,
-    8px 4px,
-    12px 4px,
-    12px 0,
-    100% 0,
-    100% calc(100% - 12px),
-    calc(100% - 4px) calc(100% - 12px),
-    calc(100% - 4px) calc(100% - 8px),
-    calc(100% - 8px) calc(100% - 8px),
-    calc(100% - 8px) calc(100% - 4px),
-    calc(100% - 12px) calc(100% - 4px),
-    calc(100% - 12px) 100%,
-    0 100%
-  );
-}
-
-.frameSmall {
-  background: var(--window-bg);
-  border: 2px solid var(--border);
-  box-shadow:
-    inset 1px 1px 0 var(--border-light),
-    inset -2px -2px 0 var(--border-dark);
-  filter: drop-shadow(2px 2px 0 var(--border-dark));
-  clip-path: polygon(
-    0 6px,
-    3px 6px,
-    3px 3px,
-    6px 3px,
-    6px 0,
-    100% 0,
-    100% calc(100% - 6px),
-    calc(100% - 3px) calc(100% - 6px),
-    calc(100% - 3px) calc(100% - 3px),
-    calc(100% - 6px) calc(100% - 3px),
-    calc(100% - 6px) 100%,
-    0 100%
-  );
+.simpleFrame {
+  background: var(--window-bg-2);
+  border: 1.5px solid var(--border);
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(76, 127, 192, 0.12);
 }
 
 .sidebar {
-  composes: frame;
-  margin: 8px 0 8px 8px;
+  border-right: 2px solid var(--border);
   padding: 16px 12px;
   display: flex;
   flex-direction: column;
@@ -121,7 +110,8 @@
   min-height: 36px;
   padding: 8px 10px 8px 16px;
   color: var(--text-muted);
-  border: 1px solid transparent;
+  border: 1.5px solid transparent;
+  border-radius: 3px;
   text-decoration: none;
   font-size: 13px;
   transition: background-color 80ms linear, color 80ms linear, border-color 80ms linear;
@@ -161,7 +151,7 @@
 }
 
 .sidebarSprite {
-  composes: frame;
+  composes: simpleFrame;
   margin-top: auto;
   display: flex;
   flex-direction: column;
@@ -171,7 +161,7 @@
 }
 
 .spriteFrame {
-  composes: frameSmall;
+  composes: simpleFrame;
   position: relative;
   width: 88px;
   height: 88px;
@@ -199,12 +189,12 @@
 }
 
 .panel {
-  composes: frame;
+  composes: simpleFrame;
 }
 
 .panelHeader {
   background: var(--window-bg-2);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1.5px solid var(--border);
   padding: 6px 14px;
   font-size: 11px;
   font-weight: 700;
@@ -225,16 +215,18 @@
 }
 
 .avatarBox {
-  composes: frameSmall;
+  composes: simpleFrame;
   flex-shrink: 0;
   width: 64px;
   height: 64px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: "NeoDunggeunmo", monospace;
-  font-size: 16px;
-  color: var(--border-light);
+  overflow: hidden;
+}
+
+.avatarBox img {
+  image-rendering: pixelated;
 }
 
 .identityNumber {
@@ -264,7 +256,7 @@
 }
 
 .iconBox {
-  composes: frameSmall;
+  composes: simpleFrame;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -303,7 +295,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  background: var(--window-bg);
+  background: var(--window-bg-2);
   padding: 12px 14px 12px 16px;
   color: var(--text-muted);
   text-decoration: none;
@@ -356,7 +348,7 @@
 }
 
 .dialog {
-  composes: frame;
+  composes: simpleFrame;
   padding: 10px 16px;
   display: flex;
   justify-content: space-between;
