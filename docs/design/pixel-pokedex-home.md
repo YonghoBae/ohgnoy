@@ -57,7 +57,7 @@ One asset, reused at different `border-image-width` values for visual hierarchy 
 | Small square (avatar, icon buttons, sprite frame) | `.simpleFrameSmall` | 5px |
 | Sidebar nav item, hover/focus only | `.navItem:hover/:focus-visible` | 5px |
 
-To regenerate or resize the notch, edit and rerun the generator (kept out of the repo since it's a one-off tool, not a build step) — the parameters that matter are canvas size `N=24`, rim thickness `T=3`, corner slice `CORNER=6` (must match `border-image-slice`), and the staircase `STEP=1`/`THRESH=2` (keep this small — the first version used `THRESH=3` and cut so much of the corner away the frame looked broken into four disconnected segments).
+To regenerate or resize the notch: `python3 scripts/generate-panel-frame.py` (requires `pip install pillow`; not part of the build, run manually and commit the resulting PNG). The parameters that matter are `CANVAS=24`, `THICKNESS=3`, `CORNER=6` (must match `border-image-slice` at every call site), and the staircase `STEP=1`/`STEP_COUNT=2` — keep the notch small. An earlier version used a bigger cut (`STEP=2`/`STEP_COUNT=3`) and it removed so much of each corner that the frame looked broken into four disconnected segments instead of a continuous outline with a small nick.
 
 **Toggling a border-image on/off** (used for `.navItem`, which has no visible border at rest and shows the frame only on hover): set `border-image-source: none` plus an explicit `border-color: transparent` in the resting state. Forgetting the explicit transparent `border-color` leaves the browser's default (`currentColor`), which silently draws a visible border in whatever the text color is — this was a real bug caught only by screenshotting the actual page, not by reading the CSS.
 
@@ -82,8 +82,8 @@ This is dark-only by design (no light variant), matching the reference. If a lig
 
 ## Typography
 
-- Headings/labels (`identityName`, `logo`, `panelHeader`... wait, `panelHeader` is NOT pixel-font, see below): `NeoDunggeunmo` (loaded via `<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/neodgm/neodgm-webfont@1.601/neodgm/style.css">` directly in `page.tsx` — Next.js App Router hoists `<link>` tags rendered anywhere in the component tree into `<head>` automatically, so this doesn't need to live in the root layout).
-- **Only use `NeoDunggeunmo` at 16px or 32px** (its native pixel grid). It was used at 12-20px in earlier iterations and looked blurry — bitmap fonts only render crisply at their native size or clean multiples of it. `.logo` and `.avatarBox`'s monogram are 16px; `.identityName` is 32px. Small labels like `.panelHeader` deliberately do NOT use this font — they're plain bold uppercase in the body monospace instead.
+- `NeoDunggeunmo` (a bitmap-style Korean pixel font) is loaded via `<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/neodgm/neodgm-webfont@1.601/neodgm/style.css">` directly in `page.tsx` — Next.js App Router hoists `<link>` tags rendered anywhere in the component tree into `<head>` automatically, so this doesn't need to live in the root layout.
+- **Only use `NeoDunggeunmo` at 16px or 32px** (its native pixel grid). It was used at 12-20px in earlier iterations and looked blurry — bitmap fonts only render crisply at their native size or clean multiples of it. Currently only two elements use it: `.logo` (16px) and `.identityName` (32px). Everything else — including small labels like `.panelHeader` — deliberately stays in the body monospace instead; the avatar box shows the Pikachu sprite image, not text, so it has no font size at all.
 - Body/data text: `"IBM Plex Mono", "Pretendard", monospace` (set on `.shell`).
 
 ## Texture
