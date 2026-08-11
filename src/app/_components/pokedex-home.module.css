@@ -76,9 +76,11 @@
 
 .simpleFrame {
   background: var(--window-bg-2);
-  border: 1.5px solid var(--border);
-  border-radius: 3px;
-  box-shadow: 0 0 0 1px rgba(76, 127, 192, 0.12);
+  border: 2px solid var(--border);
+  border-radius: 0;
+  box-shadow:
+    inset 0 0 0 3px var(--window-bg-2),
+    inset 0 0 0 4px var(--border-light);
 }
 
 .sidebar {
@@ -111,7 +113,7 @@
   padding: 8px 10px 8px 16px;
   color: var(--text-muted);
   border: 1.5px solid transparent;
-  border-radius: 3px;
+  border-radius: 0;
   text-decoration: none;
   font-size: 13px;
   transition: background-color 80ms linear, color 80ms linear, border-color 80ms linear;
