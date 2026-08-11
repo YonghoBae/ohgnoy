@@ -25,38 +25,24 @@
   font-family: "IBM Plex Mono", "Pretendard", monospace;
 }
 
-/* The ONE big HUD frame for the whole screen — stepped corners live here only.
-   Inner panels are plain bordered rectangles (see .simpleFrame). */
+/* The ONE big HUD frame for the whole screen. Uses a real pixel-art PNG as a
+   border-image (not a CSS clip-path) so the stepped corners are genuine
+   bitmap pixels, scaled with nearest-neighbor — vector clip-path corners
+   always render anti-aliased, which is why earlier attempts looked "clean"
+   instead of pixel-art. */
 
 .screen {
   display: grid;
   grid-template-columns: 176px 1fr;
   min-height: calc(100dvh - 20px);
   background: var(--window-bg);
-  border: 2px solid var(--border);
+  border-style: solid;
+  border-width: 14px;
+  border-image-source: url("/frames/panel-frame.png");
+  border-image-slice: 6;
+  border-image-repeat: stretch;
+  image-rendering: pixelated;
   filter: drop-shadow(0 0 6px rgba(76, 127, 192, 0.35));
-  clip-path: polygon(
-    0 16px,
-    4px 16px,
-    4px 12px,
-    8px 12px,
-    8px 8px,
-    12px 8px,
-    12px 4px,
-    16px 4px,
-    16px 0,
-    100% 0,
-    100% calc(100% - 16px),
-    calc(100% - 4px) calc(100% - 16px),
-    calc(100% - 4px) calc(100% - 12px),
-    calc(100% - 8px) calc(100% - 12px),
-    calc(100% - 8px) calc(100% - 8px),
-    calc(100% - 12px) calc(100% - 8px),
-    calc(100% - 12px) calc(100% - 4px),
-    calc(100% - 16px) calc(100% - 4px),
-    calc(100% - 16px) 100%,
-    0 100%
-  );
 }
 
 @media (max-width: 900px) {
@@ -71,50 +57,27 @@
   }
 }
 
-/* Every inner panel also gets a small stepped corner (top-left / bottom-right),
-   just at a smaller scale than the outer .screen frame — no directional bevel,
-   border stays evenly lit all the way around. */
+/* Every inner panel uses the same pixel-art frame PNG, just at a smaller
+   border-image-width than the outer .screen — one asset, two display sizes. */
 
 .simpleFrame {
   background: var(--window-bg-2);
-  border: 2px solid var(--border);
-  clip-path: polygon(
-    0 9px,
-    3px 9px,
-    3px 6px,
-    6px 6px,
-    6px 3px,
-    9px 3px,
-    9px 0,
-    100% 0,
-    100% calc(100% - 9px),
-    calc(100% - 3px) calc(100% - 9px),
-    calc(100% - 3px) calc(100% - 6px),
-    calc(100% - 6px) calc(100% - 6px),
-    calc(100% - 6px) calc(100% - 3px),
-    calc(100% - 9px) calc(100% - 3px),
-    calc(100% - 9px) 100%,
-    0 100%
-  );
+  border-style: solid;
+  border-width: 8px;
+  border-image-source: url("/frames/panel-frame.png");
+  border-image-slice: 6;
+  border-image-repeat: stretch;
+  image-rendering: pixelated;
 }
 
 .simpleFrameSmall {
   background: var(--window-bg-2);
-  border: 2px solid var(--border);
-  clip-path: polygon(
-    0 4px,
-    2px 4px,
-    2px 2px,
-    4px 2px,
-    4px 0,
-    100% 0,
-    100% calc(100% - 4px),
-    calc(100% - 2px) calc(100% - 4px),
-    calc(100% - 2px) calc(100% - 2px),
-    calc(100% - 4px) calc(100% - 2px),
-    calc(100% - 4px) 100%,
-    0 100%
-  );
+  border-style: solid;
+  border-width: 5px;
+  border-image-source: url("/frames/panel-frame.png");
+  border-image-slice: 6;
+  border-image-repeat: stretch;
+  image-rendering: pixelated;
 }
 
 .sidebar {
@@ -146,24 +109,14 @@
   min-height: 36px;
   padding: 8px 10px 8px 16px;
   color: var(--text-muted);
-  border: 1.5px solid transparent;
+  border-style: solid;
+  border-width: 5px;
+  border-color: transparent;
+  border-image-source: none;
   text-decoration: none;
   font-size: 13px;
-  transition: background-color 80ms linear, color 80ms linear, border-color 80ms linear;
-  clip-path: polygon(
-    0 6px,
-    3px 6px,
-    3px 3px,
-    6px 3px,
-    6px 0,
-    100% 0,
-    100% calc(100% - 6px),
-    calc(100% - 3px) calc(100% - 6px),
-    calc(100% - 3px) calc(100% - 3px),
-    calc(100% - 6px) calc(100% - 3px),
-    calc(100% - 6px) 100%,
-    0 100%
-  );
+  transition: background-color 80ms linear, color 80ms linear;
+  image-rendering: pixelated;
 }
 
 .navItem svg {
@@ -173,8 +126,10 @@
 .navItem:hover,
 .navItem:focus-visible {
   background: var(--window-active);
-  border-color: var(--border);
   color: var(--text);
+  border-image-source: url("/frames/panel-frame.png");
+  border-image-slice: 6;
+  border-image-repeat: stretch;
 }
 
 .navItem:focus-visible {
