@@ -23,6 +23,7 @@
     var(--screen-bg);
   color: var(--text);
   font-family: "IBM Plex Mono", "Pretendard", monospace;
+  cursor: url("/frames/cursor-pikachu-arrow.png") 1 1, default;
 }
 
 /* The ONE big HUD frame for the whole screen. Uses a real pixel-art PNG as a
@@ -126,7 +127,7 @@
   border-color: transparent;
   border-image-source: none;
   text-decoration: none;
-  cursor: url("/frames/cursor-select.png") 2 3, pointer;
+  cursor: url("/frames/cursor-pikachu.png") 6 4, pointer;
   font-size: 15px;
   transition: background-color 80ms linear, color 80ms linear;
   image-rendering: pixelated;
@@ -291,7 +292,7 @@
   width: 30px;
   height: 30px;
   color: var(--text-muted);
-  cursor: url("/frames/cursor-select.png") 2 3, pointer;
+  cursor: url("/frames/cursor-pikachu.png") 6 4, pointer;
   transition: background-color 80ms linear, color 80ms linear, transform 80ms linear;
 }
 
@@ -329,7 +330,7 @@
   color: var(--text-muted);
   text-decoration: none;
   border-left: 3px solid var(--border);
-  cursor: url("/frames/cursor-select.png") 2 3, pointer;
+  cursor: url("/frames/cursor-pikachu.png") 6 4, pointer;
   transition: background-color 80ms linear, color 80ms linear;
 }
 
