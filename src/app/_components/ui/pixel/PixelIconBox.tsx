@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import styles from "./pixel-theme.module.css";
 
 export default function PixelIconBox({
   children,
@@ -11,7 +12,9 @@ export default function PixelIconBox({
   return (
     <span
       className={cn(
-        "inline-flex h-8 w-8 items-center justify-center rounded-none border-2 border-text-base bg-surface text-text-muted transition-colors hover:border-primary hover:text-primary",
+        styles.pixelFrameSmall,
+        styles.pixelPanelBg,
+        "inline-flex h-8 w-8 items-center justify-center text-text-muted transition-colors hover:bg-[var(--px-active)] hover:text-[var(--px-text)]",
         className,
       )}
     >
