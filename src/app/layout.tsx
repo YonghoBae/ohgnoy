@@ -12,6 +12,7 @@ import { Intro } from '@/app/_components/intro';
 
 // 전역 스타일을 import (앱 전체에 적용될 CSS 파일)
 import './globals.css';
+import pixelTheme from '@/app/_components/ui/pixel/pixel-theme.module.css';
 import Container from './_components/container';
 import ChatWidget from './_components/ChatWidget';
 
@@ -83,6 +84,7 @@ export default function RootLayout({
           pressStart2P.variable,
           spaceMono.variable,
           'bg-[#ECEFF4] dark:bg-[#2E3440] text-[#2E3440] dark:text-[#ECEFF4]',
+          pixelTheme.pixelTheme,
         )}
       >
           <header className="sticky top-0 z-50 border-b border-border bg-[#ECEFF4]/90 dark:bg-[#2E3440]/90 backdrop-blur-md">

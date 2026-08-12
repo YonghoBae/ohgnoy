@@ -1,0 +1,35 @@
+.pixelTheme {
+}
+
+:global(.dark) .pixelTheme {
+  --px-panel: #182432;
+  --px-panel-2: #1e2e3d;
+  --px-active: #2a4560;
+  --px-border: #4c7fc0;
+  --px-border-dim: #0b1119;
+  --px-text: #e6ebf0;
+  --px-text-muted: #7e93a8;
+  --px-accent-warm: #e0a458;
+}
+
+.pixelFrame {
+  border-style: solid;
+  border-width: 8px;
+  border-image-source: url("/frames/panel-frame.png");
+  border-image-slice: 6;
+  border-image-repeat: stretch;
+  image-rendering: pixelated;
+}
+
+.pixelFrameSmall {
+  border-style: solid;
+  border-width: 5px;
+  border-image-source: url("/frames/panel-frame.png");
+  border-image-slice: 6;
+  border-image-repeat: stretch;
+  image-rendering: pixelated;
+}
+
+.pixelPanelBg {
+  background: var(--px-panel);
+}
