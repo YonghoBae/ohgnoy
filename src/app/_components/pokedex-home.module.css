@@ -126,7 +126,7 @@
   border-color: transparent;
   border-image-source: none;
   text-decoration: none;
-  cursor: url("/frames/cursor-glove.png") 20 4, pointer;
+  cursor: url("/frames/cursor-select.png") 2 3, pointer;
   font-size: 15px;
   transition: background-color 80ms linear, color 80ms linear;
   image-rendering: pixelated;
@@ -291,7 +291,7 @@
   width: 30px;
   height: 30px;
   color: var(--text-muted);
-  cursor: url("/frames/cursor-glove.png") 20 4, pointer;
+  cursor: url("/frames/cursor-select.png") 2 3, pointer;
   transition: background-color 80ms linear, color 80ms linear, transform 80ms linear;
 }
 
@@ -329,7 +329,7 @@
   color: var(--text-muted);
   text-decoration: none;
   border-left: 3px solid var(--border);
-  cursor: url("/frames/cursor-glove.png") 20 4, pointer;
+  cursor: url("/frames/cursor-select.png") 2 3, pointer;
   transition: background-color 80ms linear, color 80ms linear;
 }
 
