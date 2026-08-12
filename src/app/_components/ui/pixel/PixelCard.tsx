@@ -1,5 +1,6 @@
 import { HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
+import styles from "./pixel-theme.module.css";
 
 export default function PixelCard({
   className,
@@ -8,10 +9,7 @@ export default function PixelCard({
 }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn(
-        "rounded-none border-2 border-text-base bg-surface shadow-pixel",
-        className,
-      )}
+      className={cn(styles.pixelFrame, styles.pixelPanelBg, className)}
       {...props}
     >
       {children}
