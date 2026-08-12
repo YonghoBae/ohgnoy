@@ -1,13 +1,15 @@
 # Spec: Unify the Pixel Design System (Phase 1 — Shared Tokens & Primitives)
 
+Revised after an independent subagent review verified this spec's claims against the actual codebase (`grep`-checked consumer counts, confirmed `shadow-pixel` has no other consumers, caught a scope contradiction on `PixelIconBox`). Changes from the first draft are called out inline as **(revised)**.
+
 ## Background
 
 This repo currently has **two incompatible "pixel" design languages**:
 
-1. **`src/app/_components/ui/pixel/`** (`PixelCard`, `PixelButton`, `PixelIconBox`, `PixelSprite`, and `TypeBadge`) — built earlier via a subagent-driven-development pass, used across the pokemon section (`/pokemon/list`, `/pokemon/[id]`, `/pokemon/builder`, `/pokemon/meta`). Uses the site's existing Nord CSS variables (`--color-primary`, `text-base`, etc.), Tailwind utility classes, `border-2 border-text-base` + `shadow-pixel` (a CSS box-shadow, not a border-image), and Press Start 2P for pixel text.
+1. **`src/app/_components/ui/pixel/`** (`PixelCard`, `PixelButton`, `PixelIconBox`, `PixelSprite`, and `TypeBadge`) — built earlier via a subagent-driven-development pass. `PixelCard`/`PixelButton`/`PixelSprite`/`TypeBadge` are used across the pokemon section (`/pokemon/list`, `/pokemon/[id]`, `/pokemon/builder`, `/pokemon/meta`). **`PixelIconBox` is different: its only two consumers are `src/app/_components/intro.tsx` and `footer.tsx`, both rendered unconditionally in the root layout — i.e. on every page of the site, not the pokemon section.** This system uses the site's existing Nord CSS variables (`--color-primary`, `text-base`, etc.), Tailwind utility classes, `border-2 border-text-base` + `shadow-pixel` (a CSS box-shadow, not a border-image), and Press Start 2P for pixel text.
 2. **`src/app/_components/pokedex-home.module.css`** — built after that, for the home page only (`src/app/page.tsx`). Uses its own separate CSS custom properties (`--border`, `--window-bg`, `--accent-warm`, etc.), a genuine pixel-art `border-image` PNG (`public/frames/panel-frame.png`) with `image-rendering: pixelated` for stepped corners, and NeoDunggeunmo for pixel text.
 
-The home page's look is the one the project owner approved ("이대로 가자" — go with this). This spec covers **unifying the pokemon section onto the home page's design language**, done in two phases:
+The home page's look is the one the project owner approved ("이대로 가자" — go with this). This spec covers **unifying the pokemon section, plus the two global-chrome icon-button spots, onto the home page's border-image design language**, done in two phases:
 
 - **Phase 1 (this spec):** build the shared tokens and primitives.
 - **Phase 2 (separate plan, not detailed here):** roll the new primitives out page by page — list → detail → builder → meta.
@@ -16,84 +18,63 @@ The home page's look is the one the project owner approved ("이대로 가자" �
 
 - Direction: extend the home page style to the whole pokemon section, not the reverse.
 - Rollout: staged — primitives first (this spec), then pages, so nothing is left half-migrated for long.
-- Theme: the pokemon section **keeps the site's light/dark toggle** (unlike the home page, which is dark-only). This means every pixel-themed color token and border-image asset needs both a light and a dark value/version.
+- Theme: the pokemon section **keeps the site's light/dark toggle** (unlike the home page, which is dark-only). Every pixel-themed color token and border-image asset needs both a light and a dark value/version.
+- **(revised) `PixelIconBox` is in scope for Phase 1, and its token source mounts globally**, not scoped to pokemon routes only. Rationale: its only consumers are global header/footer chrome. Scoping the new `--px-*` tokens to pokemon routes only would leave `PixelIconBox` reading undefined CSS variables on every other page (blog, portfolio, studys, chat, auth) — a site-wide visual regression, not a contained one. Concretely: apply the `.pixelTheme` class (or just its custom-property declarations, unscoped) at the `<body>` level in `src/app/layout.tsx`, alongside the existing Nord token setup, so both `PixelIconBox` (global) and the pokemon-section primitives (route-scoped by virtue of only being imported there) can read the same `--px-*` variables everywhere. This does **not** mean redesigning any page outside the pokemon section — only the small header/footer icon buttons change appearance, everywhere, as a deliberate consequence of unifying the one shared primitive they use.
+- **(revised) Font: Press Start 2P stays the pixel-headline font for the pokemon section** (not NeoDunggeunmo). Reason: Press Start 2P is already self-hosted via `next/font/google` (`src/lib/fonts.ts`) with no runtime network dependency, consistent with how every other font on the site loads. NeoDunggeunmo is currently loaded only on the home page via an external jsDelivr CDN `<link>` with no fallback/`font-display` strategy specified anywhere. Extending that CDN dependency to the whole pokemon section (or the root layout) would introduce a new site-wide external dependency and FOUC/latency risk that doesn't exist today. If the visual mismatch between the two pixel fonts becomes a real complaint once both are side by side, revisit — but default to Press Start 2P.
+- **(revised) `pokeball.png` needs no light variant.** Verified by grep: it's referenced only in `src/app/page.tsx` and `src/app/_components/BootScreen.tsx`, both home-page-only. It is never used in `ui/pixel/` or any `/pokemon/*` route. No action needed for it in this spec.
 
 ## Why this is harder than copy-pasting the home page CSS: border-image can't be recolored by CSS
 
-`panel-frame.png` (and `pokeball.png`) are real pixel-art bitmaps with the border color baked into the pixels (`#4C7FC0`, chosen for the home page's dark screen). CSS cannot retint a `border-image` per theme — no `currentColor`, no CSS variable inside a raster PNG. The only reliable fix is to **generate a second, light-mode-colored version of each frame asset** and swap the `border-image-source` URL based on the `.dark` class, the same way the site already swaps CSS variable values for light vs. dark.
+`panel-frame.png` is a real pixel-art bitmap with the border color baked into the pixels (`#4C7FC0`, chosen for the home page's dark screen). CSS cannot retint a `border-image` per theme — no `currentColor`, no CSS variable inside a raster PNG. The only reliable fix is to **generate a second, light-mode-colored version of the frame asset** and swap the `border-image-source` URL based on the `.dark` class, the same way the site already swaps CSS variable values for light vs. dark.
 
-The asset generator scripts (`scripts/generate-panel-frame.py`, `scripts/generate-pokeball-icon.py`) already take color as a named constant — this is a parameter change and a second `python3 scripts/generate-panel-frame.py` run with a different `BORDER_COLOR` and a different `OUTPUT_PATH`, not a rewrite. Verify each regenerated asset the same way the originals were verified: diff the byte output isn't silently different from what's expected, and screenshot the actual rendered page in both themes before calling it done (see "Known limitations" in `docs/design/pixel-pokedex-home.md` — every purely-reasoned CSS judgment on this project's pixel work has been wrong at least once; only a real screenshot settled it).
+`scripts/generate-panel-frame.py` already takes color as a named constant (`BORDER_COLOR`) — producing a light variant is a parameter change and a second run with a different constant and output path, not a rewrite.
 
-## Scope of this spec (Phase 1 only)
+## Scope of this spec, split into two sub-phases
 
-### New file: `src/app/_components/ui/pixel/pixel-theme.module.css`
+### Phase 1a — dark-mode port (mechanical, low-risk, do this first and ship it)
 
-A single source of truth for color tokens, exported as one class other modules can `composes` from or that consuming components apply directly:
+Everything needed to make `PixelCard`, `PixelButton`, `PixelIconBox`, and (unchanged) `PixelSprite`/`TypeBadge` render in the home page's **already-verified dark style**, reusing values and techniques that already shipped and were screenshotted:
 
-```css
-.pixelTheme {
-  /* light (default) values — pick colors consistent with the site's existing
-     light Nord palette (--color-bg #ECEFF4, --color-primary #5E81AC, etc. in
-     globals.css), not arbitrary new ones */
-  --px-bg: ...;
-  --px-panel: ...;
-  --px-panel-2: ...;
-  --px-active: ...;
-  --px-border: ...;      /* must match whatever color panel-frame-light.png is baked with */
-  --px-border-dim: ...;
-  --px-text: ...;
-  --px-text-muted: ...;
-  --px-accent-warm: #e0a458; /* keep the single warm accent identical in both themes unless there's a reason not to */
-}
+1. **New file `src/app/_components/ui/pixel/pixel-theme.module.css`** exporting a `.pixelTheme` class. For Phase 1a, only populate the dark values (copied verbatim from `pokedex-home.module.css`'s `.shell` tokens) under `:global(.dark) .pixelTheme { ... }` — no light values yet, that's Phase 1b:
+   ```css
+   :global(.dark) .pixelTheme {
+     --px-panel: #182432;
+     --px-panel-2: #1e2e3d;
+     --px-active: #2a4560;
+     --px-border: #4c7fc0;   /* must match panel-frame.png */
+     --px-border-dim: #0b1119;
+     --px-text: #e6ebf0;
+     --px-text-muted: #7e93a8;
+     --px-accent-warm: #e0a458;
+   }
+   ```
+   `--px-*` prefix (not `--border`, `--window-bg`, etc.) to avoid colliding with any CSS variable already in scope, since this mounts globally rather than scoped to one page's root.
+2. **Mount `.pixelTheme` in `src/app/layout.tsx`** on `<body>` (or a wrapping element), unscoped by route, per the decision above.
+3. **Rewrite `PixelCard`, `PixelButton`, `PixelIconBox`** to use `border-image-source: url("/frames/panel-frame.png")`, `border-image-slice: 6`, `image-rendering: pixelated`, and the `--px-*` background/text tokens, matching `pokedex-home.module.css`'s `.simpleFrame` (for Card/IconBox) as the reference implementation. Keep existing prop signatures — call sites elsewhere must not need to change how they use these components, only what happens visually. If a call site genuinely can't be satisfied unchanged, flag it explicitly rather than silently changing the signature.
+   - `PixelButton` keeps its `variant` prop (primary/ghost) and existing `active:translate` press effect. Decide the primary variant's fill color as part of this task (the home page has no button primitive to copy from) — using the existing Nord `--color-primary` for the primary-button fill is a reasonable default consistent with the rest of the site, unless there's a reason to introduce a `--px-accent` instead.
+   - `PixelIconBox` uses a smaller `border-image-width` than `PixelCard`, matching the home page's `.simpleFrameSmall`/`.iconBox`.
+   - `PixelSprite`: no change expected — already just `<Image>` with `image-rendering: pixelated`. Confirm it still fits; don't rewrite without a concrete reason.
+   - `TypeBadge`: keep the square/pixel treatment and the `TYPE_COLORS` map untouched (real Pokémon type colors, unrelated to which of the two systems is in use). Only touch its border/font tokens if they visibly clash once surrounding cards are migrated.
+4. Since Nord's `.dark` class is already the active theme mechanism (`theme-switcher.tsx` toggles it on `document.documentElement`), Phase 1a's dark styling should work correctly as soon as dark mode is toggled — no new theme-detection logic needed.
+5. **Verify** by toggling dark mode and screenshotting: a pokemon-section page (e.g. `/pokemon/list`) and, since `PixelIconBox` is now global, the header/footer on at least one page outside the pokemon section (e.g. the home... no — home hides global chrome; use `/pokemon/list` or `/studys/list` for the header/footer check instead).
 
-:global(.dark) .pixelTheme {
-  /* dark values — copy verbatim from pokedex-home.module.css's .shell tokens */
-  --px-bg: #10161f;
-  --px-panel: #182432;
-  --px-panel-2: #1e2e3d;
-  --px-active: #2a4560;
-  --px-border: #4c7fc0;   /* must match panel-frame.png (the existing dark asset) */
-  --px-border-dim: #0b1119;
-  --px-text: #e6ebf0;
-  --px-text-muted: #7e93a8;
-  --px-accent-warm: #e0a458;
-}
-```
+### Phase 1b — light-mode tokens + asset (iterative, screenshot-gated — do not ship as a one-shot)
 
-Naming note: prefix these `--px-*` (not `--border`, `--window-bg`, etc. as in the home page) since these tokens will be applied globally-ish across the pokemon section rather than scoped to one page's root — avoid colliding with any other CSS variable name already in scope.
+The dark-mode work above had a supplied reference image and explicit owner approval to iterate against. Light mode has neither. Per the lesson already documented in `docs/design/pixel-pokedex-home.md` ("every CSS fix made by reasoning... without checking a live render went in the wrong direction at least once"), do not treat light-mode color values as a single deliverable to pick once and ship:
 
-Exact light-mode color values are not decided yet — pick them to read as "the same pixel-game screen, lit differently," matching the site's existing light Nord background (`#ECEFF4`) rather than inventing a new light palette from scratch. This is a judgment call for whoever implements it; screenshot both themes side by side before finalizing.
-
-### New/changed border-image assets
-
-- Keep `public/frames/panel-frame.png` as the dark-mode asset (already correct, do not regenerate with different parameters unless the shape itself is being redesigned).
-- Add `public/frames/panel-frame-light.png` — same generator (`scripts/generate-panel-frame.py`), same shape (`CANVAS`, `THICKNESS`, `CORNER`, `STEP`, `THRESH` unchanged), different `BORDER_COLOR` matching whatever `--px-border` resolves to in light mode. Add a second generator invocation path (a `--light` flag, a second constant + second `OUTPUT_PATH`, or a sibling script — implementer's call) so both stay reproducible the way `docs/design/pixel-pokedex-home.md` documents for the dark one.
-- Decide whether `pokeball.png` needs a light variant too (it's a colorful icon, not a monochrome UI border — it may not need retinting at all; check where it's actually used in the pokemon section before assuming it does).
-
-### Primitive rewrites
-
-All in `src/app/_components/ui/pixel/`, all keeping their existing prop signatures (call sites elsewhere must not need to change their usage, only what's imported/how the component is styled internally) unless a call site genuinely can't be satisfied — flag that explicitly rather than silently changing a signature.
-
-- **`PixelCard`**: replace `border-2 border-text-base ... shadow-pixel` with `border-style: solid`, a `border-width`, `border-image-source: url(...)` that switches between the light/dark PNG via the `.pixelTheme`/`.dark` mechanism above, `image-rendering: pixelated`, background from `--px-panel`. Match the home page's `.simpleFrame` class as the reference implementation (`pokedex-home.module.css`) — same border-image-slice (6), same stepped-corner technique, just theme-aware.
-- **`PixelButton`**: same border-image treatment; keep the existing `active:translate` press effect and `variant` prop (primary/ghost) — primary uses `--px-accent`-equivalent (decide whether buttons use the primary Nord blue or introduce their own token; the home page has no button primitive to copy from, so this needs a fresh call, not a straight port).
-- **`PixelIconBox`**: same border-image treatment, sized like the home page's `.iconBox`/`.simpleFrameSmall` (smaller `border-image-width`).
-- **`PixelSprite`**: no visual change needed — this component already just renders `<Image>` with `image-rendering: pixelated`; confirm it still fits the new visual system, don't rewrite it without a reason.
-- **`TypeBadge`**: keep the square/pixel treatment and the `TYPE_COLORS` map (these are real Pokémon type colors, not part of the two competing systems — don't touch them). Only revisit its border/font tokens if they visibly clash once the surrounding cards are migrated.
-
-### Font
-
-Match the home page's rule exactly (from `docs/design/pixel-pokedex-home.md`): NeoDunggeunmo **only** at 16px or 32px, for headline-tier text (card headers, not body copy or stat numbers). The pokemon pages currently use Press Start 2P for this role — decide whether to keep Press Start 2P (already loaded via `src/lib/fonts.ts`, used across the site) or switch to NeoDunggeunmo (would need the same `<link>` used on the home page, loaded per-page or promoted to the root layout if every pixel-themed page needs it). This is a real decision, not a detail — flag it for the project owner rather than picking silently, since it affects every headline in the pokemon section.
+1. Add `panel-frame-light.png` via a second run of `scripts/generate-panel-frame.py` (same shape parameters, different `BORDER_COLOR` and `OUTPUT_PATH` — add a `--light` flag or a second constant, implementer's call) using the existing Nord light primary (`--color-primary`, `#5E81AC`) as a starting point for the border color, since that's already the established light-mode accent elsewhere on the site.
+2. Populate the light (default, non-`.dark`) block of `.pixelTheme` with values derived from the site's existing light Nord palette (`--color-bg #ECEFF4`, etc. in `globals.css`) rather than an invented palette.
+3. Swap `border-image-source` based on `.dark` presence (light PNG when absent, dark PNG under `:global(.dark)`).
+4. **Screenshot both themes side by side before calling this done.** Expect at least one revision round on the light border/background color once actually rendered — budget for it rather than treating the first attempt as final.
 
 ## Explicitly out of scope for this spec
 
 - Actually migrating `/pokemon/list`, `/pokemon/[id]`, `/pokemon/builder`, `/pokemon/meta` to use the rewritten primitives (Phase 2).
 - Redesigning `TypeBadge`'s color values.
-- Touching anything outside the pokemon section and the shared `ui/pixel/` primitives.
-- Adding a light-mode variant to the home page itself (it stays dark-only, per existing spec).
+- Any visual change to page content outside the pokemon section — the only site-wide effect in scope is `PixelIconBox`'s appearance in the shared header/footer.
+- Adding a light-mode variant to the home page itself (it stays dark-only, per `docs/design/pixel-pokedex-home.md`).
+- The dead `src/app/_components/pokemonCard.tsx` file (lowercase, unused, imports `TypeBadge`) — already noted in `docs/known-issues.md`, not touched by this spec.
 
-## Risks / things a reviewer should specifically sanity-check
+## Small cleanup folded into Phase 1a, not a separate task
 
-1. Is deriving `pixel-theme.module.css`'s light-mode values purely by inference (no reference image, no prior approval) going to produce the same trial-and-error cycle documented in `docs/design/pixel-pokedex-home.md`? If so, should this spec instead say "ship dark-mode-correct primitives first, screenshot light mode, iterate" rather than presenting light-mode values as a one-shot deliverable?
-2. Are there other files under `ui/pixel/` or elsewhere importing `PixelCard`/`PixelButton`/`PixelIconBox`/`PixelSprite`/`TypeBadge` with assumptions (specific className overrides, specific DOM structure) that a border-image rewrite could break? (Known consumers as of this session: `src/app/_components/intro.tsx`, `footer.tsx`, and the pokemon list/detail/builder/meta component trees — verify against current `grep` results, not this list, since it may be stale by the time this is read.)
-3. Is `shadow-pixel` (the Tailwind box-shadow token these primitives currently use) referenced anywhere else in the codebase such that removing it from these components has a visible side effect elsewhere?
-4. Font decision (Press Start 2P vs NeoDunggeunmo for the pokemon section) is unresolved above — does the reviewer see a reason to default one way rather than surfacing it as an open question?
+Once `PixelCard`/`PixelButton` no longer reference `shadow-pixel`, remove the now-orphaned `boxShadow.pixel` entry from `tailwind.config.ts` in the same commit (confirmed via grep to have no other consumers) — don't leave dead config behind.
