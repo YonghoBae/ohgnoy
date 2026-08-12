@@ -13,11 +13,16 @@ Requires Pillow: pip install pillow
 Run from anywhere:
     python3 scripts/generate-panel-frame.py
 
+Environment variables (optional):
+    PANEL_FRAME_COLOR    — hex color for the border (default: #4C7FC0)
+    PANEL_FRAME_OUTPUT   — output file path (default: public/frames/panel-frame.png)
+
 CORNER must match the `border-image-slice` value used everywhere this
 asset is referenced in pokedex-home.module.css. If you change CANVAS,
 THICKNESS, or CORNER, update border-image-slice at every call site to match.
 """
 
+import os
 from pathlib import Path
 
 from PIL import Image
@@ -32,9 +37,20 @@ STEP_COUNT = 2  # how many steps get cut away from each corner
 # of the corner and left the frame looking like 4 disconnected segments
 # instead of a continuous frame with a small nick. Keep the notch subtle.
 
-BORDER_COLOR = (76, 127, 192, 255)  # #4C7FC0 — must match --border in pokedex-home.module.css
 
-OUTPUT_PATH = Path(__file__).resolve().parent.parent / "public" / "frames" / "panel-frame.png"
+def hex_to_rgba(hex_color: str) -> tuple:
+    """Convert hex color like #4C7FC0 to (r, g, b, 255) tuple."""
+    hex_color = hex_color.lstrip("#")
+    r, g, b = tuple(int(hex_color[i : i + 2], 16) for i in (0, 2, 4))
+    return (r, g, b, 255)
+
+
+# Read border color and output path from environment, with defaults
+_color_hex = os.environ.get("PANEL_FRAME_COLOR", "#4C7FC0")
+BORDER_COLOR = hex_to_rgba(_color_hex)
+
+_output_rel = os.environ.get("PANEL_FRAME_OUTPUT", "public/frames/panel-frame.png")
+OUTPUT_PATH = Path(_output_rel) if Path(_output_rel).is_absolute() else Path(__file__).resolve().parent.parent / _output_rel
 
 
 def is_border(x: int, y: int) -> bool:
