@@ -150,7 +150,7 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <PixelCard className="flex w-full max-w-md flex-col gap-4 bg-surface p-5">
+      <PixelCard className="flex w-full max-w-md flex-col gap-4 p-5">
         <div className="flex items-center justify-between">
           <h3 className="font-bold">포켓몬 선택</h3>
           <button onClick={onClose} className="text-neutral-400 hover:text-neutral-700">✕</button>

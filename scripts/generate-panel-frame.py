@@ -1,5 +1,12 @@
-"""Regenerates public/frames/panel-frame.png — the pixel-art border-image
-used by the home page's Pokedex screen (docs/design/pixel-pokedex-home.md).
+"""Regenerates the pixel-art border-image frame(s) used as border-image
+sources across the site's pixel-art panels.
+
+Two consumers use this script's output:
+  - public/frames/panel-frame.png (default) — the home page's Pokedex
+    screen, referenced from pokedex-home.module.css.
+  - public/frames/panel-frame-light.png (via PANEL_FRAME_OUTPUT/
+    PANEL_FRAME_COLOR below) — the light-mode pixel-theme frame,
+    referenced from src/app/_components/ui/pixel/pixel-theme.module.css.
 
 Draws a picture-frame outline (a solid rim of BORDER_COLOR, THICKNESS px
 thick) with a small staircase notch cut out of all four corners, as real
@@ -18,7 +25,8 @@ Environment variables (optional):
     PANEL_FRAME_OUTPUT   — output file path (default: public/frames/panel-frame.png)
 
 CORNER must match the `border-image-slice` value used everywhere this
-asset is referenced in pokedex-home.module.css. If you change CANVAS,
+asset is referenced: pokedex-home.module.css AND
+src/app/_components/ui/pixel/pixel-theme.module.css. If you change CANVAS,
 THICKNESS, or CORNER, update border-image-slice at every call site to match.
 """
 
