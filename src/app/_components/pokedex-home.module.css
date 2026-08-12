@@ -127,7 +127,7 @@
   border-color: transparent;
   border-image-source: none;
   text-decoration: none;
-  cursor: url("/frames/cursor-pikachu.png") 6 4, pointer;
+  cursor: url("/frames/cursor-pikachu-click.png") 1 1, pointer;
   font-size: 15px;
   transition: background-color 80ms linear, color 80ms linear;
   image-rendering: pixelated;
@@ -292,7 +292,7 @@
   width: 30px;
   height: 30px;
   color: var(--text-muted);
-  cursor: url("/frames/cursor-pikachu.png") 6 4, pointer;
+  cursor: url("/frames/cursor-pikachu-click.png") 1 1, pointer;
   transition: background-color 80ms linear, color 80ms linear, transform 80ms linear;
 }
 
@@ -330,7 +330,7 @@
   color: var(--text-muted);
   text-decoration: none;
   border-left: 3px solid var(--border);
-  cursor: url("/frames/cursor-pikachu.png") 6 4, pointer;
+  cursor: url("/frames/cursor-pikachu-click.png") 1 1, pointer;
   transition: background-color 80ms linear, color 80ms linear;
 }
 
