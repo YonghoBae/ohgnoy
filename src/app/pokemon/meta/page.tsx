@@ -3,6 +3,7 @@ import { fetchUsageStats, getUsageRanking } from "@/lib/battle/fetchers/fetchUsa
 import { CUTOFF_BY_FORMAT, DEFAULT_FORMAT, FORMATS } from "@/lib/battle/constants";
 import FormatSelector from "./_components/FormatSelector";
 import UsageRankingTable from "./_components/UsageRankingTable";
+import PixelCard from "@/app/_components/ui/pixel/PixelCard";
 
 interface Props {
   searchParams: Promise<{ format?: string; month?: string }>;
@@ -33,9 +34,9 @@ export default async function MetaPage({ searchParams }: Props) {
         <FormatSelector current={formatId} currentMonth={month} />
       </Suspense>
 
-      <div className="rounded-2xl bg-neutral-200 bg-opacity-50 p-4 dark:bg-neutral-700 dark:bg-opacity-50">
+      <PixelCard className="p-4">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-bold">{formatLabel} 사용률 랭킹</h2>
+          <h2 className="font-pixel text-xs">{formatLabel} 사용률 랭킹</h2>
           {statsMap && (
             <span className="text-xs text-neutral-500">
               cutoff {cutoff}+
@@ -52,7 +53,7 @@ export default async function MetaPage({ searchParams }: Props) {
             <UsageRankingTable ranking={ranking} />
           </Suspense>
         )}
-      </div>
+      </PixelCard>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { PokemonBattleData, BattleSet } from "@/types/pokemon/battle";
 import { FORMATS } from "@/lib/battle/constants";
 import TypeBadge from "@/app/_components/TypeBadge";
 import { PokemonTypeName } from "@/types/pokemon/domain";
+import PixelCard from "@/app/_components/ui/pixel/PixelCard";
 
 // EV 스프레드 파싱: "Jolly:252/4/0/0/0/252" → 표시용 문자열
 function parseSpread(spread: string): { nature: string; evs: string } {
@@ -86,7 +87,7 @@ function SetCard({ set }: { set: BattleSet }) {
     : null;
 
   return (
-    <div className="rounded-xl bg-neutral-100 p-4 dark:bg-neutral-800">
+    <PixelCard className="p-4">
       <p className="mb-3 text-sm font-bold text-blue-600 dark:text-blue-400">
         {set.name}
       </p>
@@ -97,7 +98,7 @@ function SetCard({ set }: { set: BattleSet }) {
             {set.moves.map((m, i) => (
               <span
                 key={i}
-                className="rounded-full bg-neutral-200 px-2 py-0.5 text-xs dark:bg-neutral-700"
+                className="rounded-none border border-text-base bg-surface px-2 py-0.5 text-xs"
               >
                 {Array.isArray(m) ? m.join(" / ") : m}
               </span>
@@ -143,7 +144,7 @@ function SetCard({ set }: { set: BattleSet }) {
           </div>
         )}
       </div>
-    </div>
+    </PixelCard>
   );
 }
 
@@ -180,10 +181,10 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
   const { usage, sets } = battleData;
 
   return (
-    <div className="flex flex-col gap-4 rounded-2xl bg-neutral-200 bg-opacity-50 p-5 dark:bg-neutral-700 dark:bg-opacity-50">
+    <PixelCard className="flex flex-col gap-4 p-5">
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">실전 데이터</h2>
+          <h2 className="font-pixel text-xs">실전 데이터</h2>
           {usage && !formatLoading && (
             <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700 dark:bg-blue-900 dark:text-blue-300">
               {format.toUpperCase()} {usage.usagePercent.toFixed(1)}%
@@ -199,10 +200,10 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
             <button
               key={f.id}
               onClick={() => setFormat(f.id)}
-              className={`rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors ${
+              className={`rounded-none border-2 border-text-base px-2.5 py-0.5 text-xs font-semibold transition-colors ${
                 format === f.id
-                  ? "bg-blue-600 text-white"
-                  : "bg-neutral-200 text-neutral-600 hover:bg-neutral-300 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600"
+                  ? "bg-primary text-white"
+                  : "bg-surface text-text-base hover:border-primary hover:text-primary"
               }`}
             >
               {f.label}
@@ -222,10 +223,10 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
               <button
                 key={t.key}
                 onClick={() => setTab(t.key)}
-                className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                className={`rounded-none border-2 border-text-base px-3 py-1 text-xs font-semibold transition-colors ${
                   tab === t.key
-                    ? "bg-neutral-800 text-white dark:bg-neutral-200 dark:text-neutral-900"
-                    : "bg-neutral-300 text-neutral-600 hover:bg-neutral-400 dark:bg-neutral-600 dark:text-neutral-300"
+                    ? "bg-primary text-white"
+                    : "bg-surface text-text-base hover:border-primary hover:text-primary"
                 }`}
               >
                 {t.label}
@@ -310,6 +311,6 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
           )}
         </>
       )}
-    </div>
+    </PixelCard>
   );
 }

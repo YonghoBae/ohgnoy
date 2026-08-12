@@ -1,5 +1,6 @@
 import { EvolutionChain, Move, Pokemon, PokemonSpecies } from "pokenode-ts";
 import { PokemonDetail, PokemonTypeName } from "@/types/pokemon/domain";
+import { getPixelSpriteUrl } from "@/lib/pokemon/spriteUrl";
 import {
   getEnglishFlavorText,
   getKoreanFlavorText,
@@ -31,7 +32,7 @@ export function toPokemonDetail(
     nameEn: pokemon.name,
     nameKo: getKoreanName(species),
     types: pokemon.types.map((t) => t.type.name as PokemonTypeName),
-    spriteUrl: pokemon.sprites.other?.["official-artwork"].front_default ?? "",
+    spriteUrl: getPixelSpriteUrl(pokemon),
     height: pokemon.height,
     weight: pokemon.weight,
     genus: getKoreanGenus(species),

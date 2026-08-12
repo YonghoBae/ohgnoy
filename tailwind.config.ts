@@ -48,9 +48,14 @@ const config: Config = {
         "7xl": "4.5rem",
         "8xl": "6.25rem",
       },
+      fontFamily: {
+        pixel: ["var(--font-pixel)", "system-ui", "sans-serif"],
+        "mono-pixel": ["var(--font-mono-pixel)", "ui-monospace", "monospace"],
+      },
       boxShadow: {
         sm: "0 5px 10px rgba(0, 0, 0, 0.12)",
         md: "0 8px 30px rgba(0, 0, 0, 0.12)",
+        pixel: "2px 2px 0 0 rgb(var(--color-text) / 1)",
       },
     },
   },

@@ -37,11 +37,13 @@ export default function PokemonDetailTabs({
         {tabs.map((t) => (
           <button
             key={t.key}
+            role="tab"
+            aria-selected={tab === t.key}
             onClick={() => setTab(t.key)}
-            className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
+            className={`rounded-none border-2 border-text-base px-4 py-1.5 text-sm font-semibold transition-colors ${
               tab === t.key
-                ? "bg-neutral-800 text-white dark:bg-neutral-100 dark:text-neutral-900"
-                : "bg-neutral-200 text-neutral-600 hover:bg-neutral-300 dark:bg-neutral-700 dark:text-neutral-300"
+                ? "bg-primary text-white"
+                : "bg-surface text-text-base hover:border-primary hover:text-primary"
             }`}
           >
             {t.label}

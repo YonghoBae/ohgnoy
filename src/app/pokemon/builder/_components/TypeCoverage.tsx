@@ -2,6 +2,7 @@
 
 import { PokemonTypeName } from "@/types/pokemon/domain";
 import { ALL_TYPES, calcTeamWeaknesses } from "@/lib/battle/typeChart";
+import PixelCard from "@/app/_components/ui/pixel/PixelCard";
 
 const TYPE_KO: Record<PokemonTypeName, string> = {
   normal: "노말", fire: "불꽃", water: "물", electric: "전기",
@@ -29,16 +30,16 @@ export default function TypeCoverage({ teamTypes }: { teamTypes: PokemonTypeName
 
   if (!nonZero.length) {
     return (
-      <div className="rounded-2xl bg-neutral-200 bg-opacity-50 p-5 dark:bg-neutral-700 dark:bg-opacity-50">
-        <h2 className="text-lg font-bold">타입 상성</h2>
+      <PixelCard className="p-5">
+        <h2 className="font-pixel text-xs">타입 상성</h2>
         <p className="mt-2 text-sm text-neutral-500">약점 없음</p>
-      </div>
+      </PixelCard>
     );
   }
 
   return (
-    <div className="rounded-2xl bg-neutral-200 bg-opacity-50 p-5 dark:bg-neutral-700 dark:bg-opacity-50">
-      <h2 className="mb-3 text-lg font-bold">팀 약점 분석</h2>
+    <PixelCard className="p-5">
+      <h2 className="mb-3 font-pixel text-xs">팀 약점 분석</h2>
       <p className="mb-4 text-xs text-neutral-500">
         각 공격 타입에 약한 포켓몬 수
       </p>
@@ -64,6 +65,6 @@ export default function TypeCoverage({ teamTypes }: { teamTypes: PokemonTypeName
           ⚠ 3마리 이상 약점인 타입이 있습니다.
         </p>
       )}
-    </div>
+    </PixelCard>
   );
 }

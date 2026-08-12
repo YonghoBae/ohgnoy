@@ -136,7 +136,7 @@ export default function ChatWidget() {
     <>
       {open && (
         <div
-          className="fixed bottom-20 right-4 z-50 flex w-80 flex-col rounded-2xl border border-border bg-[#ECEFF4] shadow-2xl dark:bg-[#2E3440]"
+          className="chat-widget-root fixed bottom-20 right-4 z-50 flex w-80 flex-col rounded-2xl border border-border bg-[#ECEFF4] shadow-2xl dark:bg-[#2E3440]"
           style={{ height: "28rem" }}
         >
           <div className="flex items-center justify-between rounded-t-2xl bg-primary px-4 py-3 text-white">
@@ -224,7 +224,7 @@ export default function ChatWidget() {
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? "채팅 닫기" : "채팅 열기"}
-        className="fixed bottom-4 right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-all duration-200 hover:scale-110 hover:bg-primary-hover"
+        className="chat-widget-root fixed bottom-4 right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-all duration-200 hover:scale-110 hover:bg-primary-hover"
       >
         {open ? (
           <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">

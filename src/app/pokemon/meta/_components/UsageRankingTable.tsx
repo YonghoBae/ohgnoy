@@ -1,10 +1,11 @@
-import Image from "next/image";
 import Link from "next/link";
+import { Pokemon } from "pokenode-ts";
 import { UsageRankEntry } from "@/lib/battle/fetchers/fetchUsageStats";
 import { fetchPokemon } from "@/lib/pokemon/fetchers/fetchPokemon";
 import { fetchSpecies } from "@/lib/pokemon/fetchers/fetchSpecies";
 import { getKoreanName } from "@/lib/pokemon/i18n";
 import TypeBadge from "@/app/_components/TypeBadge";
+import PixelSprite from "@/app/_components/ui/pixel/PixelSprite";
 import { PokemonTypeName } from "@/types/pokemon/domain";
 
 async function RankRow({
@@ -14,16 +15,15 @@ async function RankRow({
   entry: UsageRankEntry;
   maxUsage: number;
 }) {
-  let spriteUrl = "";
+  let pokemon: Pokemon | null = null;
   let nameKo = entry.nameEn;
   let types: PokemonTypeName[] = [];
   let id: number | string = entry.nameEn;
 
   try {
     const slug = entry.nameEn.toLowerCase().replace(/ /g, "-");
-    const pokemon = await fetchPokemon(slug);
+    pokemon = await fetchPokemon(slug);
     id = pokemon.id;
-    spriteUrl = pokemon.sprites.other?.["official-artwork"].front_default ?? "";
     types = pokemon.types.map((t) => t.type.name as PokemonTypeName);
 
     const species = await fetchSpecies(pokemon.id);
@@ -43,9 +43,7 @@ async function RankRow({
         {entry.rank}
       </span>
       <div className="relative h-12 w-12 flex-shrink-0">
-        {spriteUrl && (
-          <Image src={spriteUrl} alt={entry.nameEn} fill className="object-contain" />
-        )}
+        {pokemon && <PixelSprite pokemon={pokemon} alt={entry.nameEn} fill />}
       </div>
       <div className="flex flex-1 flex-col gap-1 min-w-0">
         <div className="flex items-center gap-2">

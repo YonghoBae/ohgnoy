@@ -49,10 +49,10 @@ export default function TypeBadge({
   type: PokemonTypeName;
   size?: "sm" | "md";
 }) {
-  const sizeClass = size === "sm" ? "px-2 py-0.5 text-xs" : "px-3 py-1 text-sm";
+  const sizeClass = size === "sm" ? "px-2 py-0.5 text-[10px]" : "px-3 py-1 text-xs";
   return (
     <span
-      className={`rounded-full font-semibold uppercase tracking-wide ${sizeClass} ${TYPE_COLORS[type]}`}
+      className={`rounded-none border border-text-base font-mono-pixel font-bold uppercase tracking-wide ${sizeClass} ${TYPE_COLORS[type]}`}
     >
       {TYPE_KO[type]}
     </span>

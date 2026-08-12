@@ -1,8 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
 import { EvolutionNode } from "@/types/pokemon/domain";
 import { fetchPokemon } from "@/lib/pokemon/fetchers/fetchPokemon";
 import { fetchSpecies } from "@/lib/pokemon/fetchers/fetchSpecies";
+import PixelCard from "@/app/_components/ui/pixel/PixelCard";
+import PixelSprite, { getPixelSpriteUrl } from "@/app/_components/ui/pixel/PixelSprite";
 
 async function EvolutionNodeCard({ node }: { node: EvolutionNode }) {
   let spriteUrl = "";
@@ -12,7 +13,7 @@ async function EvolutionNodeCard({ node }: { node: EvolutionNode }) {
       fetchPokemon(node.speciesId),
       fetchSpecies(node.speciesId),
     ]);
-    spriteUrl = pokemon.sprites.other?.["official-artwork"].front_default ?? "";
+    spriteUrl = getPixelSpriteUrl(pokemon);
     const ko = species.names.find((n) => n.language.name === "ko");
     if (ko) koName = ko.name;
   } catch {
@@ -26,7 +27,7 @@ async function EvolutionNodeCard({ node }: { node: EvolutionNode }) {
     >
       {spriteUrl && (
         <div className="relative h-20 w-20">
-          <Image src={spriteUrl} alt={koName} fill className="object-contain" />
+          <PixelSprite spriteUrl={spriteUrl} alt={koName} fill />
         </div>
       )}
       <span className="text-xs font-semibold">{koName}</span>
@@ -70,11 +71,11 @@ function renderChain(node: EvolutionNode): React.ReactNode {
 
 export default function EvolutionChainSection({ chain }: { chain: EvolutionNode }) {
   return (
-    <div className="flex flex-col gap-3 rounded-2xl bg-neutral-200 bg-opacity-50 p-5 dark:bg-neutral-700 dark:bg-opacity-50">
-      <h2 className="text-lg font-bold">진화</h2>
+    <PixelCard className="flex flex-col gap-3 p-5">
+      <h2 className="font-pixel text-xs">진화</h2>
       <div className="flex flex-row flex-wrap items-center justify-center">
         {renderChain(chain)}
       </div>
-    </div>
+    </PixelCard>
   );
 }
