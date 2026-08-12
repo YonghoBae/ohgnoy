@@ -1,5 +1,6 @@
 import { ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
+import styles from "./pixel-theme.module.css";
 
 interface PixelButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "ghost";
@@ -14,12 +15,13 @@ export default function PixelButton({
   return (
     <button
       className={cn(
-        "rounded-none border-2 border-text-base px-4 py-2 text-sm font-semibold shadow-pixel transition-transform",
-        "active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
+        styles.pixelFrameSmall,
+        "px-4 py-2 text-sm font-semibold transition-transform",
+        "active:translate-x-[2px] active:translate-y-[2px]",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
         variant === "primary"
           ? "bg-primary text-white"
-          : "bg-surface text-text-base hover:border-primary hover:text-primary",
+          : cn(styles.pixelPanelBg, "text-text-base hover:text-primary"),
         className,
       )}
       {...props}
