@@ -1,4 +1,12 @@
 .pixelTheme {
+  --px-panel: #ECEFF4;
+  --px-panel-2: #E5E9F0;
+  --px-active: #D8DEE9;
+  --px-border: #5E81AC;
+  --px-border-dim: #C5CDDA;
+  --px-text: #2E3440;
+  --px-text-muted: #4C566A;
+  --px-accent-warm: #D08770;
 }
 
 :global(.dark) .pixelTheme {
@@ -15,19 +23,27 @@
 .pixelFrame {
   border-style: solid;
   border-width: 8px;
-  border-image-source: url("/frames/panel-frame.png");
+  border-image-source: url("/frames/panel-frame-light.png");
   border-image-slice: 6;
   border-image-repeat: stretch;
   image-rendering: pixelated;
 }
 
+:global(.dark) .pixelFrame {
+  border-image-source: url("/frames/panel-frame.png");
+}
+
 .pixelFrameSmall {
   border-style: solid;
   border-width: 5px;
-  border-image-source: url("/frames/panel-frame.png");
+  border-image-source: url("/frames/panel-frame-light.png");
   border-image-slice: 6;
   border-image-repeat: stretch;
   image-rendering: pixelated;
+}
+
+:global(.dark) .pixelFrameSmall {
+  border-image-source: url("/frames/panel-frame.png");
 }
 
 .pixelPanelBg {
