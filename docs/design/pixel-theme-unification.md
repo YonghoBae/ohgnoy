@@ -25,9 +25,9 @@ The home page's look is the one the project owner approved ("이대로 가자" �
 
 ## Why this is harder than copy-pasting the home page CSS: border-image can't be recolored by CSS
 
-`panel-frame.png` is a real pixel-art bitmap with the border color baked into the pixels (`#4C7FC0`, chosen for the home page's dark screen). CSS cannot retint a `border-image` per theme — no `currentColor`, no CSS variable inside a raster PNG. The only reliable fix is to **generate a second, light-mode-colored version of the frame asset** and swap the `border-image-source` URL based on the `.dark` class, the same way the site already swaps CSS variable values for light vs. dark.
+`panel-frame.png` is a real pixel-art bitmap with a bevel (highlight and shadow tints derived from a base color #36587E for the dark screen) baked into the pixels. CSS cannot retint a `border-image` per theme — no `currentColor`, no CSS variable inside a raster PNG. The only reliable fix is to **generate a second, light-mode-colored version of the frame asset** and swap the `border-image-source` URL based on the `.dark` class, the same way the site already swaps CSS variable values for light vs. dark.
 
-`scripts/generate-panel-frame.py` already takes color as a named constant (`BORDER_COLOR`) — producing a light variant is a parameter change and a second run with a different constant and output path, not a rewrite.
+`scripts/generate-panel-frame.py` generates the bevel by blending the base color toward highlight and shadow target colors (defaulting to `#7FA6D9` for highlight and `#0B1119` for shadow, matching the `--border-light` and `--border-dark` CSS variables). Producing a light variant is a parameter change and a second run with a different base color and output path, not a rewrite.
 
 ## Scope of this spec, split into two sub-phases
 
@@ -41,7 +41,7 @@ Everything needed to make `PixelCard`, `PixelButton`, `PixelIconBox`, and (uncha
      --px-panel: #182432;
      --px-panel-2: #1e2e3d;
      --px-active: #2a4560;
-     --px-border: #4c7fc0;   /* must match panel-frame.png */
+     --px-border: #4c7fc0;   /* note: the frame PNG now uses a bevel (derived from #36587E), not a single flat color; these CSS variables are for UI elements like dividers and accents */
      --px-border-dim: #0b1119;
      --px-text: #e6ebf0;
      --px-text-muted: #7e93a8;

@@ -35,7 +35,7 @@ Every early attempt at "pixel" corners using `border-radius` or a CSS `clip-path
 
 ## The frame asset
 
-`public/frames/panel-frame.png` — a hand-authored 24×24 RGBA PNG (generated once via a small Pillow script, not upscaled/interpolated from anything). It's a picture-frame outline: a 3px-thick solid rim in `#4C7FC0`, with a small staircase notch cut out of all four corners. Transparent everywhere else.
+`public/frames/panel-frame.png` — a hand-authored 24×24 RGBA PNG (generated once via a small Pillow script, not upscaled/interpolated from anything). It's a picture-frame outline: a 3px-thick rim with a highlight/shadow bevel (top/left edges lighter, bottom/right edges darker, both derived from a base color #36587E), with a multi-step staircase notch cut out of all four corners. Transparent everywhere else.
 
 Applied via:
 
@@ -57,7 +57,7 @@ One asset, reused at different `border-image-width` values for visual hierarchy 
 | Small square (avatar, icon buttons, sprite frame) | `.simpleFrameSmall` | 5px |
 | Sidebar nav item, hover/focus only | `.navItem:hover/:focus-visible` | 5px |
 
-To regenerate or resize the notch: `python3 scripts/generate-panel-frame.py` (requires `pip install pillow`; not part of the build, run manually and commit the resulting PNG). The parameters that matter are `CANVAS=24`, `THICKNESS=3`, `CORNER=6` (must match `border-image-slice` at every call site), and the staircase `STEP=1`/`STEP_COUNT=2` — keep the notch small. An earlier version used a bigger cut (`STEP=2`/`STEP_COUNT=3`) and it removed so much of each corner that the frame looked broken into four disconnected segments instead of a continuous outline with a small nick.
+To regenerate or resize the notch: `python3 scripts/generate-panel-frame.py` (requires `pip install pillow`; not part of the build, run manually and commit the resulting PNG). The parameters that matter are `CANVAS=24`, `THICKNESS=3`, `CORNER=6` (must match `border-image-slice` at every call site), and the staircase `STEP=1`/`STEP_COUNT=4` — a four-step staircase cuts a deeper notch (approximately 2px/3px/4px) that's more visible at real border widths than earlier shallow versions. An earlier iteration used `STEP_COUNT=2` (barely visible nick at the corner tip), and an even older attempt used `STEP_COUNT=3` with `STEP=2` (cut so deeply it disconnected the frame into four segments). The current four-step cut achieves visibility without overextending.
 
 **Toggling a border-image on/off** (used for `.navItem`, which has no visible border at rest and shows the frame only on hover): set `border-image-source: none` plus an explicit `border-color: transparent` in the resting state. Forgetting the explicit transparent `border-color` leaves the browser's default (`currentColor`), which silently draws a visible border in whatever the text color is — this was a real bug caught only by screenshotting the actual page, not by reading the CSS.
 
@@ -71,7 +71,7 @@ Defined as CSS custom properties on `.shell` (the page root), not in `globals.cs
 --window-bg-2:   #1e2e3d;  /* panel fill, header strips */
 --window-active: #2a4560;  /* hover/selected fill */
 --border-dark:   #0b1119;  /* pressed state, menu-grid gutter lines */
---border:        #4c7fc0;  /* the one border/accent color, baked into the PNG too */
+--border:        #4c7fc0;  /* the one border/accent color, used for UI elements like dividers and accents (the frame PNG itself now uses a bevel, not a single flat color) */
 --border-light:  #7fa6d9;  /* focus outline only */
 --text:          #e6ebf0;
 --text-muted:    #7e93a8;
