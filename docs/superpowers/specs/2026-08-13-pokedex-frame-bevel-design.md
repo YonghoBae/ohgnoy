@@ -31,21 +31,35 @@ Instead of filling every border-region pixel with one flat `BORDER_COLOR`, the r
 
 This requires each of `THICKNESS`, `CORNER`, and the notch logic to stay as-is; only the single flat `BORDER_COLOR` fill in `main()`'s inner loop becomes a highlight/shadow choice based on which edge(s) a pixel belongs to.
 
-### 3. Harmonized base color
+### 3. Harmonized base color — generated as candidates, not a single computed guess
 
-The new base tone is derived by blending the current border color with the interior panel color, not invented from scratch:
+A single blended value is a formula's best guess, not a guarantee of what will look right — this project's own history (`docs/design/pixel-pokedex-home.md`) is that color/visual judgment on this page was never right on the first unexamined attempt. So instead of picking one base color and hoping, generate **three candidates** spanning a spread on the same blend axis (old border `#4C7FC0` toward `--window-bg-2` `#1e2e3d`), each with highlight/shadow derived the same way (blend toward `--border-light`/`--border-dark` at 50%):
 
-- **Dark asset** (`panel-frame.png`, feeds both the home page and pokemon dark mode): blend old border `#4C7FC0` with `--window-bg-2` `#1e2e3d` at 50% → **base `#36587E`**. Highlight: blend that base with the existing `--border-light` `#7fa6d9` at 50% → **`#5D7FAE`**. Shadow: blend that base with `--border-dark` `#0b1119` at 50% → **`#20344B`**.
-- **Light asset** (`panel-frame-light.png`, pokemon section light mode only): the same blend ratios applied around light mode's existing border color `#5E81AC` and its neighboring light Nord tokens (`--color-surface-2` `#D8DEE9` for the "interior" blend partner, and `--color-text-muted`/white-ish tones for highlight, a darker desaturated blue for shadow) — exact values worked out during implementation and screenshot-verified, since (per the project's established practice) light-mode color decisions are not treated as get-it-right-in-one-shot.
+| Candidate | Blend toward window-bg-2 | Base | Highlight | Shadow |
+|---|---|---|---|---|
+| A (closer to original) | 35% | `#3C6392` | blend(A, `#7fa6d9`, 50%) | blend(A, `#0b1119`, 50%) |
+| B (the spec's original midpoint) | 50% | `#36587E` | blend(B, `#7fa6d9`, 50%) | blend(B, `#0b1119`, 50%) |
+| C (more muted, closer to interior) | 65% | `#2E4A6B` | blend(C, `#7fa6d9`, 50%) | blend(C, `#0b1119`, 50%) |
 
-All three (base/highlight/shadow) replace the single `BORDER_COLOR` constant; `PANEL_FRAME_COLOR` env var becomes the base color input that highlight/shadow are derived from, preserving Task 6's existing override mechanism rather than replacing it.
+(Highlight/shadow hex values for each candidate are computed the same way as the original spec's formula — not hand-invented — just applied to three base points instead of one.)
+
+All three candidates are rendered and screenshotted (see Verification) so the project owner picks one, or gives directional feedback ("closer to A but a bit less saturated") to converge — the same iterative pattern already used successfully for this page's other visual decisions, rather than assuming the plan's formula nails it unexamined.
+
+The **light asset** (`panel-frame-light.png`, pokemon section only) gets the same treatment: three candidates blending light mode's existing border `#5E81AC` toward `--color-surface-2` `#D8DEE9` at 35%/50%/65%, with highlight/shadow derived from light Nord tokens (a white-ish tone and a darker desaturated blue respectively) — worked out and screenshot-compared during implementation, not computed once and shipped.
+
+`PANEL_FRAME_COLOR` env var becomes the **base** color input (not the flat single color it was before) that highlight/shadow are derived from — the script gains a candidate-sweep mode (loop over the three base values, write three numbered output files) rather than requiring three separate manual invocations, so the comparison step is one command.
+
+### 4. Corner staircase strength — one variant check, not a full cross product
+
+`STEP_COUNT=4` (Section 1) is a comparatively mechanical, low-subjectivity call — more steps reads as more "staircase," and 4 is well-motivated by the worked-through pixel math (see Section 1). To avoid combinatorial explosion (3 colors × N step counts), generate the color candidates at the settled `STEP_COUNT=4`. Only if the project owner's feedback on the color candidates also flags the staircase itself as off, generate one additional `STEP_COUNT=3` and `STEP_COUNT=5` variant on whichever color candidate won, as a quick follow-up — not upfront.
 
 ## Testing / Verification
 
 No automated visual test suite exists for this (consistent with the rest of this project's pixel-art work). Verification is:
-1. Regenerate both PNGs, inspect pixel data directly (PIL) to confirm exactly 3 non-transparent colors each (base/highlight/shadow — or however many the implementation actually produces) and confirm the corner notch is no longer a single shallow cut (multiple distinct step depths present in the alpha channel).
-2. Real browser screenshots (Chrome DevTools MCP if available, `browser-use` otherwise, per this session's established fallback) of the home page and a pokemon-section page in dark mode, zoomed into a corner (as was done during this diagnosis), confirming: (a) a visible multi-step staircase, not a single diagonal nick; (b) a visible highlight/shadow split, not a flat single-tone band; (c) the border no longer reads as a saturated "sticker" against the near-black interior.
-3. Budget at least one revision round on the exact color values — this project's own documented history (`docs/design/pixel-pokedex-home.md`) is that color/visual judgment calls on this page were never right on the first unexamined attempt.
+1. Regenerate all candidate PNGs (3 dark, 3 light), inspect pixel data directly (PIL) to confirm each has exactly 3 non-transparent colors (base/highlight/shadow) and that the corner notch is no longer a single shallow cut (multiple distinct step depths present in the alpha channel).
+2. Real browser screenshots (Chrome DevTools MCP if available, `browser-use` otherwise, per this session's established fallback) comparing the three dark candidates side-by-side on the home page and a pokemon-section dark-mode page, zoomed into a corner (as was done during diagnosis) — presented to the project owner as a pick-one-or-give-feedback step, not shipped directly.
+3. Once a candidate is chosen (or refined via feedback), regenerate the final `panel-frame.png`/`panel-frame-light.png` with that one value, delete the other candidate files, and do a final full-page screenshot pass (both assets' consumers, all affected pages) before considering this done.
+4. Budget at least one full round of "not quite, adjust X" feedback after the candidate is picked — picking a direction from three candidates narrows the search, it doesn't guarantee the first pick is final.
 
 ## Explicitly out of scope
 
