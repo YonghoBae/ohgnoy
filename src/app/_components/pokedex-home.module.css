@@ -444,7 +444,7 @@
   height: 100%;
   width: 0%;
   background: var(--border);
-  animation: bootFill 1100ms steps(10) forwards;
+  animation: bootFill 500ms steps(10) forwards;
 }
 
 @keyframes bootFill {

@@ -4,13 +4,23 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import styles from "./pokedex-home.module.css";
 
-const BOOT_DURATION_MS = 1100;
-const FADE_DURATION_MS = 300;
+const BOOT_DURATION_MS = 500;
+const FADE_DURATION_MS = 200;
+const SESSION_KEY = "pokedex-boot-shown";
+
+type Phase = "pending" | "loading" | "fading" | "done";
 
 export default function BootScreen() {
-  const [phase, setPhase] = useState<"loading" | "fading" | "done">("loading");
+  const [phase, setPhase] = useState<Phase>("pending");
 
   useEffect(() => {
+    if (sessionStorage.getItem(SESSION_KEY)) {
+      setPhase("done");
+      return;
+    }
+    sessionStorage.setItem(SESSION_KEY, "1");
+    setPhase("loading");
+
     const fadeTimer = setTimeout(() => setPhase("fading"), BOOT_DURATION_MS);
     const doneTimer = setTimeout(() => setPhase("done"), BOOT_DURATION_MS + FADE_DURATION_MS);
     return () => {
@@ -19,7 +29,7 @@ export default function BootScreen() {
     };
   }, []);
 
-  if (phase === "done") return null;
+  if (phase === "pending" || phase === "done") return null;
 
   return (
     <div
