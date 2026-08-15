@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import styles from "./pokedex-home.module.css";
+import styles from "./site-shell.module.css";
 
 const BOOT_DURATION_MS = 500;
 const FADE_DURATION_MS = 200;

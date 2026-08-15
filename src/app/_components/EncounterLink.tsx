@@ -9,7 +9,7 @@ import {
   useState,
   useTransition,
 } from "react";
-import styles from "./pokedex-home.module.css";
+import styles from "./site-shell.module.css";
 
 const SHOW_DELAY_MS = 100; // don't flash the overlay on fast/prefetched navigations
 const MIN_VISIBLE_MS = 200; // once shown, hold it briefly to avoid a one-frame flicker

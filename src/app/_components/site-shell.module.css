@@ -297,3 +297,8 @@
   align-items: center;
   gap: 8px;
 }
+
+.dialogCursor {
+  color: var(--px-accent-warm);
+  animation: pixelBlink 900ms steps(1) infinite;
+}
