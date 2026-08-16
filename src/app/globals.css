@@ -82,19 +82,3 @@ body:has(#portfolio-shell-root) .container {
   padding-top: 0;
 }
 
-body:has(#home-shell-root) header,
-body:has(#home-shell-root) footer,
-body:has(#home-shell-root) .chat-widget-root {
-  display: none !important;
-}
-
-body:has(#home-shell-root) .container {
-  max-width: none;
-  padding-left: 0;
-  padding-right: 0;
-}
-
-body:has(#home-shell-root) .content-wrapper {
-  padding-top: 0;
-  min-height: 0;
-}

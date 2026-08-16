@@ -1,5 +1,3 @@
-// Footer 컴포넌트를 import (하단에 사용될 컴포넌트)
-import Footer from '@/app/_components/footer';
 // 블로그 이름과 홈의 OG 이미지 URL을 import (메타데이터와 관련)
 import { BLOG_NAME, HOME_OG_IMAGE_URL } from '@/lib/constants';
 // Next.js의 Metadata 타입을 import (메타데이터의 타입 정의에 사용)
@@ -8,13 +6,12 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { pressStart2P, spaceMono } from '@/lib/fonts';
 import cn from 'classnames';
-import { Intro } from '@/app/_components/intro';
 
 // 전역 스타일을 import (앱 전체에 적용될 CSS 파일)
 import './globals.css';
 import pixelTheme from '@/app/_components/ui/pixel/pixel-theme.module.css';
-import Container from './_components/container';
 import ChatWidget from './_components/ChatWidget';
+import SiteShell from '@/app/_components/SiteShell';
 
 // Google의 Inter 폰트를 설정하고, 라틴 문자 집합을 서브셋으로 사용
 const inter = Inter({ subsets: ['latin'] });
@@ -87,15 +84,7 @@ export default function RootLayout({
           pixelTheme.pixelTheme,
         )}
       >
-          <header className="sticky top-0 z-50 border-b border-border bg-[#ECEFF4]/90 dark:bg-[#2E3440]/90 backdrop-blur-md">
-            <Container>
-              <Intro />
-            </Container>
-          </header>
-          <Container>
-            <div className="content-wrapper min-h-screen pt-8">{children}</div>
-          </Container>
-          <Footer />
+          <SiteShell>{children}</SiteShell>
           <ChatWidget />
       </body>
     </html>
