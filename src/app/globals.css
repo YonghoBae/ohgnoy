@@ -68,18 +68,17 @@
   }
 }
 
-body:has(#portfolio-shell-root) .switch,
-body:has(#portfolio-shell-root) footer,
-body:has(#portfolio-shell-root) .container > section:first-of-type {
-  display: none !important;
+body:has(#portfolio-shell-root) .site-shell-sidebar {
+  display: none;
 }
 
-body:has(#portfolio-shell-root) header {
-  display: none !important;
+body:has(#portfolio-shell-root) .site-shell-grid {
+  grid-template-columns: 1fr;
 }
 
-body:has(#portfolio-shell-root) .container {
-  padding-top: 0;
+body:has(#portfolio-shell-root) .site-shell-main {
+  max-width: none;
+  padding: 0;
 }
 
 body:has(#auth-shell-root) .site-shell-sidebar {
