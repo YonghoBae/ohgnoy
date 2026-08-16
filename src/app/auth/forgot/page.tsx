@@ -1,6 +1,6 @@
 const forgot = () => {
     return (
-        <div>
+        <div id="auth-shell-root">
             Password Forgot Page
         </div>
     );

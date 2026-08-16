@@ -82,3 +82,15 @@ body:has(#portfolio-shell-root) .container {
   padding-top: 0;
 }
 
+body:has(#auth-shell-root) .site-shell-sidebar {
+  display: none;
+}
+
+body:has(#auth-shell-root) .site-shell-grid {
+  grid-template-columns: 1fr;
+}
+
+body:has(#auth-shell-root) .site-shell-main {
+  max-width: none;
+}
+
