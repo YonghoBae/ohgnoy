@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import {
+  AnchorHTMLAttributes,
   MouseEvent,
   ReactNode,
   useEffect,
@@ -18,11 +19,12 @@ export default function EncounterLink({
   href,
   className,
   children,
+  ...rest
 }: {
   href: string;
   className?: string;
   children: ReactNode;
-}) {
+} & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href" | "className" | "children" | "onClick">) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [showOverlay, setShowOverlay] = useState(false);
@@ -61,7 +63,7 @@ export default function EncounterLink({
 
   return (
     <>
-      <a href={href} onClick={handleClick} className={className}>
+      <a href={href} onClick={handleClick} className={className} {...rest}>
         {children}
       </a>
       {showOverlay && (

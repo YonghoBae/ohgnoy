@@ -1,31 +1,14 @@
 # Design System — Pixel Pokédex Home Screen
 
-Scope: the home page only (`src/app/page.tsx` + `src/app/_components/pokedex-home.module.css`). Other pages keep the site's normal light/dark Nord theme and top nav — this is a deliberately different, self-contained "screen" that opts out of the global chrome.
+Scope: the home page's own panel content (`src/app/page.tsx` + `src/app/_components/pokedex-home.module.css`) — TRAINER DATA / MAIN MENU / dialog. The surrounding pixel-art frame, sidebar nav, and boot-screen chrome are no longer home-page-specific: they live in the shared `SiteShell` component (`src/app/_components/SiteShell.tsx` + `src/app/_components/site-shell.module.css`), mounted globally in `layout.tsx` for every route (see `docs/architecture.md`). Other pages keep the site's normal light/dark Nord theme inside their own content area — the home page is the one route that renders dark pixel-art panel content inside that shared shell.
 
 Reference: a ChatGPT-generated Pokédex mockup image the project owner supplied directly (not committed to the repo). Values below are the tokens/techniques actually implemented and verified in a browser — not the reference re-described from memory.
 
 ## Why this page looks different from the rest of the site
 
-`page.tsx` renders `<div id="home-shell-root">` and `globals.css` has:
+The dark pixel-art "Pokédex screen" look — the outer frame, the left sidebar, the boot-screen transition — is now the site-wide shell: `SiteShell` (`src/app/_components/SiteShell.tsx` + `site-shell.module.css`) wraps every route's content, mounted once in `layout.tsx`. The home page does not opt out of it and does not carry its own `#home-shell-root`/`body:has(...)` escape hatch — that mechanism no longer exists for this page. `page.tsx` just renders its TRAINER DATA / MAIN MENU / dialog panels as `SiteShell`'s `children`, styled by `pokedex-home.module.css`, which pulls its color tokens from the shared `pixel-theme.module.css` (`--px-*` custom properties) so it stays visually consistent with the shell around it.
 
-```css
-body:has(#home-shell-root) header,
-body:has(#home-shell-root) footer,
-body:has(#home-shell-root) .chat-widget-root {
-  display: none !important;
-}
-body:has(#home-shell-root) .container {
-  max-width: none;
-  padding-left: 0;
-  padding-right: 0;
-}
-body:has(#home-shell-root) .content-wrapper {
-  padding-top: 0;
-  min-height: 0;
-}
-```
-
-This is the same escape-hatch pattern `portfolio-shell-root` already used for the portfolio page — reuse it, don't invent a new one, if another page ever needs to opt out of the global header/footer/chat widget.
+Two route groups still use the CSS escape hatch to opt entirely out of `SiteShell`'s sidebar/frame (their own standalone layouts): `/auth/*` (`#auth-shell-root`) and `/portfolio`/`/portfolio-pdf` (`#portfolio-shell-root`). See `docs/architecture.md` for that mechanism — it's unrelated to this page now.
 
 ## The one hard rule: no `border-radius`, no `clip-path` corners
 
@@ -52,10 +35,12 @@ One asset, reused at different `border-image-width` values for visual hierarchy 
 
 | Use | Class | `border-width` |
 |---|---|---|
-| Outer screen frame (the one big HUD border around sidebar+main) | `.screen` | 14px |
-| Standard panel (trainer card, menu container, dialogue bar, sidebar partner box) | `.simpleFrame` | 8px |
-| Small square (avatar, icon buttons, sprite frame) | `.simpleFrameSmall` | 5px |
-| Sidebar nav item, hover/focus only | `.navItem:hover/:focus-visible` | 5px |
+| Outer screen frame (the one big HUD border around sidebar+main) | `SiteShell`'s `.shellGrid` (`site-shell.module.css`) | 14px |
+| Standard panel (trainer card, menu container, dialogue bar, sidebar partner box) | `.pixelFrame` (`ui/pixel/pixel-theme.module.css`, via `composes:`) | 8px |
+| Small square (avatar, icon buttons, sprite frame) | `.pixelFrameSmall` (`ui/pixel/pixel-theme.module.css`, via `composes:`) | 5px |
+| Sidebar nav item, hover/focus only | `.navItem:hover/:focus-visible` (`site-shell.module.css`) | 5px |
+
+`pokedex-home.module.css`'s panel/avatar/dialog classes no longer draw their own frame — they `composes: pixelFrame`/`pixelFrameSmall` (plus `pixelPanelBg`) from the shared `pixel-theme.module.css`, the same pattern `site-shell.module.css` uses for the sidebar frame.
 
 To regenerate or resize the notch: `python3 scripts/generate-panel-frame.py` (requires `pip install pillow`; not part of the build, run manually and commit the resulting PNG). The parameters that matter are `CANVAS=24`, `THICKNESS=3`, `CORNER=6` (must match `border-image-slice` at every call site), and the staircase `STEP=1`/`STEP_COUNT=4` — a four-step staircase cuts a deeper notch (approximately 2px/3px/4px) that's more visible at real border widths than earlier shallow versions. An earlier iteration used `STEP_COUNT=2` (barely visible nick at the corner tip), and an even older attempt used `STEP_COUNT=3` with `STEP=2` (cut so deeply it disconnected the frame into four segments). The current four-step cut achieves visibility without overextending.
 
@@ -63,22 +48,20 @@ To regenerate or resize the notch: `python3 scripts/generate-panel-frame.py` (re
 
 ## Color tokens
 
-Defined as CSS custom properties on `.shell` (the page root), not in `globals.css` / `tailwind.config.ts` — these are intentionally scoped to this one page, not part of the site-wide Nord theme.
+Defined as CSS custom properties (`--px-*`) on `.pixelTheme` in `src/app/_components/ui/pixel/pixel-theme.module.css`, mounted globally on `<body>` in `layout.tsx` — shared by this page, `SiteShell`, and the rest of the pixel-styled Pokémon UI, not scoped to this page anymore. Each token has both a light and a `:global(.dark) .pixelTheme` dark value, so the shell (and this page's panels) now follow the site's normal light/dark toggle instead of being dark-only:
 
 ```css
---screen-bg:     #10161f;  /* void behind the frame, near-black navy */
---window-bg:     #182432;  /* .screen's own fill */
---window-bg-2:   #1e2e3d;  /* panel fill, header strips */
---window-active: #2a4560;  /* hover/selected fill */
---border-dark:   #0b1119;  /* pressed state, menu-grid gutter lines */
---border:        #4c7fc0;  /* the one border/accent color, used for UI elements like dividers and accents (the frame PNG itself now uses a bevel, not a single flat color) */
---border-light:  #7fa6d9;  /* focus outline only */
---text:          #e6ebf0;
---text-muted:    #7e93a8;
---accent-warm:   #e0a458;  /* the ONE warm color — reserved for the nav "▶" cursor, hover arrows, and the dialogue "▼" cursor. Never use it for anything else. */
+--px-panel:       /* light #E5E9F0 / dark #182432 — base panel/frame fill */
+--px-panel-2:     /* light #D8DEE9 / dark #1e2e3d — panel header strips, menu tile fill */
+--px-active:      /* light #D8DEE9 / dark #2a4560 — hover/selected fill */
+--px-border:      /* light #5E81AC / dark #4c7fc0 — the one border/accent color (dividers, focus outline) */
+--px-border-dim:  /* light #C5CDDA / dark #0b1119 — menu-grid gutter lines, pressed state */
+--px-text:        /* light #2E3440 / dark #e6ebf0 */
+--px-text-muted:  /* light #4C566A / dark #7e93a8 */
+--px-accent-warm: /* light #D08770 / dark #e0a458 — the ONE warm color, reserved for the nav "▶" cursor, hover arrows, and the dialogue "▼" cursor. Never use it for anything else. */
 ```
 
-This is dark-only by design (no light variant), matching the reference. If a light mode is ever needed for this page specifically, it needs a second full token set — don't try to derive one from the existing Nord light theme, the palettes are unrelated.
+If this page's content ever needs a token the shared set doesn't have, add it to `pixel-theme.module.css` (with both light and dark values) rather than reintroducing a page-local, dark-only token set — the whole point of the migration was one shared token source for the shell and this page.
 
 ## Typography
 
@@ -88,21 +71,15 @@ This is dark-only by design (no light variant), matching the reference. If a lig
 
 ## Texture
 
-A very subtle scanline texture on the outer `.shell` background only (not on individual panels, which have their own solid `--window-bg-2` fill that would hide it anyway):
-
-```css
-background:
-  repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0px, rgba(0,0,0,0.16) 1px, transparent 1px, transparent 3px),
-  var(--screen-bg);
-```
+A very subtle scanline texture, now on `SiteShell`'s outer `.pageBg` background (`site-shell.module.css`, dark mode only) rather than anything in this page's own CSS — individual panels have their own solid `--px-panel-2` fill that would hide it anyway.
 
 ## Spacing
 
-Tight, game-menu density, not marketing-page whitespace: `.main` gap 10px, panel body padding 14px, menu tile padding ~12-16px, sidebar nav row gap 2px (rows are still ≥36px tall for tap targets — density comes from padding, not cramped rows).
+Tight, game-menu density, not marketing-page whitespace: `SiteShell`'s `.main` gap 10px, panel body padding 14px, menu tile padding ~12-16px, sidebar nav row gap 2px (rows are still ≥36px tall for tap targets — density comes from padding, not cramped rows).
 
 ## Layout
 
-`.screen` is a CSS grid, `176px` sidebar + `1fr` main (`140px` under 900px, single column under 640px). The sidebar's Pikachu "PARTNER" sprite sits at the bottom via `margin-top: auto` inside a flex column, filling what was originally dead space at the bottom of the sidebar.
+`SiteShell`'s `.shellGrid` (`site-shell.module.css`) is a CSS grid, `176px` sidebar + `1fr` main (`140px` under 900px, single column under 640px) — the outer frame/sidebar/main structure lives there now, not in this page's own markup. The sidebar's Pikachu "PARTNER" sprite sits at the bottom via `margin-top: auto` inside a flex column, filling what was originally dead space at the bottom of the sidebar.
 
 ## Known limitations / things not to re-litigate
 

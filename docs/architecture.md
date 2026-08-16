@@ -18,7 +18,8 @@ Personal site/portfolio built on Next.js App Router. Started from the Next.js bl
 ```
 src/
   app/
-    _components/          shared UI: header (Intro), Footer, ChatWidget, Container,
+    _components/          shared UI: SiteShell (persistent sidebar + main slot),
+                           EncounterLink, BootScreen, ChatWidget,
                            theme-switcher, TypeBadge, compareMons (zustand store)
       ui/pixel/            shared pixel-styled primitives used across the pokemon
                            section: PixelCard, PixelButton, PixelIconBox, PixelSprite
@@ -35,7 +36,8 @@ src/
     portfolio/              portfolio/-pdf   self-contained pages that opt out of the
                            global header/footer/chat widget (see "Shell escape hatch" below)
     page.tsx               home — the pixel Pokédex screen, see docs/design/pixel-pokedex-home.md
-    layout.tsx             root layout: global header, Container, footer, ChatWidget
+    layout.tsx             root layout: renders `<SiteShell>{children}</SiteShell>` (persistent
+                           left sidebar + main content slot) plus the floating ChatWidget
     globals.css            Nord theme tokens + the shell-escape-hatch CSS rules
   lib/
     api.ts, api/            blog-starter post fetching (post.ts), user API
@@ -51,14 +53,18 @@ src/
   hooks/                    shared custom hooks
 ```
 
-## Shell escape hatch (opting a page out of global chrome)
+## Shell escape hatch (opting a page out of the sidebar shell)
 
-`layout.tsx` always renders a sticky header (`Intro`), a `Container`-wrapped content area, `Footer`, and a floating `ChatWidget`. A page that needs to be visually self-contained (its own full-bleed layout, no global nav) gives its root element a unique `id` and adds rules to `globals.css` targeting `body:has(#that-id)`. Two pages do this today:
+`layout.tsx` renders `<SiteShell>{children}</SiteShell>` — a persistent left sidebar (nav, socials, theme switcher, partner sprite) plus a `<main>` content slot — around every route's page content, in addition to the floating `ChatWidget`. This replaced the old header/footer/Container chrome; `Intro`, `Footer`, `Container`, and `PokemonDropdown` no longer exist in the codebase.
 
-- `#portfolio-shell-root` (`src/app/portfolio/page.tsx`, `portfolio-pdf/page.tsx`)
-- `#home-shell-root` (`src/app/page.tsx`)
+Two route groups keep their own standalone, full-bleed layouts instead of the sidebar shell:
 
-If a new page needs the same treatment, follow this pattern — don't invent a different mechanism. See `globals.css` for the exact rules (hiding `header`/`footer`/`.chat-widget-root`, resetting `.container` max-width/padding, resetting `.content-wrapper` padding-top).
+- `/auth/*` (login, regist, forgot) — opts out via `body:has(#auth-shell-root)` CSS rules in `globals.css`
+- `/portfolio` and `/portfolio-pdf` — opt out via `body:has(#portfolio-shell-root)` CSS rules in `globals.css`
+
+A page opts out by giving its root element a unique `id` and adding rules to `globals.css` targeting `body:has(#that-id)` that hide `SiteShell`'s sidebar/frame chrome (see `.site-shell-sidebar`, `.site-shell-grid`, `.site-shell-main`, `.site-shell-pagebg` rules in `globals.css`) and let the page's own layout take over the full page. If a new page needs the same treatment, follow this pattern — don't invent a different mechanism.
+
+The home page (`src/app/page.tsx`) does NOT opt out — it renders inside `SiteShell` like any other route, contributing only its own TRAINER DATA/MAIN MENU/dialog panel content; the pixel-art frame/sidebar/boot-screen chrome around it is `SiteShell`'s, not the home page's own.
 
 ## Design docs
 

@@ -289,7 +289,7 @@ function ProjectCard({ project }: { project: (typeof PROJECTS)[number] }) {
 
 export default function Personal() {
   return (
-    <motion.main
+    <motion.div
       id="portfolio-shell-root"
       className="mx-auto max-w-2xl space-y-20 px-6 py-24 print:max-w-none print:space-y-12 print:px-10 print:py-10"
       variants={VARIANTS_CONTAINER}
@@ -455,6 +455,6 @@ export default function Personal() {
           ))}
         </div>
       </motion.section>
-    </motion.main>
+    </motion.div>
   );
 }

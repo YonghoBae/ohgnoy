@@ -81,6 +81,20 @@ body:has(#portfolio-shell-root) .site-shell-main {
   padding: 0;
 }
 
+body:has(#portfolio-shell-root) .site-shell-pagebg {
+  padding: 0;
+  background: none;
+  cursor: auto;
+}
+
+body:has(#portfolio-shell-root) .site-shell-grid {
+  border: none;
+  border-image: none;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+}
+
 body:has(#auth-shell-root) .site-shell-sidebar {
   display: none;
 }
@@ -91,5 +105,19 @@ body:has(#auth-shell-root) .site-shell-grid {
 
 body:has(#auth-shell-root) .site-shell-main {
   max-width: none;
+}
+
+body:has(#auth-shell-root) .site-shell-pagebg {
+  padding: 0;
+  background: none;
+  cursor: auto;
+}
+
+body:has(#auth-shell-root) .site-shell-grid {
+  border: none;
+  border-image: none;
+  background: none;
+  color: inherit;
+  font-family: inherit;
 }
 

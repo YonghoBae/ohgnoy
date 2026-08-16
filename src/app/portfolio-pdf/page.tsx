@@ -292,7 +292,7 @@ export default function Personal() {
         }
     `}</style>
 
-    <motion.main
+    <motion.div
       id="portfolio-shell-root"
       className="mx-auto max-w-2xl space-y-20 px-6 py-24 print:max-w-none print:px-0 print:py-0 print:space-y-8"
       variants={VARIANTS_CONTAINER}
@@ -455,7 +455,7 @@ export default function Personal() {
           ))}
         </div>
       </motion.section>
-    </motion.main>
+    </motion.div>
     </>
   );
 }

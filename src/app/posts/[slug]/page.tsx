@@ -19,7 +19,7 @@ export default async function Post({ params }: Params) {
   const content = await markdownToHtml(post.content || "");
 
   return (
-    <main>
+    <div>
       {/* <Alert preview={post.preview} /> */}
         <article className="mb-32">
           <PostHeader
@@ -30,7 +30,7 @@ export default async function Post({ params }: Params) {
           />
           <PostBody content={content} />
         </article>
-    </main>
+    </div>
   );
 }
 

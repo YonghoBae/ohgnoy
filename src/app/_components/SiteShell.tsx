@@ -56,7 +56,7 @@ export default function SiteShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   return (
-    <div className={styles.pageBg}>
+    <div className={`${styles.pageBg} site-shell-pagebg`}>
       <BootScreen />
       <div className={`${styles.shellGrid} site-shell-grid`}>
         <aside className={`${styles.sidebar} site-shell-sidebar`}>
@@ -102,6 +102,7 @@ export default function SiteShell({ children }: { children: ReactNode }) {
                   <EncounterLink
                     href={item.href}
                     className={`${styles.navItem} ${active ? styles.navItemActive : ""}`}
+                    aria-current={active ? "page" : undefined}
                   >
                     {inner}
                   </EncounterLink>
@@ -114,6 +115,7 @@ export default function SiteShell({ children }: { children: ReactNode }) {
                           className={`${styles.subNavItem} ${
                             pathname === sub.href ? styles.subNavItemActive : ""
                           }`}
+                          aria-current={pathname === sub.href ? "page" : undefined}
                         >
                           {sub.label}
                         </EncounterLink>
