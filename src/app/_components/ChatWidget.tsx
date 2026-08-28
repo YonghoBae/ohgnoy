@@ -7,6 +7,7 @@ import { Message } from "@/interfaces/message";
 import { UserInfo } from "@/interfaces/user";
 import { userInfo } from "@/lib/user/token";
 import { createStompClient } from "@/lib/socket";
+import { chatApi } from "@/lib/api/chat";
 
 const ROOM_ID = "1";
 
@@ -42,6 +43,10 @@ export default function ChatWidget() {
 
   useEffect(() => {
     setMounted(true);
+
+    chatApi.getHistory(ROOM_ID)
+      .then((messages) => setMessages(messages))
+      .catch(()=>{});
 
     const connect = (userData: UserInfo) => {
       setUser(userData);
