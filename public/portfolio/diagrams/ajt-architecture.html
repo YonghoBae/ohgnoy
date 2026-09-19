@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AJT 사내 LLM Wiki 전체 시스템 아키텍처</title>
+  <style>
+        /* 덱과 같은 글꼴. 사이트에서 볼 때만 받아지고, 파일을 직접 열면 404 후
+       아래 시스템 글꼴로 떨어집니다 — 그 동작은 종전과 같습니다. */
+    @font-face { font-family:'Pretendard Deck'; src:url('/fonts/PretendardVariable.woff2') format('woff2-variations'); font-weight:400 700; font-display:block; }
+* { box-sizing: border-box; }
+    body { margin:0; background:#fff; color:#121212; font-family:'Pretendard Deck',"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",Arial,sans-serif; overflow-x:hidden; }
+    .diagram { position:relative; width:2360px; height:1278px; overflow:hidden; background:#fff; }
+    .connectors { position:absolute; inset:0; width:2360px; pointer-events:none; z-index:2; }
+    .legend { position:absolute; right:96px; top:48px; display:flex; gap:30px; align-items:center; color:#4d4a45; font-size:28px; }
+    .legend span::before { content:""; display:inline-block; width:32px; height:22px; margin-right:12px; border:3px solid #202020; border-radius:6px; vertical-align:-4px; }
+    .legend .team::before { border:2px solid #d6d3cc; background:#f3f2ef; }
+    .legend .external::before { border:2px dashed #d6d3cc; background:#fff; }
+    .group { position:absolute; background:#f4f3f0; border-radius:28px; padding:34px; z-index:1; }
+    .group.own-group { border:3px solid #202020; background:#f8f7f4; }
+    .group-title { font-size:34px; font-weight:800; letter-spacing:-.6px; }
+    .group-title em { display:block; margin-top:4px; color:#9e9b94; font-size:28px; font-style:normal; font-weight:400; }
+    .box { position:absolute; z-index:3; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:12px 18px; border:2px solid #dfddd7; border-radius:16px; background:#fff; word-break:keep-all; text-align:center; font-size:30px; font-weight:750; line-height:1.35; }
+    .box small { margin-top:6px; color:#9d9991; font-size:25px; font-weight:400; line-height:1.42; }
+    .own { border:3px solid #202020; }
+    .external { border:2px dashed #d4d1ca; }
+    .user { left:76px; top:314px; width:286px; height:190px; background:#f3f2ef; }
+    .frontend { left:430px; top:224px; width:320px; height:500px; }
+    .frontend .box { position:relative; width:252px; height:140px; margin-top:26px; }
+    .frontend .nginx { height:192px; }
+    .frontend .nginx strong { font-size:26px; }
+    .frontend .nginx small { font-size:25px; line-height:1.35; }
+    .backend { left:790px; top:110px; width:610px; height:920px; }
+    .backend .api { left:34px; top:124px; width:542px; height:112px; }
+    .backend .domain-grid { position:absolute; left:34px; top:254px; display:grid; grid-template-columns:repeat(2,261px); gap:16px 20px; }
+    .backend .domain-grid .box { position:relative; width:261px; height:172px; }
+    .backend .contract { left:34px; top:640px; width:542px; height:150px; }
+    .backend .history { left:34px; top:810px; width:542px; height:76px; }
+    .ai { left:1470px; top:110px; width:560px; height:1040px; }
+    .ai .gateway { left:32px; top:124px; width:496px; height:112px; }
+    .ai .module-grid { position:absolute; left:32px; top:262px; display:grid; grid-template-columns:repeat(2,238px); gap:16px 20px; }
+    .ai .module-grid .box { position:relative; width:238px; height:176px; }
+    .ai .guard { left:32px; top:656px; width:496px; height:150px; }
+    .ai .runtime { left:32px; top:832px; width:496px; height:174px; }
+    .provider { left:2090px; width:270px; height:150px; }
+    .anthropic { top:184px; }
+    .gemini { top:414px; }
+    .langsmith { top:644px; }
+    .mysql { left:824px; top:1054px; width:262px; height:136px; }
+    .files { left:1108px; top:1054px; width:262px; height:136px; }
+    .label { position:absolute; z-index:4; padding:1px 8px; background:#fff; color:#9d9991; font-size:26px; line-height:1.35; white-space:nowrap; }
+    .tag { position:absolute; z-index:5; width:46px; height:46px; border-radius:50%; display:grid; place-items:center; background:#11845e; color:#fff; border:3px solid #fff; font-size:28px; font-weight:800; }
+    .tag-one { left:1978px; top:88px; }
+    .tag-two { left:1350px; top:728px; }
+    .tag-three { left:1978px; top:744px; }
+    .foot { position:absolute; left:96px; bottom:42px; display:flex; gap:38px; color:#55514b; font-size:28px; }
+    .foot b { display:inline-grid; place-items:center; width:36px; height:36px; margin-right:9px; border-radius:50%; background:#11845e; color:#fff; }
+    .note { position:absolute; right:96px; bottom:46px; color:#9e9b94; font-size:28px; }
+  </style>
+</head>
+<body>
+<main class="diagram">
+  <canvas class="connectors" width="2360" height="1278" aria-hidden="true"></canvas>
+  <div class="legend"><span>본인 담당</span><span class="team">팀원 담당</span><span class="external">외부 서비스</span></div>
+
+  <section class="box user"><strong>사용자</strong><small>문서 업로드 · Wiki 열람<br>일정 관리 · 챗봇 질의</small></section>
+
+  <section class="group frontend">
+    <div class="group-title">웹 클라이언트</div>
+    <div class="box"><strong>React SPA</strong><small>React 19 · Vite<br>권한별 화면</small></div>
+    <div class="box nginx" data-min-height="100"><strong>Nginx + React SPA</strong><small>TLS 종료 · 정적 파일<br><code>/api/**</code> Reverse Proxy</small></div>
+  </section>
+
+  <section class="group backend">
+    <div class="group-title">Spring Boot API <em>Java · MySQL</em></div>
+    <div class="box api"><strong>인증·권한 API Gateway</strong><small>HttpOnly Cookie · CSRF · 부서/개인 Scope</small></div>
+    <div class="domain-grid">
+      <div class="box">문서·Wiki<small>업로드 · 조회 · 반영</small></div>
+      <div class="box">일정·조직<small>전체 · 부서 · 개인</small></div>
+      <div class="box">챗봇·문의<small>권한 범위 질의응답</small></div>
+      <div class="box">작업<br>오케스트레이션<small>AI Job · 상태 · 재시도</small></div>
+    </div>
+    <div class="box own contract" data-node="spring-contract" data-rect="824,750,542,150"><strong>AI–Spring 계약 연동 계층</strong><small>FastAPI 호출 5개 · 내부 조회 API 10개<br>공유 API Key · 상태/오류 매핑 · 결과 검증</small></div>
+    <div class="box history">작업 결과·출처·실패 이력</div>
+  </section>
+
+  <section class="group own-group ai">
+    <div class="group-title">FastAPI AI Server <em>deepagents · MCP</em></div>
+    <div class="box own gateway" data-node="ai-gateway" data-rect="1502,234,496,112"><strong>내부 AI API</strong><small>변환 · 편집 · 파싱 · 일정 추출 · 답변</small></div>
+    <div class="module-grid">
+      <div class="box own">문서 파서 / OCR<small>PDF · DOCX · CSV · XLSX</small></div>
+      <div class="box own">Wiki 편집 Agent<small>조회 · 생성 · 수정 · 병합</small></div>
+      <div class="box own">일정 추출<small>LLM 판단 +<br>코드 계산</small></div>
+      <div class="box own">질의응답 Agent<small>Wiki·일정 도구 직접 조회</small></div>
+    </div>
+    <div class="box own guard"><strong>검증·안전장치</strong><small>원문 인용 대조 · 권한 Scope · 반복 호출 차단<br>턴/시간 상한 · 도구 호출 없는 답변 차단</small></div>
+    <div class="box own runtime" data-node="ai-runtime" data-rect="1502,942,496,174"><strong>Agent Runtime &amp; Tool Layer</strong><small>deepagents 실행 · in-process 도구<br>Spring 조회 Gateway · 작업별 격리 Workspace</small></div>
+  </section>
+
+  <section class="box external provider anthropic"><strong>Anthropic LLM</strong><small>Sonnet · Haiku<br>추론·분류·답변</small></section>
+  <section class="box external provider gemini"><strong>Gemini Vision OCR</strong><small>스캔 PDF 이미지 인식</small></section>
+  <section class="box external provider langsmith"><strong>LangSmith</strong><small>Trace · 모델 호출 관측</small></section>
+  <section class="box external mysql"><strong>MySQL 8.4</strong><small>권한 · 문서 · Wiki · 일정</small></section>
+  <section class="box external files"><strong>파일 저장소</strong><small>원본 · 파싱본 · 첨부 파일</small></section>
+
+  <span class="label" data-box="372,365,101,37" style="left:372px;top:365px">HTTPS</span>
+  <span class="label" data-box="700,365,85,37" style="left:700px;top:365px">/api/**</span>
+  <span class="label" data-box="1428,424,93,37" style="left:1428px;top:424px">AI 요청</span>
+  <span class="label" data-box="1372,839,113,37" style="left:1372px;top:839px">권한 조회</span>
+  <span class="label" data-box="965,996,104,37" style="left:965px;top:996px">DB 저장</span>
+  <span class="label" data-box="1249,996,113,37" style="left:1249px;top:996px">파일 저장</span>
+  <span class="label" data-box="2031,220,67,37" style="left:2031px;top:220px">LLM</span>
+  <span class="label" data-box="2031,450,74,37" style="left:2031px;top:450px">OCR</span>
+  <span class="label" data-box="2031,680,81,37" style="left:2031px;top:680px">Trace</span>
+
+  <i class="tag tag-one">1</i><i class="tag tag-two">2</i><i class="tag tag-three">3</i>
+
+
+  <div class="foot"><span><b>1</b>Agent Runtime·도구 구현</span><span><b>2</b>AI–Spring 계약·가짜 Gateway 검증</span><span><b>3</b>출처·반복·권한 안전장치</span></div>
+  <div class="note">초록 원 = 핵심 성과 위치</div>
+</main>
+<script>
+  function renderConnectors(connectors) {
+    const canvas = document.querySelector('.connectors');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = '#cfccc5';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    const path = (points, dashed = false) => {
+      ctx.setLineDash(dashed ? [10, 10] : []);
+      ctx.beginPath();
+      points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+      ctx.stroke();
+      ctx.setLineDash([]);
+    };
+    const arrow = (x, y, direction) => {
+      const vectors = {
+        right: [[-14, -7], [0, 0], [-14, 7]],
+        left: [[14, -7], [0, 0], [14, 7]],
+        down: [[-7, -14], [0, 0], [7, -14]],
+        up: [[-7, 14], [0, 0], [7, 14]],
+      };
+      path(vectors[direction].map(([dx, dy]) => [x + dx, y + dy]));
+    };
+    connectors.forEach(({ points, arrowEnd = 'right', arrowStart, dashed = false }) => {
+      path(points, dashed);
+      if (arrowStart) arrow(points[0][0], points[0][1], arrowStart);
+      if (arrowEnd) {
+        const end = points.at(-1);
+        arrow(end[0], end[1], arrowEnd);
+      }
+    });
+  }
+
+  renderConnectors([
+    { points:[[362,409],[430,409]], arrowEnd:'right' },
+    { points:[[750,409],[790,409]], arrowEnd:'right' },
+    { points:[[1366,825],[1418,825],[1418,290],[1502,290]], arrowEnd:'right' },
+    { points:[[1502,956],[1450,956],[1450,884],[1366,884]], arrowEnd:'left' },
+    { points:[[955,1030],[955,1054]], arrowEnd:'down' },
+    { points:[[1239,1030],[1239,1054]], arrowEnd:'down' },
+    { points:[[2030,259],[2090,259]], arrowEnd:'right', dashed:true },
+    { points:[[2030,489],[2090,489]], arrowEnd:'right', dashed:true },
+    { points:[[2030,719],[2090,719]], arrowEnd:'right', dashed:true }
+  ]);
+
+  function fitDiagram() {
+    const diagram = document.querySelector('.diagram');
+    const scale = Math.min(1, document.documentElement.clientWidth / 2360);
+    diagram.style.transform = `scale(${scale})`;
+    diagram.style.transformOrigin = 'top left';
+    document.body.style.height = `${diagram.offsetHeight * scale}px`;
+  }
+  fitDiagram();
+  addEventListener('resize', fitDiagram);
+</script>
+</body>
+</html>

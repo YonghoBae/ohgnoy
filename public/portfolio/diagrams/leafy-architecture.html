@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Leafy 전체 시스템 아키텍처</title>
+  <style>
+        /* 덱과 같은 글꼴. 사이트에서 볼 때만 받아지고, 파일을 직접 열면 404 후
+       아래 시스템 글꼴로 떨어집니다 — 그 동작은 종전과 같습니다. */
+    @font-face { font-family:'Pretendard Deck'; src:url('/fonts/PretendardVariable.woff2') format('woff2-variations'); font-weight:400 700; font-display:block; }
+* { box-sizing: border-box; }
+    body { margin: 0; background: #fff; color: #121212; font-family:'Pretendard Deck',"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",Arial,sans-serif; overflow-x: hidden; }
+    .canvas { position: relative; width: 2360px; height: 1510px; overflow: hidden; }
+    .legend { position:absolute; right:98px; top:48px; display:flex; gap:31px; align-items:center; color:#3d3b37; font-size:30px; }
+    .legend span:before { content:""; display:inline-block; width:32px; height:22px; border:3px solid #202020; border-radius:6px; margin-right:13px; vertical-align:-3px; }
+    .legend .team:before { border:2px solid #d5d3cd; background:#f2f1ee; }.legend .external:before { border:2px dashed #d5d3cd; }
+    .group { position:absolute; border-radius:27px; background:#f4f3f0; padding:48px 56px; }
+    .group-title { font-size:36px; font-weight:700; }.group-title em { color:#9e9b94; font-size:32px; font-style:normal; font-weight:400; margin-left:15px; }
+    .box { position:absolute; background:white; border:2px solid #e2e0dc; border-radius:16px; display:flex; flex-direction:column; justify-content:center; align-items:center; word-break:keep-all; text-align:center; font-size:34px; font-weight:700; line-height:1.4; }
+    .box small { color:#a19e97; font-size:30px; font-weight:400; margin-top:8px; line-height:1.45; }.own { border:3px solid #202020; }.external { border:2px dashed #d8d5cf; }
+    .mobile { left:96px; top:130px; width:384px; height:425px; padding:26px 24px; display:block; background:#f2f1ee; }.mobile > strong, .mobile > small { display:block; text-align:center; }.mobile-ar { left:14px; top:180px; width:356px; height:215px; padding:0 18px; }
+    .emotion { left:96px; top:760px; width:384px; height:190px; background:#f2f1ee; }
+    .backend { left:640px; top:110px; width:1080px; height:955px; }.backend .router { left:56px; top:104px; width:968px; height:84px; }.backend .grid { position:absolute; left:56px; top:212px; display:grid; grid-template-columns:repeat(3, 300px); gap:24px 34px; }.backend .grid .box{ position:static; width:300px; height:145px; }.backend .ws { left:56px; top:560px; width:464px; height:196px; }.backend .ai { left:560px; top:560px; width:464px; height:196px; }.backend .infra { left:56px; top:796px; width:968px; height:105px; }
+    .memory { left:640px; top:1120px; width:1080px; height:290px; }.memory .redis { left:56px; top:92px; width:464px; height:150px; }.memory .vector { left:560px; top:92px; width:464px; height:150px; }
+    .openai { left:1900px; top:673px; width:424px; height:190px; }.mysql { left:1900px; top:1189px; width:424px; height:151px; }
+    .label { position:absolute; z-index:1; color:#a19e97; font-size:30px; line-height:1.35; background:#fff; padding:0 8px; }
+    .connectors { position:absolute; inset:0; width:2360px; pointer-events:none; z-index:0; }
+    .box, .group, .tag, .label, .foot, .note { z-index:1; }
+    .tag { position:absolute; width:46px; height:46px; border-radius:50%; color:white; background:#11845e; display:grid; place-items:center; font-size:30px; font-weight:bold; border:3px solid white; }
+    .foot { position:absolute; left:96px; bottom:45px; display:flex; gap:36px; align-items:center; font-size:30px; color:#55514b; }.foot b { display:inline-grid; place-items:center; width:38px; height:38px; border-radius:50%; background:#11845e; color:#fff; margin-right:10px; }.note { position:absolute; right:96px; bottom:50px; color:#a19e97; font-size:30px; }
+  </style>
+</head>
+<body><main class="canvas">
+  <canvas class="connectors" width="2360" height="1510" aria-hidden="true"></canvas>
+  <div class="legend"><span>본인 담당</span><span class="team">팀원 담당</span><span class="external">외부 서비스</span></div>
+  <section class="box mobile"><strong>모바일 앱</strong><small>React Native<br>채팅, 일기, 미션 화면</small><div class="box own mobile-ar"><strong>AR·실시간 화면</strong><small>ViroReact AR<br>멀티플레이<br>WebRTC 음성</small></div></section><section class="box emotion"><strong>AI 분석 API</strong><small>감정 분류, 원인 분석<br>/predict, /predict/factor</small></section>
+  <section class="group backend"><div class="group-title">백엔드 서버 (본인) <em>Node.js, TypeScript</em></div><div class="box router">Express 라우터, JWT 인증 미들웨어</div><div class="grid"><div class="box">사용자, 인증</div><div class="box">반려식물</div><div class="box">미션</div><div class="box">성장일지<small>AI 자동 작성 (GPT-4o)</small></div><div class="box">감정 기록</div><div class="box">친구</div></div><div class="box own ws">WebSocket 서버<small>AR 멀티플레이, 실시간 음성<br>room snapshot, heartbeat</small></div><div class="box own ai">AI 대화 파이프라인<small>라우팅, 에이전트, 안전 검토<br>상세 구조는 아래 다이어그램</small></div><div class="box infra">홈서버 인프라<small>Docker, Nginx Reverse Proxy, GitHub Actions CI/CD</small></div><i class="tag" style="left:478px;top:542px">3</i><i class="tag" style="left:902px;top:542px">1</i><i class="tag" style="left:966px;top:542px">4</i></section>
+  <section class="group memory"><div class="group-title">하이브리드 메모리 계층 (본인 설계)</div><div class="box redis">Redis<small>단기 기억, 최근 대화 고정 크기</small></div><div class="box vector">Upstash Vector DB<small>장기 기억, RAG 의미 검색 (클라우드)</small></div><i class="tag" style="right:12px;top:-16px">2</i></section>
+  <section class="box external openai">OpenAI API<small>GPT-4o, 4o-mini<br>Realtime 음성</small></section><section class="box external mysql">MySQL<small>서비스 데이터 (Sequelize)</small></section>
+  <span class="label" style="left:510px;top:214px">HTTPS</span><span class="label" style="left:498px;top:560px">WSS</span><span class="label" style="left:484px;top:813px">감정 분석</span><span class="label" style="left:1727px;top:726px">LLM 호출</span><span class="label" style="left:1190px;top:1073px">기억 조회, 저장</span><span class="label" style="left:1740px;top:898px">서비스 데이터</span>
+  <div class="foot"><span><b>1</b>역할 분리, SafetyModerator</span><span><b>2</b>하이브리드 메모리</span><span><b>3</b>WebSocket 안정화</span><span><b>4</b>응답 병렬화</span></div><div class="note">초록 원 = 핵심 성과 위치</div>
+</main><script>
+  function drawConnectors() {
+    const ctx = document.querySelector('.connectors').getContext('2d');
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.strokeStyle = '#d1cec7';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    const path = points => { ctx.beginPath(); points.forEach(([x,y],i) => i ? ctx.lineTo(x,y) : ctx.moveTo(x,y)); ctx.stroke(); };
+    const arrow = (x,y,dir) => {
+      const vectors = { right:[[-14,-7],[0,0],[-14,7]], left:[[14,-7],[0,0],[14,7]], up:[[-7,14],[0,0],[7,14]], down:[[-7,-14],[0,0],[7,-14]] };
+      path(vectors[dir].map(([dx,dy]) => [x+dx,y+dy]));
+    };
+    path([[480,256],[640,256]]); arrow(640,256,'right');
+    path([[480,460],[570,460],[570,768],[696,768]]); arrow(696,768,'right');
+    path([[696,855],[480,855]]); arrow(480,855,'left');
+    path([[1720,768],[1900,768]]); arrow(1900,768,'right');
+    path([[1180,1065],[1180,1120]]); arrow(1180,1065,'up'); arrow(1180,1120,'down');
+    path([[1720,940],[2112,940],[2112,1189]]); arrow(2112,1189,'down');
+  }
+  function fitCanvas() {
+    const canvas = document.querySelector('.canvas');
+    const scale = Math.min(1, document.documentElement.clientWidth / 2360);
+    canvas.style.transform = `scale(${scale})`;
+    canvas.style.transformOrigin = 'top left';
+    document.body.style.height = `${canvas.offsetHeight * scale}px`;
+  }
+  drawConnectors();
+  fitCanvas();
+  addEventListener('resize', fitCanvas);
+</script></body></html>

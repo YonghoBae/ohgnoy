@@ -34,3 +34,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.shots/
+
+# Claude Code local worktrees (build artifacts only)
+.claude/
+
+# 이력서 인적사항 — 공개 저장소라 사진·전화번호는 커밋하지 않습니다.
+# 값은 .env.local 의 NEXT_PUBLIC_RESUME_* 로 넣습니다 (src/app/resume-pdf/data.tsx 주석 참조).
+public/resume/
+
+# 생성물 — 이력서 PDF 에는 전화번호·사진이 들어갑니다.
+pdf/
