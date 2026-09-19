@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AgentTrace 저장소 분석 파이프라인</title>
+  <style>
+        /* 덱과 같은 글꼴. 사이트에서 볼 때만 받아지고, 파일을 직접 열면 404 후
+       아래 시스템 글꼴로 떨어집니다 — 그 동작은 종전과 같습니다. */
+    @font-face { font-family:'Pretendard Deck'; src:url('/fonts/PretendardVariable.woff2') format('woff2-variations'); font-weight:400 700; font-display:block; }
+* { box-sizing: border-box; }
+    html, body { margin: 0; background: #fff; color: #151515; }
+    body { font-family:'Pretendard Deck',"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",Arial,sans-serif; overflow-x: hidden; }
+    .diagram { position: relative; width: 2360px; height: 1350px; overflow: hidden; background: #fff; }
+    #connectors { position: absolute; inset: 0; width: 2360px; height: 1350px; pointer-events: none; z-index: 2; }
+    .card { position: relative; z-index: 3; }
+    .edge-label { position: absolute; z-index: 4; padding: 3px 9px; background: #fff; color: #817d75; font-size: 28px; line-height: 1.25; white-space: nowrap; }
+
+    .legend { position: absolute; left: 1240px; right: 80px; top: 40px; display: flex; flex-wrap: nowrap; justify-content: flex-end; gap: 22px; align-items: center; color: #504c46; font-size: 28px; }
+    .legend span { white-space: nowrap; }
+    .legend span::before { content: ""; display: inline-block; width: 28px; height: 18px; margin-right: 10px; border: 3px solid #202020; border-radius: 5px; vertical-align: -3px; }
+    .legend .pass::before { border: 2px solid #11845e; background: #eef8f3; }
+    .legend .blocked::before { border: 2px solid #b64b46; background: #fff2f1; }
+    .legend .alt::before { border: 2px dashed #b0aba2; background: #f7f5f1; }
+
+    .phase { position: absolute; top: 100px; color: #77736c; font-size: 28px; font-weight: 800; letter-spacing: .8px; }
+    .phase-index { left: 80px; }
+    .phase-analyze { left: 820px; }
+    .phase-commit { left: 1600px; }
+    .group { position: absolute; top: 138px; height: 1060px; padding: 30px; border-radius: 26px; background: #f4f2ee; }
+    .group.owned { border: 3px solid #202020; background: #faf9f7; }
+    .group-title { font-size: 34px; font-weight: 800; letter-spacing: -.6px; }
+    .group-note { position: absolute; right: 30px; top: 36px; color: #98948c; font-size: 26px; }
+
+    .index { left: 80px; width: 700px; }
+    .analyze { left: 820px; width: 740px; }
+    .commit { left: 1600px; width: 640px; }
+
+    .group .card { position: absolute; display: flex; flex-direction: column; justify-content: center; padding: 14px 18px; border: 2px solid #d9d6cf; border-radius: 15px; background: #fff; font-size: 30px; font-weight: 700; line-height: 1.33; }
+    .group .card strong { font-size: 32px; letter-spacing: -.2px; }
+    .group .card small { display: block; margin-top: 5px; color: #858179; font-size: 26px; font-weight: 400; line-height: 1.42; }
+    .group .card code { color: #262626; font-family: "SFMono-Regular", Consolas, monospace; font-size: 26px; font-weight: 700; }
+    .owned-card { border: 3px solid #202020 !important; }
+    .muted-card { background: #f7f5f1 !important; }
+    .pass-card { border-color: #11845e !important; background: #eef8f3 !important; }
+    .blocked-card { border-color: #b64b46 !important; background: #fff2f1 !important; }
+    .fallback-card { border: 2px dashed #b0aba2 !important; background: #f7f5f1 !important; }
+    .eyebrow { margin-bottom: 5px; color: #8d8981; font-size: 26px; font-weight: 800; letter-spacing: .7px; text-transform: uppercase; }
+    .measured { display: inline-block; margin-top: 7px; padding: 3px 9px; border: 1px solid #cfcbc3; border-radius: 7px; color: #45413c; font-size: 26px; font-weight: 500; }
+
+    .request { left: 30px; top: 92px; width: 640px; height: 138px; }
+    .collect { left: 30px; top: 260px; width: 640px; height: 108px; }
+    .catalog { left: 30px; top: 398px; width: 640px; height: 108px; }
+    .symbols { left: 30px; top: 536px; width: 640px; height: 108px; }
+    .pagerank { left: 30px; top: 674px; width: 640px; height: 174px; }
+    .repo-map { left: 30px; top: 878px; width: 640px; height: 108px; }
+
+    .precheck { left: 30px; top: 92px; width: 680px; height: 108px; }
+    .area { left: 30px; top: 230px; width: 680px; height: 212px; }
+    .fallback { left: 30px; top: 502px; width: 680px; height: 106px; }
+    .risk { left: 30px; top: 638px; width: 680px; height: 108px; }
+    .finalize { left: 30px; top: 776px; width: 680px; height: 174px; }
+    .analyze-note { position: absolute; left: 30px; top: 980px; width: 680px; color: #77736c; font-size: 26px; line-height: 1.5; }
+
+    .gate { left: 30px; top: 92px; width: 580px; height: 322px; justify-content: flex-start !important; padding-top: 18px !important; }
+    .rule-grid { display: grid; grid-template-columns: 1fr; gap: 9px; margin-top: 12px; }
+    .rule { padding: 8px 11px; border: 1px solid #dfdcd5; border-radius: 9px; color: #45413c; font-size: 26px; font-weight: 500; line-height: 1.35; }
+    .rule b { display: block; margin-bottom: 2px; color: #242424; font-size: 26px; }
+    .error-route { left: 30px; top: 474px; width: 580px; height: 136px; }
+    .persist { left: 30px; top: 640px; width: 580px; height: 136px; }
+    .callback { left: 30px; top: 806px; width: 580px; height: 106px; }
+    .commit-note { position: absolute; left: 30px; top: 942px; width: 580px; color: #77736c; font-size: 26px; line-height: 1.5; }
+
+    .label-map { left: 660px; top: 1136px; }
+    .label-model-fail { left: 1078px; top: 590px; }
+    .label-error { left: 1940px; top: 562px; color: #a24641; }
+    .label-pass { left: 2225px; top: 622px; color: #11845e; }
+
+    .footer { position: absolute; left: 80px; right: 80px; top: 1210px; height: 124px; border-top: 2px solid #ece9e3; }
+    .footer-title { margin-top: 14px; color: #77736c; font-size: 26px; font-weight: 800; letter-spacing: .8px; }
+    .summary { display: flex; gap: 22px; margin-top: 12px; }
+    .summary span { padding: 8px 14px; border: 1px solid #dedbd4; border-radius: 9px; color: #4a4640; font-size: 28px; }
+    .summary b { color: #11845e; }
+  </style>
+</head>
+<body>
+<main class="diagram" id="diagram">
+  <canvas id="connectors" width="2360" height="1350" aria-hidden="true"></canvas>
+
+  <div class="legend"><span>본인 담당</span><span class="pass">정상 통과</span><span class="blocked">중단</span><span class="alt">대체 경로</span></div>
+
+  <div class="phase phase-index">Collect & index</div>
+  <div class="phase phase-analyze">Analyze</div>
+  <div class="phase phase-commit">Gate & commit</div>
+
+  <section class="group owned index">
+    <div class="group-title">수집과 구조 색인</div>
+    <div class="group-note">모델 호출 없음</div>
+    <article class="card owned-card request" id="request" data-min-height="138">
+      <div class="eyebrow">Entry</div><strong>분석 요청과 작업 큐</strong><small>Postgres 큐로 단일 처리 · 같은 판본은 캐시</small>
+    </article>
+    <article class="card owned-card collect" id="collect" data-min-height="108">
+      <strong>소스 수집</strong><small>GitHub API + 외부 서비스 이중화 · 누락 기록</small>
+    </article>
+    <article class="card owned-card catalog" id="catalog" data-min-height="108">
+      <strong>파일 카탈로그</strong><small>유효 파일 전체 · 설정·배포·CI 별도 보존</small>
+    </article>
+    <article class="card owned-card symbols" id="symbols" data-min-height="108">
+      <strong>심볼 추출</strong><small>tree-sitter · Python · JS · TS · Go</small>
+    </article>
+    <article class="card owned-card pagerank" id="pagerank" data-min-height="174">
+      <strong>정의 단위 순위 계산</strong><small>Personalized PageRank · 정의 단위 랭킹<span class="measured">실측 파일 266개 · 간선 8,348개 · 0.3초</span></small>
+    </article>
+    <article class="card owned-card repo-map" id="repo-map" data-min-height="108">
+      <strong>구조 지도 생성</strong><small>노출량만 토큰 예산으로 제한 · 결정적</small>
+    </article>
+  </section>
+
+  <section class="group owned analyze">
+    <div class="group-title">분석</div>
+    <div class="group-note">단계마다 소요 시간을 구조화 로그로 남김</div>
+    <article class="card owned-card precheck" id="precheck" data-min-height="108">
+      <strong>사전 점검</strong><small>입력이 하나라도 있으면 진행, 없으면 중단</small>
+    </article>
+    <article class="card owned-card area" id="area" data-min-height="212">
+      <div class="eyebrow">Single structured call</div><strong>8개 영역 분석</strong><small>구조 지도 상위 소스를 실어 단일 호출<span class="measured">도구 탐색 시절 136,887토큰으로 128K 한도 초과</span></small>
+    </article>
+    <article class="card fallback-card fallback" id="fallback" data-min-height="106">
+      <strong>대체 경로</strong><small>한계 있는 완료 · 확인됨 상태를 가질 수 없다</small>
+    </article>
+    <article class="card owned-card risk" id="risk" data-min-height="108">
+      <strong>위험과 후속 확인 지점</strong><small>근거가 약한 영역을 후속 확인으로 분리</small>
+    </article>
+    <article class="card owned-card finalize" id="finalize" data-min-height="174">
+      <strong>최종 보고 11개 섹션</strong><small>3배치 병렬 · 입력 축약 · 다이어그램 별도 호출<span class="measured">순차 5회 159.7초 병목을 분해</span></small>
+    </article>
+    <div class="analyze-note">구조 색인을 먼저 만들고, 모델에는 볼 것을 정해 넘긴다.</div>
+  </section>
+
+  <section class="group commit">
+    <div class="group-title">판정과 저장</div>
+    <article class="card owned-card gate" id="gate" data-min-height="322">
+      <div class="eyebrow">Quality gate</div><strong>품질 게이트</strong>
+      <div class="rule-grid">
+        <div class="rule"><b>출력 형식 검증</b>결과 구조가 계약과 맞는지 확인</div>
+        <div class="rule"><b>근거 대조</b>확인됨 주장의 근거를 원문과 대조 · 다음 장</div>
+      </div>
+    </article>
+    <article class="card blocked-card error-route" id="error-route" data-min-height="136">
+      <strong>중단 처리</strong><small>완료로 덮지 않고 사람 검토 필요 상태로 종료<br>한계를 산출물에 남긴다</small>
+    </article>
+    <article class="card pass-card persist" id="persist" data-min-height="136">
+      <strong>실행 기록 저장</strong><small>저장소·커밋·근거·판정·판본<br>없으면 검토할 수 없는 실행으로 취급</small>
+    </article>
+    <article class="card pass-card callback" id="callback" data-min-height="106">
+      <strong>AgentHub 콜백</strong><small>결과·보고서를 백엔드로 · 상세 화면 반영</small>
+    </article>
+    <div class="commit-note">실패한 실행도 기록을 남긴다.<br>무엇이 없어서 판정하지 못했는지가 결과의 일부다.</div>
+  </section>
+
+  <span class="edge-label label-map">구조 지도</span>
+  <span class="edge-label label-model-fail">모델 호출 실패</span>
+  <span class="edge-label label-error">치명 오류</span>
+  <span class="edge-label label-pass">판정 통과</span>
+
+  <footer class="footer">
+    <div class="footer-title">DESIGN PRINCIPLE</div>
+    <div class="summary">
+      <span><b>구조</b> · 저장소 전체를 색인에 남기고 절단하지 않는다</span>
+      <span><b>호출</b> · 모델은 볼 것을 정해 받고 한 번만 부른다</span>
+      <span><b>기록</b> · 실패와 한계도 실행 기록으로 남긴다</span>
+    </div>
+  </footer>
+</main>
+
+<script>
+  const diagram = document.getElementById('diagram');
+  const canvas = document.getElementById('connectors');
+  const ctx = canvas.getContext('2d');
+
+  function cardRect(id) {
+    const node = document.getElementById(id);
+    let x = 0;
+    let y = 0;
+    let current = node;
+    while (current && current !== diagram) {
+      x += current.offsetLeft;
+      y += current.offsetTop;
+      current = current.offsetParent;
+    }
+    return { x, y, width: node.offsetWidth, height: node.offsetHeight };
+  }
+
+  function anchor(id, side, ratio = 0.5) {
+    const rect = cardRect(id);
+    if (side === 'left') return [rect.x, rect.y + rect.height * ratio];
+    if (side === 'right') return [rect.x + rect.width, rect.y + rect.height * ratio];
+    if (side === 'top') return [rect.x + rect.width * ratio, rect.y];
+    return [rect.x + rect.width * ratio, rect.y + rect.height];
+  }
+
+  function strokePath(points, color, dashed) {
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.setLineDash(dashed ? [9, 9] : []);
+    ctx.beginPath();
+    points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawArrowhead(point, direction, color) {
+    const [x, y] = point;
+    const vectors = {
+      right: [[0, 0], [-15, -8], [-15, 8]],
+      left: [[0, 0], [15, -8], [15, 8]],
+      down: [[0, 0], [-8, -15], [8, -15]],
+      up: [[0, 0], [-8, 15], [8, 15]],
+    }[direction];
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    vectors.forEach(([dx, dy], index) => index ? ctx.lineTo(x + dx, y + dy) : ctx.moveTo(x + dx, y + dy));
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function connect(from, fromSide, to, toSide, options = {}) {
+    const start = anchor(from, fromSide, options.fromRatio ?? 0.5);
+    const end = anchor(to, toSide, options.toRatio ?? 0.5);
+    const points = options.via ? [start, ...options.via(start, end), end] : [start, end];
+    const color = options.color || '#c9c6bf';
+    strokePath(points, color, options.dashed);
+    drawArrowhead(end, options.direction || toSide, color);
+  }
+
+  function chain(ids) {
+    for (let index = 0; index < ids.length - 1; index += 1) {
+      connect(ids[index], 'bottom', ids[index + 1], 'top', { direction: 'down' });
+    }
+  }
+
+  function drawConnectors() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    chain(['request', 'collect', 'catalog', 'symbols', 'pagerank', 'repo-map']);
+    connect('repo-map', 'right', 'precheck', 'left', {
+      direction: 'right',
+      via: (start, end) => [[800, start[1]], [800, end[1]]],
+    });
+    connect('precheck', 'bottom', 'area', 'top', { direction: 'down' });
+    connect('area', 'bottom', 'fallback', 'top', { direction: 'down', dashed: true, fromRatio: 0.3, toRatio: 0.3 });
+    connect('fallback', 'bottom', 'risk', 'top', { direction: 'down', dashed: true, fromRatio: 0.3, toRatio: 0.3 });
+    connect('area', 'right', 'risk', 'right', {
+      direction: 'left',
+      via: (start, end) => [[1542, start[1]], [1542, end[1]]],
+    });
+    connect('risk', 'bottom', 'finalize', 'top', { direction: 'down' });
+    connect('finalize', 'right', 'gate', 'left', {
+      direction: 'right',
+      via: (start, end) => [[1580, start[1]], [1580, end[1]]],
+    });
+    connect('gate', 'bottom', 'error-route', 'top', { color: '#b64b46', direction: 'down' });
+    connect('gate', 'right', 'persist', 'right', {
+      color: '#11845e', direction: 'left',
+      via: (start, end) => [[2270, start[1]], [2270, end[1]]],
+    });
+    connect('persist', 'bottom', 'callback', 'top', { color: '#11845e', direction: 'down' });
+  }
+
+  function fitDiagram() {
+    const scale = Math.min(1, document.documentElement.clientWidth / 2360);
+    diagram.style.transform = `scale(${scale})`;
+    diagram.style.transformOrigin = 'top left';
+    document.body.style.height = `${diagram.offsetHeight * scale}px`;
+  }
+
+  drawConnectors();
+  fitDiagram();
+  addEventListener('resize', fitDiagram);
+</script>
+</body>
+</html>

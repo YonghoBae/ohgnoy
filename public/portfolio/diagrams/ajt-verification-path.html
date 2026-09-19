@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AJT 근거 검증 경로</title>
+  <style>
+    /* 덱과 같은 글꼴. 사이트에서 볼 때만 받아지고, 파일을 직접 열면 404 후
+       아래 시스템 글꼴로 떨어집니다. agenthub-evidence-verification.html 과 같습니다. */
+    @font-face { font-family:'Pretendard Deck'; src:url('/fonts/PretendardVariable.woff2') format('woff2-variations'); font-weight:400 700; font-display:block; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: #fff; color: #151515; }
+    body { font-family:'Pretendard Deck',"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",Arial,sans-serif; overflow-x: hidden; }
+    .diagram { position: relative; width: 2360px; height: 1170px; overflow: hidden; background: #fff; }
+    #connectors { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+    .card { position: relative; z-index: 3; }
+    .edge-label { position: absolute; z-index: 4; padding: 3px 9px; background: #fff; color: #817d75; font-size: 28px; line-height: 1.25; white-space: nowrap; }
+
+    .legend { position: absolute; right: 80px; top: 40px; display: flex; gap: 26px; align-items: center; color: #504c46; font-size: 28px; }
+    .legend span::before { content: ""; display: inline-block; width: 28px; height: 18px; margin-right: 10px; border: 3px solid #202020; border-radius: 5px; vertical-align: -3px; }
+    .legend .spring::before { border: 2px solid #d5d1ca; background: #f3f1ed; }
+    .legend .pass::before { border: 2px solid #11845e; background: #eef8f3; }
+    .legend .blocked::before { border: 2px solid #b64b46; background: #fff2f1; }
+
+    .phase { position: absolute; top: 100px; color: #77736c; font-size: 28px; font-weight: 800; letter-spacing: .8px; }
+    .phase-input { left: 80px; }
+    .phase-ground { left: 740px; }
+    .phase-commit { left: 1560px; }
+    .group { position: absolute; top: 138px; height: 872px; padding: 30px; border-radius: 26px; background: #f4f2ee; }
+    .group.owned { border: 3px solid #202020; background: #faf9f7; }
+    .group-title { font-size: 34px; font-weight: 800; letter-spacing: -.6px; }
+    .group-note { position: absolute; right: 30px; top: 36px; color: #98948c; font-size: 26px;
+      padding: 0 6px; background: #f4f2ee; z-index: 3; }
+    .group.owned .group-note { background: #faf9f7; }
+
+    .input-col { left: 80px; width: 620px; }
+    .ground { left: 740px; width: 780px; }
+    .commit { left: 1560px; width: 660px; }
+
+    .group .card { position: absolute; display: flex; flex-direction: column; justify-content: center; padding: 14px 18px; border: 2px solid #d9d6cf; border-radius: 15px; background: #fff; font-size: 30px; font-weight: 700; line-height: 1.33; }
+    .group .card strong { font-size: 32px; letter-spacing: -.2px; }
+    .group .card small { display: block; margin-top: 5px; color: #858179; font-size: 26px; font-weight: 400; line-height: 1.42; }
+    .group .card code { color: #262626; font-family: "SFMono-Regular", Consolas, monospace; font-size: 26px; font-weight: 700; }
+    .owned-card { border: 3px solid #202020 !important; }
+    .muted-card { background: #f7f5f1 !important; }
+    .pass-card { border-color: #11845e !important; background: #eef8f3 !important; }
+    .blocked-card { border-color: #b64b46 !important; background: #fff2f1 !important; }
+    .eyebrow { margin-bottom: 5px; color: #8d8981; font-size: 26px; font-weight: 800; letter-spacing: .7px; text-transform: uppercase; }
+
+    /* 01 · 검증 대상 */
+    .ledger { left: 30px; top: 92px; width: 560px; height: 210px; }
+    .model-answer { left: 30px; top: 342px; width: 560px; height: 210px; }
+    .input-note { position: absolute; left: 30px; top: 582px; width: 560px; color: #77736c; font-size: 26px; line-height: 1.55; }
+
+    /* 02 · FastAPI 출처 검증 */
+    .gate { left: 30px; top: 92px; width: 720px; height: 420px; justify-content: flex-start !important; padding-top: 18px !important; }
+    .rule-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px 10px; margin-top: 12px; }
+    .rule { padding: 9px 11px; border: 1px solid #dfdcd5; border-radius: 9px; color: #45413c; font-size: 26px; font-weight: 500; line-height: 1.35; }
+    .rule b { margin-right: 10px; color: #242424; font-size: 26px; }
+    .rule.block { border-color: #dfaaa6; background: #fff5f4; }
+    .rule.ok { border-color: #afd4c5; background: #f2faf6; }
+    .gate-note { position: absolute; left: 30px; top: 542px; width: 720px; color: #77736c; font-size: 26px; line-height: 1.55; }
+
+    /* 03 · Spring 권한 재검증과 저장 */
+    .final-auth { left: 30px; top: 92px; width: 600px; height: 340px; justify-content: flex-start !important; padding-top: 18px !important; }
+    .check-list { display: grid; grid-template-columns: 1fr; gap: 9px; margin-top: 12px; }
+    .check { padding: 9px 11px; border: 1px solid #dcd9d2; border-radius: 9px; color: #45413c; font-size: 26px; font-weight: 500; line-height: 1.35; }
+    .check b { margin-right: 10px; color: #202020; font-size: 26px; }
+    /* Spring 칸 안에서도 위키 조회·권한은 본인 구현이라 줄 단위로 표시한다
+       (git: InternalWikiQueryController/Service, InternalWikiQuerySecurityTest).
+       일정·저장은 팀원 구현이므로 칠하지 않는다. */
+    .check.owned { border: 3px solid #202020; }
+    .pass-outcome { left: 30px; top: 482px; width: 290px; height: 160px; }
+    .blocked-outcome { left: 340px; top: 482px; width: 290px; height: 160px; }
+    .failure-history { left: 30px; top: 692px; width: 600px; height: 150px; }
+
+    .label-evidence { left: 636px; top: 340px; }
+    .label-claim { left: 636px; top: 590px; }
+    .label-verified { left: 1444px; top: 378px; }
+    .label-no-source { left: 1200px; top: 1090px; color: #a24641; }
+    .label-pass { left: 1700px; top: 604px; color: #11845e; }
+    .label-permission { left: 2000px; top: 604px; color: #a24641; }
+
+    .footer { position: absolute; left: 80px; right: 80px; top: 1050px; height: 100px; border-top: 2px solid #ece9e3; }
+    .footer-title { margin-top: 8px; color: #77736c; font-size: 26px; font-weight: 800; letter-spacing: .8px; }
+    .summary { display: flex; gap: 22px; margin-top: 8px; }
+    .summary span { padding: 6px 12px; border: 1px solid #dedbd4; border-radius: 9px; color: #4a4640; font-size: 28px; }
+    .summary b { color: #11845e; }
+    .footer-note { position: absolute; right: 0; bottom: 24px; color: #96928a; font-size: 26px; }
+  </style>
+</head>
+<body>
+<main class="diagram" id="diagram">
+  <canvas id="connectors" width="2360" height="1170" aria-hidden="true"></canvas>
+
+  <div class="legend"><span>본인 담당</span><span class="spring">Spring 경계</span><span class="pass">정상 통과</span><span class="blocked">차단</span></div>
+
+  <section class="group input-col">
+    <div class="group-title">검증 대상</div>
+    <article class="card owned-card ledger" id="ledger" data-min-height="170">
+      <div class="eyebrow">실행 중 기록</div><strong>실제 조회 기록</strong><small>에이전트가 실행 중에 정말 읽은 ID</small>
+    </article>
+    <article class="card muted-card model-answer" id="model-answer" data-min-height="170">
+      <div class="eyebrow">모델 주장</div><strong>LLM이 적은 출처</strong><small>답변에 근거로 적은 위키·일정 ID<br>읽지 않은 것이 섞일 수 있다</small>
+    </article>
+  </section>
+
+  <section class="group owned ground">
+    <div class="group-title">출처 ID 대조</div>
+    <div class="group-note">FastAPI · 본인 담당</div>
+    <article class="card owned-card gate" id="gate" data-min-height="430">
+      <strong>선언한 출처를 기록과 맞춰 본다</strong>
+      <div class="rule-grid">
+        <div class="rule"><b>대조</b>적은 ID ↔ 읽은 기록</div>
+        <div class="rule"><b>제거</b>기록에 없는 ID</div>
+        <div class="rule"><b>보완</b>선언이 비면 기록으로</div>
+        <div class="rule block"><b>차단</b>남는 근거가 0건이면</div>
+        <div class="rule ok" style="grid-column:1 / span 2"><b>허용</b>검색이 비어도 “찾지 못함”은 정상 답변</div>
+      </div>
+    </article>
+  </section>
+
+  <section class="group commit">
+    <div class="group-title">권한 재검증과 저장</div>
+    <div class="group-note">Spring · 위키 조회는 본인</div>
+    <article class="card final-auth" id="final-auth" data-min-height="330">
+      <strong>반환 출처 재검증</strong>
+      <div class="check-list">
+        <div class="check owned"><b>문서 권한</b>접근 범위 안인지</div>
+        <div class="check"><b>일정 권한</b>승인 여부와 공개 범위</div>
+        <div class="check"><b>저장</b>허용된 출처와 답변만</div>
+      </div>
+    </article>
+    <article class="card pass-card pass-outcome" id="pass-outcome" data-min-height="130">
+      <strong>통과</strong><small>출처와 함께 반환</small>
+    </article>
+    <article class="card blocked-card blocked-outcome" id="blocked-outcome" data-min-height="130">
+      <strong>차단</strong><small>근거 없음 · 권한 없음</small>
+    </article>
+    <article class="card blocked-card failure-history" id="failure-history" data-min-height="120">
+      <strong>실패 상태 보존</strong><small>지우지 않고 실패로 남긴다</small>
+    </article>
+  </section>
+
+  <span class="edge-label label-evidence">읽은 기록</span>
+  <span class="edge-label label-claim">선언한 출처</span>
+  <span class="edge-label label-verified">출처 확정</span>
+
+  <footer class="footer">
+    <div class="footer-title">담당 구분</div>
+    <div class="summary">
+      <span><b>FastAPI</b> · 출처를 기록과 대조</span>
+      <span><b>Spring</b> · 권한을 다시 판정</span>
+      <span><b>결과</b> · 무근거와 무권한은 다른 경로로 차단</span>
+    </div>
+  </footer>
+</main>
+
+<script>
+  const diagram = document.getElementById('diagram');
+  const canvas = document.getElementById('connectors');
+  const ctx = canvas.getContext('2d');
+
+  function cardRect(id) {
+    const node = document.getElementById(id);
+    let x = 0;
+    let y = 0;
+    let current = node;
+    while (current && current !== diagram) {
+      x += current.offsetLeft;
+      y += current.offsetTop;
+      current = current.offsetParent;
+    }
+    return { x, y, width: node.offsetWidth, height: node.offsetHeight };
+  }
+
+  function anchor(id, side, ratio = 0.5) {
+    const rect = cardRect(id);
+    if (side === 'left') return [rect.x, rect.y + rect.height * ratio];
+    if (side === 'right') return [rect.x + rect.width, rect.y + rect.height * ratio];
+    if (side === 'top') return [rect.x + rect.width * ratio, rect.y];
+    return [rect.x + rect.width * ratio, rect.y + rect.height];
+  }
+
+  function strokePath(points, color, dashed) {
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.setLineDash(dashed ? [9, 9] : []);
+    ctx.beginPath();
+    points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawArrowhead(point, direction, color) {
+    const [x, y] = point;
+    const vectors = {
+      right: [[0, 0], [-15, -8], [-15, 8]],
+      left: [[0, 0], [15, -8], [15, 8]],
+      down: [[0, 0], [-8, -15], [8, -15]],
+      up: [[0, 0], [-8, 15], [8, 15]],
+    }[direction];
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    vectors.forEach(([dx, dy], index) => index ? ctx.lineTo(x + dx, y + dy) : ctx.moveTo(x + dx, y + dy));
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function connect(from, fromSide, to, toSide, options = {}) {
+    const start = anchor(from, fromSide, options.fromRatio ?? 0.5);
+    const end = anchor(to, toSide, options.toRatio ?? 0.5);
+    const points = options.via ? [start, ...options.via(start, end), end] : [start, end];
+    const color = options.color || '#c9c6bf';
+    strokePath(points, color, options.dashed);
+    drawArrowhead(end, options.direction || toSide, color);
+  }
+
+  function drawConnectors() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 01 → 02 : 두 입력이 같은 게이트로 들어간다
+    connect('ledger', 'right', 'gate', 'left', {
+      direction: 'right', toRatio: 0.3,
+      via: (start, end) => [[720, start[1]], [720, end[1]]],
+    });
+    connect('model-answer', 'right', 'gate', 'left', {
+      direction: 'right', toRatio: 0.62,
+      via: (start, end) => [[720, start[1]], [720, end[1]]],
+    });
+
+    // 02 → 03 : 출처가 남은 답변만 권한 재검증으로
+    connect('gate', 'right', 'final-auth', 'left', {
+      direction: 'right', fromRatio: 0.35, toRatio: 0.3,
+      via: (start, end) => [[1540, start[1]], [1540, end[1]]],
+    });
+
+    // 03 내부 : 통과와 권한 실패가 갈린다
+    connect('final-auth', 'bottom', 'pass-outcome', 'top', {
+      color: '#11845e', direction: 'down', fromRatio: 0.25,
+    });
+    connect('final-auth', 'bottom', 'blocked-outcome', 'top', {
+      color: '#b64b46', direction: 'down', fromRatio: 0.75,
+    });
+    connect('blocked-outcome', 'bottom', 'failure-history', 'top', {
+      color: '#b64b46', direction: 'down', dashed: true, toRatio: 0.75,
+    });
+  }
+
+  function fitDiagram() {
+    const scale = Math.min(1, document.documentElement.clientWidth / 2360);
+    diagram.style.transform = `scale(${scale})`;
+    diagram.style.transformOrigin = 'top left';
+    document.body.style.height = `${diagram.offsetHeight * scale}px`;
+  }
+
+  drawConnectors();
+  fitDiagram();
+  addEventListener('resize', fitDiagram);
+</script>
+</body>
+</html>

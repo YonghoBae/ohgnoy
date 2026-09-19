@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AgentTrace 근거 판정 경로</title>
+  <style>
+        /* 덱과 같은 글꼴. 사이트에서 볼 때만 받아지고, 파일을 직접 열면 404 후
+       아래 시스템 글꼴로 떨어집니다 — 그 동작은 종전과 같습니다. */
+    @font-face { font-family:'Pretendard Deck'; src:url('/fonts/PretendardVariable.woff2') format('woff2-variations'); font-weight:400 700; font-display:block; }
+* { box-sizing: border-box; }
+    html, body { margin: 0; background: #fff; color: #151515; }
+    body { font-family:'Pretendard Deck',"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",Arial,sans-serif; overflow-x: hidden; }
+    .diagram { position: relative; width: 2360px; height: 1350px; overflow: hidden; background: #fff; }
+    #connectors { position: absolute; inset: 0; width: 1560px; pointer-events: none; z-index: 2; }
+    .card { position: relative; z-index: 3; }
+    .edge-label { position: absolute; z-index: 4; padding: 3px 9px; background: #fff; color: #817d75; font-size: 28px; line-height: 1.25; white-space: nowrap; }
+
+    .legend { position: absolute; right: 80px; top: 40px; display: flex; gap: 26px; align-items: center; color: #504c46; font-size: 28px; }
+    .legend span::before { content: ""; display: inline-block; width: 28px; height: 18px; margin-right: 10px; border: 3px solid #202020; border-radius: 5px; vertical-align: -3px; }
+    .legend .model::before { border: 2px solid #d5d1ca; background: #f3f1ed; }
+    .legend .pass::before { border: 2px solid #11845e; background: #eef8f3; }
+    .legend .blocked::before { border: 2px solid #b64b46; background: #fff2f1; }
+
+    .phase { position: absolute; top: 100px; color: #77736c; font-size: 28px; font-weight: 800; letter-spacing: .8px; }
+    .phase-claim { left: 80px; }
+    .phase-ground { left: 740px; }
+    .phase-judge { left: 1560px; }
+    .group { position: absolute; top: 138px; height: 1106px; padding: 30px; border-radius: 26px; background: #f4f2ee; }
+    .group.owned { border: 3px solid #202020; background: #faf9f7; }
+    .group-title { font-size: 34px; font-weight: 800; letter-spacing: -.6px; }
+    .group-note { position: absolute; right: 30px; top: 36px; color: #98948c; font-size: 26px;
+      /* 커넥터가 라벨 글자를 관통해 「보관」이 잘려 보였습니다. 그룹 바탕색을
+         라벨 뒤에 깔아 선이 글자 뒤로 지나가게 합니다. */
+      padding: 0 6px; background: #f4f2ee; z-index: 3; }
+    .group.owned .group-note { background: #faf9f7; }
+
+    .claim-col { left: 80px; width: 620px; }
+    .ground { left: 740px; width: 780px; }
+    .judge { left: 1560px; width: 660px; }
+
+    .group .card { position: absolute; display: flex; flex-direction: column; justify-content: center; padding: 14px 18px; border: 2px solid #d9d6cf; border-radius: 15px; background: #fff; font-size: 30px; font-weight: 700; line-height: 1.33; }
+    .group .card strong { font-size: 32px; letter-spacing: -.2px; }
+    .group .card small { display: block; margin-top: 5px; color: #858179; font-size: 26px; font-weight: 400; line-height: 1.42; }
+    .group .card code { color: #262626; font-family: "SFMono-Regular", Consolas, monospace; font-size: 26px; font-weight: 700; }
+    .owned-card { border: 3px solid #202020 !important; }
+    .muted-card { background: #f7f5f1 !important; }
+    .pass-card { border-color: #11845e !important; background: #eef8f3 !important; }
+    .blocked-card { border-color: #b64b46 !important; background: #fff2f1 !important; }
+    .eyebrow { margin-bottom: 5px; color: #8d8981; font-size: 26px; font-weight: 800; letter-spacing: .7px; text-transform: uppercase; }
+
+    .claim { left: 30px; top: 92px; width: 560px; height: 163px; }
+    .claim-ref { left: 30px; top: 285px; width: 560px; height: 163px; }
+    .claim-note { position: absolute; left: 30px; top: 478px; width: 560px; color: #77736c; font-size: 26px; line-height: 1.55; }
+
+    .inventory { left: 30px; top: 92px; width: 720px; height: 163px; }
+    .hydrate { left: 30px; top: 285px; width: 720px; height: 136px; }
+    .checks { left: 30px; top: 451px; width: 720px; height: 427px; justify-content: flex-start !important; padding-top: 18px !important; }
+    .rule-grid { display: grid; grid-template-columns: 1fr; gap: 9px; margin-top: 12px; }
+    .rule { padding: 9px 11px; border: 1px solid #dfdcd5; border-radius: 9px; color: #45413c; font-size: 26px; font-weight: 500; line-height: 1.35; }
+    .rule b { display: block; margin-bottom: 2px; color: #242424; font-size: 26px; }
+    .limit { left: 30px; top: 908px; width: 720px; height: 163px; }
+
+    .confirmed { left: 30px; top: 92px; width: 600px; height: 105px; }
+    .partial { left: 30px; top: 227px; width: 600px; height: 105px; }
+    .unconfirmed { left: 30px; top: 362px; width: 600px; height: 105px; }
+    .critical { left: 30px; top: 527px; width: 600px; height: 134px; }
+    .no-fallback { left: 30px; top: 721px; width: 600px; height: 134px; }
+
+    .label-position { left: 688px; top: 500px; }
+    .label-fill { left: 1150px; top: 396px; }
+    .label-confirmed { left: 1497px; top: 612px; color: #11845e; }
+    .label-critical { left: 1497px; top: 805px; color: #a24641; }
+    .label-limit { left: 1180px; top: 1020px; color: #a24641; }
+
+    .footer { position: absolute; left: 80px; right: 80px; top: 1245px; height: 100px; border-top: 2px solid #ece9e3; }
+    .footer-title { margin-top: 8px; color: #77736c; font-size: 26px; font-weight: 800; letter-spacing: .8px; }
+    .summary { display: flex; gap: 22px; margin-top: 8px; }
+    .summary span { padding: 6px 12px; border: 1px solid #dedbd4; border-radius: 9px; color: #4a4640; font-size: 28px; }
+    .summary b { color: #11845e; }
+    .footer-note { position: absolute; right: 0; bottom: 24px; color: #96928a; font-size: 26px; }
+  </style>
+</head>
+<body>
+<main class="diagram" id="diagram">
+  <canvas id="connectors" width="2360" height="1350" aria-hidden="true"></canvas>
+
+  <div class="legend"><span>본인 담당</span><span class="model">모델 출력</span><span class="pass">확인됨</span><span class="blocked">차단·한계</span></div>
+
+  <div class="phase phase-claim">Model claim</div>
+  <div class="phase phase-ground">Ground in source</div>
+  <div class="phase phase-judge">Status</div>
+
+  <section class="group claim-col">
+    <div class="group-title">모델이 낸 주장</div>
+    <div class="group-note">아직 신뢰하지 않음</div>
+    <article class="card muted-card claim" id="claim" data-min-height="163">
+      <div class="eyebrow">Structured output</div><strong>영역별 발견</strong><small>주장 문장과 상태 후보 · 8개 영역<br>보고서 11개 섹션의 재료</small>
+    </article>
+    <article class="card muted-card claim-ref" id="claim-ref" data-min-height="163">
+      <strong>근거 위치</strong><small>파일 경로 · 시작 행 · 끝 행<br>발췌·해시는 비워 둘 수 있고,<br>모델이 적어 넣어도 그대로 믿지 않는다</small>
+    </article>
+    <div class="claim-note">모델의 자기 신고를 그대로 쓰면<br>지어낸 경로와 실제 인용을<br>사람이 눈으로 구분할 수 없다.</div>
+  </section>
+
+  <section class="group owned ground">
+    <div class="group-title">원문 대조</div>
+    <div class="group-note">수집된 원문과 해시 보관</div>
+    <article class="card owned-card inventory" id="inventory" data-min-height="163">
+      <div class="eyebrow">Source inventory</div><strong>원문 적재</strong><small>수집한 파일의 본문과 <code>sha256</code> 해시를 경로별로 보관</small>
+    </article>
+    <article class="card owned-card hydrate" id="hydrate" data-min-height="136">
+      <strong>빈 칸은 코드가 채움</strong><small>발췌·해시가 비면 실제 파일의 그 행 범위로 채움<br>행 번호가 범위를 벗어나면 교정</small>
+    </article>
+    <article class="card owned-card checks" id="checks" data-min-height="427">
+      <div class="eyebrow">Machine check</div><strong>세 가지 대조</strong>
+      <div class="rule-grid">
+        <div class="rule"><b>해시 일치</b>근거가 가리키는 파일이 대조 시점의 원문과 같은 파일인지</div>
+        <div class="rule"><b>행 범위 유효</b>시작·끝 행이 파일 길이 안에 있고 순서가 맞는지</div>
+        <div class="rule"><b>발췌 일치</b>적힌 발췌가 그 행 범위의 실제 원문과 글자까지 같은지</div>
+      </div>
+    </article>
+    <article class="card blocked-card limit" id="limit" data-min-height="163">
+      <div class="eyebrow">Known gap</div><strong>대조 대상이 없는 경우</strong><small>수집되지 않은 경로를 근거로 적으면 비교할 원문이 없어 검사를 지나간다</small>
+    </article>
+  </section>
+
+  <section class="group judge">
+    <div class="group-title">상태 확정</div>
+    <article class="card pass-card confirmed" id="confirmed" data-min-height="105">
+      <strong>확인됨</strong><small>구현 코드 발췌가 원문과 일치할 때만 부여</small>
+    </article>
+    <article class="card partial" id="partial" data-min-height="105">
+      <strong>부분 확인</strong><small>방향은 맞지만 근거가 문서나 설정에 그칠 때</small>
+    </article>
+    <article class="card unconfirmed" id="unconfirmed" data-min-height="105">
+      <strong>미확인</strong><small>구조 지도 · 파일 목록 · README만 근거일 때</small>
+    </article>
+    <article class="card blocked-card critical" id="critical" data-min-height="134">
+      <strong>치명 오류</strong><small>없는 경로 · 발췌·행 범위 불일치<br>테스트를 구현으로 오인</small>
+    </article>
+    <article class="card no-fallback" id="no-fallback" data-min-height="134">
+      <strong>대체 경로 제외</strong><small>모델을 부르지 못한 결과는 확인됨이 될 수 없다 · 테스트로 고정</small>
+    </article>
+  </section>
+
+  <span class="edge-label label-position">행 범위</span>
+  <span class="edge-label label-fill">원문</span>
+  <span class="edge-label label-confirmed">전부 일치</span>
+  <span class="edge-label label-critical">불일치</span>
+  <span class="edge-label label-limit">비교 대상 없음</span>
+
+  <footer class="footer">
+    <div class="footer-title">GROUNDING PRINCIPLE</div>
+    <div class="summary">
+      <span><b>모델</b> · 주장과 근거의 위치만 제시한다</span>
+      <span><b>코드</b> · 그 위치의 원문과 대조해 상태를 정한다</span>
+      <span><b>결과</b> · 근거를 대지 못한 주장은 확인됨에 오르지 못한다</span>
+    </div>
+    <div class="footer-note">초록 = 확인됨 · 붉은 = 차단·한계 · 점선 = 미검사</div>
+  </footer>
+</main>
+
+<script>
+  const diagram = document.getElementById('diagram');
+  const canvas = document.getElementById('connectors');
+  const ctx = canvas.getContext('2d');
+
+  function cardRect(id) {
+    const node = document.getElementById(id);
+    let x = 0;
+    let y = 0;
+    let current = node;
+    while (current && current !== diagram) {
+      x += current.offsetLeft;
+      y += current.offsetTop;
+      current = current.offsetParent;
+    }
+    return { x, y, width: node.offsetWidth, height: node.offsetHeight };
+  }
+
+  function anchor(id, side, ratio = 0.5) {
+    const rect = cardRect(id);
+    if (side === 'left') return [rect.x, rect.y + rect.height * ratio];
+    if (side === 'right') return [rect.x + rect.width, rect.y + rect.height * ratio];
+    if (side === 'top') return [rect.x + rect.width * ratio, rect.y];
+    return [rect.x + rect.width * ratio, rect.y + rect.height];
+  }
+
+  function strokePath(points, color, dashed) {
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.setLineDash(dashed ? [9, 9] : []);
+    ctx.beginPath();
+    points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawArrowhead(point, direction, color) {
+    const [x, y] = point;
+    const vectors = {
+      right: [[0, 0], [-15, -8], [-15, 8]],
+      left: [[0, 0], [15, -8], [15, 8]],
+      down: [[0, 0], [-8, -15], [8, -15]],
+      up: [[0, 0], [-8, 15], [8, 15]],
+    }[direction];
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    vectors.forEach(([dx, dy], index) => index ? ctx.lineTo(x + dx, y + dy) : ctx.moveTo(x + dx, y + dy));
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function connect(from, fromSide, to, toSide, options = {}) {
+    const start = anchor(from, fromSide, options.fromRatio ?? 0.5);
+    const end = anchor(to, toSide, options.toRatio ?? 0.5);
+    const points = options.via ? [start, ...options.via(start, end), end] : [start, end];
+    const color = options.color || '#c9c6bf';
+    strokePath(points, color, options.dashed);
+    drawArrowhead(end, options.direction || toSide, color);
+  }
+
+  function drawConnectors() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    connect('claim', 'bottom', 'claim-ref', 'top', { direction: 'down' });
+    connect('claim-ref', 'right', 'hydrate', 'left', {
+      direction: 'right',
+      via: (start, end) => [[720, start[1]], [720, end[1]]],
+    });
+    connect('inventory', 'bottom', 'hydrate', 'top', { direction: 'down' });
+    connect('hydrate', 'bottom', 'checks', 'top', { direction: 'down' });
+    connect('checks', 'right', 'confirmed', 'left', {
+      color: '#11845e', direction: 'right', fromRatio: 0.2,
+      via: (start, end) => [[1548, start[1]], [1548, end[1]]],
+    });
+    connect('checks', 'right', 'partial', 'left', {
+      direction: 'right', fromRatio: 0.5,
+      via: (start, end) => [[1540, start[1]], [1540, end[1]]],
+    });
+    connect('checks', 'right', 'unconfirmed', 'left', {
+      direction: 'right', fromRatio: 0.8,
+      via: (start, end) => [[1532, start[1]], [1532, end[1]]],
+    });
+    connect('checks', 'right', 'critical', 'left', {
+      color: '#b64b46', direction: 'right', fromRatio: 0.95,
+      via: (start, end) => [[1524, start[1]], [1524, end[1]]],
+    });
+    connect('checks', 'bottom', 'limit', 'top', { direction: 'down', dashed: true, fromRatio: 0.75, toRatio: 0.75 });
+    connect('confirmed', 'right', 'no-fallback', 'right', {
+      color: '#b64b46', direction: 'left', dashed: true,
+      via: (start, end) => [[2250, start[1]], [2250, end[1]]],
+    });
+  }
+
+  function fitDiagram() {
+    const scale = Math.min(1, document.documentElement.clientWidth / 2360);
+    diagram.style.transform = `scale(${scale})`;
+    diagram.style.transformOrigin = 'top left';
+    document.body.style.height = `${diagram.offsetHeight * scale}px`;
+  }
+
+  drawConnectors();
+  fitDiagram();
+  addEventListener('resize', fitDiagram);
+</script>
+</body>
+</html>
