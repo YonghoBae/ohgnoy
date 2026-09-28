@@ -5,6 +5,7 @@ import { fetchPokemon } from "@/lib/pokemon/fetchers/fetchPokemon";
 import { fetchSpecies } from "@/lib/pokemon/fetchers/fetchSpecies";
 import { getPokemonNames } from "@/lib/pokemon/i18n";
 import { koPokemon } from "@/lib/battle/koNames";
+import { ALL_TYPES } from "@/lib/battle/typeChart";
 import TypeBadge from "@/app/_components/TypeBadge";
 import PixelSprite from "@/app/_components/ui/pixel/PixelSprite";
 import { PokemonTypeName } from "@/types/pokemon/domain";
@@ -29,6 +30,11 @@ async function RankRow({
     pokemon = await fetchPokemon(slug);
     id = pokemon.id;
     types = pokemon.types.map((t) => t.type.name as PokemonTypeName);
+    // PokeAPI has a single Normal Arceus/Silvally; Smogon's "Arceus-Ground"
+    // carries the plate's type in its name.
+    const plate = entry.nameEn.match(/^(?:Arceus|Silvally)-(\w+)$/)?.[1];
+    const plateType = plate?.toLowerCase() as PokemonTypeName | undefined;
+    if (plateType && ALL_TYPES.includes(plateType)) types = [plateType];
 
     if (!known) {
       // Forms have no species of their own: species id comes from species.url.
