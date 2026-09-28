@@ -1,6 +1,14 @@
 import { unstable_cache } from "next/cache";
-import { PokemonBattleData } from "@/types/pokemon/battle";
+import {
+  BattleSet,
+  LabelKind,
+  labelKey,
+  PokemonBattleData,
+  toID,
+  UsageStat,
+} from "@/types/pokemon/battle";
 import { CUTOFF_BY_FORMAT } from "@/lib/battle/constants";
+import { koLabel, koPokemon } from "@/lib/battle/koNames";
 import { fetchSets, getPokemonSets } from "./fetchSets";
 import {
   getLatestMonth,
@@ -18,8 +26,9 @@ import {
 // ponytail: 조각 캐시가 비어 있으면 Smogon 원본(약 10MB)을 통째로 다시 받는다.
 // 포켓몬마다 처음 한 번씩이다. 백엔드로 옮기면 없어지는 비용이다.
 
-// bump when UsageStat's shape changes
-const CACHE_VERSION = "v2";
+// bump when UsageStat's shape or the name lookup changes (v3: slug -> Smogon
+// key, v2 caches hold null for "great-tusk" etc.)
+const CACHE_VERSION = "v3";
 
 const cutoffFor = (format: string) => CUTOFF_BY_FORMAT[format] ?? 1695;
 
@@ -44,6 +53,38 @@ export async function fetchUsageRanking(
   }
 }
 
+// 페이지는 PokeAPI 슬러그("great-tusk", "landorus-incarnate",
+// "ogerpon-wellspring-mask")를 넘기고 Smogon 키는 "Great Tusk", "Landorus",
+// "Ogerpon-Wellspring"이다.
+const smogonKey = (keys: string[], slug: string) =>
+  keys.find((k) => toID(k) === toID(slug)) ??
+  keys.find((k) => koPokemon(k)?.slug === slug) ??
+  slug;
+
+// 이 포켓몬의 사용률/세트에 나오는 이름만 한국어로. 번역이 없으면 뺀다.
+function buildLabels(usage: UsageStat | null, sets: BattleSet[]) {
+  const labels: Record<string, string> = {};
+  const add = (kind: LabelKind, names: (string | string[] | undefined)[]) => {
+    for (const name of names.flat()) {
+      if (!name) continue;
+      const ko =
+        kind === "pokemon" ? koPokemon(name)?.ko : koLabel(kind, name);
+      if (ko && ko !== name) labels[labelKey(kind, name)] = ko;
+    }
+  };
+  const keys = (r: Record<string, unknown> | undefined) => Object.keys(r ?? {});
+  add("moves", [...keys(usage?.moves), ...sets.flatMap((s) => s.moves)]);
+  add("items", [...keys(usage?.items), ...sets.map((s) => s.item)]);
+  add("abilities", [...keys(usage?.abilities), ...sets.map((s) => s.ability)]);
+  add("types", [...keys(usage?.teraTypes), ...sets.flatMap((s) => s.teratypes ?? [])]);
+  add("natures", [
+    ...keys(usage?.spreads).map((s) => s.split(":")[0]),
+    ...sets.flatMap((s) => s.nature?.split(" / ") ?? []),
+  ]);
+  add("pokemon", [...keys(usage?.teammates), ...keys(usage?.counters)]);
+  return labels;
+}
+
 export async function fetchPokemonBattleData(
   name: string,
   format: string,
@@ -53,8 +94,10 @@ export async function fetchPokemonBattleData(
   const cutoff = cutoffFor(format);
   const [usage, setsMap] = await Promise.all([
     unstable_cache(
-      async () =>
-        getPokemonUsage(await loadUsageStats(format, m, cutoff), name),
+      async () => {
+        const stats = await loadUsageStats(format, m, cutoff);
+        return getPokemonUsage(stats, smogonKey(Object.keys(stats), name));
+      },
       [`usage-pokemon-${CACHE_VERSION}-${format}-${m}-${cutoff}-${name.toLowerCase()}`],
       { revalidate: false }
     )().catch((e) => {
@@ -63,10 +106,8 @@ export async function fetchPokemonBattleData(
     }),
     fetchSets(format),
   ]);
-  return {
-    format,
-    month: m,
-    usage,
-    sets: setsMap ? getPokemonSets(setsMap, name) : [],
-  };
+  const sets = setsMap
+    ? getPokemonSets(setsMap, smogonKey(Object.keys(setsMap), name))
+    : [];
+  return { format, month: m, usage, sets, labels: buildLabels(usage, sets) };
 }

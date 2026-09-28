@@ -1,8 +1,14 @@
 "use client";
 
 import { useState, useEffect, useId, useRef } from "react";
-import { PokemonBattleData, BattleSet } from "@/types/pokemon/battle";
+import {
+  PokemonBattleData,
+  BattleSet,
+  LabelKind,
+  labelOf,
+} from "@/types/pokemon/battle";
 import { FORMATS } from "@/lib/battle/constants";
+import { ALL_TYPES } from "@/lib/battle/typeChart";
 import TypeBadge from "@/app/_components/TypeBadge";
 import { PokemonTypeName } from "@/types/pokemon/domain";
 import PixelCard from "@/app/_components/ui/pixel/PixelCard";
@@ -22,12 +28,28 @@ function parseSpread(spread: string): { nature: string; evs: string } {
   return { nature: nature ?? "", evs: parts.join(" / ") || "노력치 없음" };
 }
 
+type Labels = PokemonBattleData["labels"];
+
+// 18타입은 배지로, 그 밖(스텔라 등)은 한국어 글자로.
+function TeraType({ type, labels }: { type: string; labels: Labels }) {
+  const t = type.toLowerCase() as PokemonTypeName;
+  return ALL_TYPES.includes(t) ? (
+    <TypeBadge type={t} size="sm" />
+  ) : (
+    <span className="text-xs font-semibold">{labelOf(labels, "types", type)}</span>
+  );
+}
+
 function TopList({
   data,
   label,
+  kind,
+  labels,
 }: {
   data: Record<string, number>;
   label: string;
+  kind: LabelKind;
+  labels: Labels;
 }) {
   const sorted = Object.entries(data)
     .sort((a, b) => b[1] - a[1])
@@ -49,8 +71,12 @@ function TopList({
                 style={{ width: `${Math.min(pct, 100)}%` }}
               />
             </div>
-            <span translate="no" className="w-32 truncate text-xs text-neutral-700 dark:text-neutral-300">
-              {name}
+            <span className="w-32 truncate text-xs text-neutral-700 dark:text-neutral-300">
+              {kind === "types" ? (
+                <TeraType type={name} labels={labels} />
+              ) : (
+                labelOf(labels, kind, name)
+              )}
             </span>
             <span className="w-12 text-right text-xs font-semibold tabular-nums">
               {pct.toFixed(1)}%
@@ -62,16 +88,20 @@ function TopList({
   );
 }
 
-function SetCard({ set }: { set: BattleSet }) {
-  const itemDisplay = Array.isArray(set.item)
-    ? set.item.slice(0, 2).join(" / ")
-    : set.item;
+function SetCard({ set, labels }: { set: BattleSet; labels: Labels }) {
+  const itemDisplay = [set.item]
+    .flat()
+    .slice(0, 2)
+    .map((i) => labelOf(labels, "items", i))
+    .join(" / ");
 
-  const abilityDisplay = set.ability
-    ? Array.isArray(set.ability)
-      ? set.ability[0]
-      : set.ability
-    : null;
+  const ability = [set.ability ?? []].flat()[0];
+  const abilityDisplay = ability ? labelOf(labels, "abilities", ability) : null;
+
+  const natureDisplay = set.nature
+    ?.split(" / ")
+    .map((n) => labelOf(labels, "natures", n))
+    .join(" / ");
 
   const topSpread = set.evs
     ? Object.entries(set.evs)
@@ -98,10 +128,9 @@ function SetCard({ set }: { set: BattleSet }) {
             {set.moves.map((m, i) => (
               <span
                 key={i}
-                translate="no"
                 className="rounded-none border border-text-base bg-surface px-2 py-0.5 text-xs"
               >
-                {Array.isArray(m) ? m.join(" / ") : m}
+                {[m].flat().map((x) => labelOf(labels, "moves", x)).join(" / ")}
               </span>
             ))}
           </div>
@@ -109,19 +138,19 @@ function SetCard({ set }: { set: BattleSet }) {
         {itemDisplay && (
           <div className="flex gap-2">
             <span className="text-xs text-neutral-500">아이템</span>
-            <span translate="no" className="text-xs font-semibold">{itemDisplay}</span>
+            <span className="text-xs font-semibold">{itemDisplay}</span>
           </div>
         )}
         {abilityDisplay && (
           <div className="flex gap-2">
             <span className="text-xs text-neutral-500">특성</span>
-            <span translate="no" className="text-xs font-semibold">{abilityDisplay}</span>
+            <span className="text-xs font-semibold">{abilityDisplay}</span>
           </div>
         )}
-        {set.nature && (
+        {natureDisplay && (
           <div className="flex gap-2">
             <span className="text-xs text-neutral-500">성격</span>
-            <span translate="no" className="text-xs font-semibold">{set.nature}</span>
+            <span className="text-xs font-semibold">{natureDisplay}</span>
           </div>
         )}
         {topSpread && (
@@ -135,11 +164,7 @@ function SetCard({ set }: { set: BattleSet }) {
             <span className="text-xs text-neutral-500">테라스탈</span>
             <div className="flex flex-wrap gap-1">
               {set.teratypes.slice(0, 3).map((t) => (
-                <TypeBadge
-                  key={t}
-                  type={t.toLowerCase() as PokemonTypeName}
-                  size="sm"
-                />
+                <TeraType key={t} type={t} labels={labels} />
               ))}
             </div>
           </div>
@@ -203,7 +228,7 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
     { key: "counters", label: "카운터" },
   ];
 
-  const { usage, sets } = battleData;
+  const { usage, sets, labels } = battleData;
   const currentFormat = FORMATS.find((f) => f.id === format);
   const formatLabel = currentFormat?.label ?? format;
 
@@ -302,7 +327,7 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
             className="flex flex-col gap-3"
           >
             {sets.length > 0 ? (
-              sets.map((set) => <SetCard key={set.name} set={set} />)
+              sets.map((set) => <SetCard key={set.name} set={set} labels={labels} />)
             ) : (
               <p className="text-sm text-neutral-500">추천 세트 정보 없음</p>
             )}
@@ -317,11 +342,11 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
           >
             {usage ? (
               <>
-                <TopList data={usage.moves} label="주요 기술" />
-                <TopList data={usage.items} label="주요 아이템" />
-                <TopList data={usage.abilities} label="주요 특성" />
+                <TopList data={usage.moves} label="주요 기술" kind="moves" labels={labels} />
+                <TopList data={usage.items} label="주요 아이템" kind="items" labels={labels} />
+                <TopList data={usage.abilities} label="주요 특성" kind="abilities" labels={labels} />
                 {usage.teraTypes && (
-                  <TopList data={usage.teraTypes} label="테라스탈 타입" />
+                  <TopList data={usage.teraTypes} label="테라스탈 타입" kind="types" labels={labels} />
                 )}
                 <div>
                   <h3 className="mb-2 text-sm font-bold text-neutral-600 dark:text-neutral-300">
@@ -335,8 +360,10 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
                         const { nature, evs } = parseSpread(spread);
                         return (
                           <div key={spread} className="text-xs">
-                            <span translate="no" className="font-semibold">{nature}</span>
-                            <span className="ml-2 text-neutral-500">{evs}</span>
+                            <span className="font-semibold">
+                              {labelOf(labels, "natures", nature)}
+                            </span>
+                            <span className="text-neutral-500"> · {evs}</span>
                             <span className="ml-2 font-semibold tabular-nums text-blue-600">
                               {pct.toFixed(1)}%
                             </span>
@@ -358,7 +385,12 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
             hidden={tab !== "teammates"}
           >
             {usage ? (
-              <TopList data={usage.teammates} label="같이 자주 쓰는 포켓몬" />
+              <TopList
+                data={usage.teammates}
+                label="같이 자주 쓰는 포켓몬"
+                kind="pokemon"
+                labels={labels}
+              />
             ) : (
               <p className="text-sm text-neutral-500">{NO_USAGE_MESSAGE}</p>
             )}
@@ -392,8 +424,8 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
                               style={{ width: `${Math.min(p * 100, 100)}%` }}
                             />
                           </div>
-                          <span translate="no" className="w-32 truncate text-xs text-neutral-700 dark:text-neutral-300">
-                            {name}
+                          <span className="w-32 truncate text-xs text-neutral-700 dark:text-neutral-300">
+                            {labelOf(labels, "pokemon", name)}
                           </span>
                           <span className="w-12 text-right text-xs font-semibold tabular-nums">
                             {(p * 100).toFixed(1)}%

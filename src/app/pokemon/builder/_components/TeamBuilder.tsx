@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { BattleSet } from "@/types/pokemon/battle";
+import { BattleSet, labelOf } from "@/types/pokemon/battle";
 import { PokemonTypeName } from "@/types/pokemon/domain";
 import TypeBadge from "@/app/_components/TypeBadge";
 import PokemonPicker from "./PokemonPicker";
@@ -18,6 +18,8 @@ export interface TeamMember {
   spriteUrl: string;
   types: PokemonTypeName[];
   set: BattleSet | null;
+  // 세트 기술/아이템의 한국어 표시명. 세트(set)는 내보내기용 영어 그대로.
+  labels?: Record<string, string>;
 }
 
 const MAX_SLOTS = 6;
@@ -80,7 +82,21 @@ function FilledSlot({
         ))}
       </div>
       {member.set && (
-        <span className="max-w-full truncate text-xs text-primary">{member.set.name}</span>
+        <>
+          <span className="max-w-full truncate text-xs text-primary">{member.set.name}</span>
+          {[member.set.item].flat()[0] && (
+            <span className="max-w-full truncate text-xs text-text-muted">
+              @ {labelOf(member.labels, "items", [member.set.item].flat()[0])}
+            </span>
+          )}
+          <ul className="flex max-w-full flex-col items-center text-xs">
+            {member.set.moves.map((m, i) => (
+              <li key={i} className="max-w-full truncate">
+                {labelOf(member.labels, "moves", [m].flat()[0])}
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </PixelCard>
   );

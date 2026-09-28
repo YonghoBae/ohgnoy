@@ -2,7 +2,12 @@
 
 import { useState, useEffect, useId, useRef } from "react";
 import { Pokemon } from "pokenode-ts";
-import { BattleSet } from "@/types/pokemon/battle";
+import {
+  BattleSet,
+  labelKey,
+  labelOf,
+  PokemonBattleData,
+} from "@/types/pokemon/battle";
 import { PokemonTypeName } from "@/types/pokemon/domain";
 import { TeamMember } from "./TeamBuilder";
 import TypeBadge from "@/app/_components/TypeBadge";
@@ -31,6 +36,7 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
   const [loading, setLoading] = useState(false);
   const [selectedPokemon, setSelectedPokemon] = useState<SearchResult | null>(null);
   const [sets, setSets] = useState<BattleSet[]>([]);
+  const [labels, setLabels] = useState<PokemonBattleData["labels"]>({});
   const [setsLoading, setSetsLoading] = useState(false);
   const [koIndex, setKoIndex] = useState<Record<string, string> | null>(null);
   const [koIndexLoading, setKoIndexLoading] = useState(false);
@@ -115,39 +121,17 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
     setSelectedPokemon(result);
     setSetsLoading(true);
     try {
-      const res = await fetch(`https://data.pkmn.cc/sets/${DEFAULT_FORMAT}.json`);
-      if (res.ok) {
-        const data = await res.json() as Record<string, Record<string, object>>;
-        const key = Object.keys(data).find(
-          (k) => k.toLowerCase() === result.pokemon.name.toLowerCase()
-        );
-        if (key && data[key]) {
-          const setList: BattleSet[] = Object.entries(data[key]).map(([name, raw]) => {
-            const s = raw as {
-              moves?: (string | string[])[];
-              item?: string | string[];
-              ability?: string | string[];
-              nature?: string;
-              evs?: Record<string, number>;
-              teratypes?: string[];
-            };
-            return {
-              name,
-              moves: s.moves ?? [],
-              item: s.item ?? [],
-              ability: s.ability,
-              nature: s.nature,
-              evs: s.evs as BattleSet["evs"],
-              teratypes: s.teratypes,
-            };
-          });
-          setSets(setList);
-        } else {
-          setSets([]);
-        }
-      }
+      // 서버가 정규화한 영어 세트(내보내기용)와 한국어 labels(표시용)를 준다.
+      const res = await fetch(
+        `/api/pokemon/battle?name=${encodeURIComponent(result.pokemon.name)}&format=${DEFAULT_FORMAT}`
+      );
+      if (!res.ok) throw new Error(`battle ${res.status}`);
+      const data = await res.json() as PokemonBattleData;
+      setSets(data.sets);
+      setLabels(data.labels);
     } catch {
       setSets([]);
+      setLabels({});
     } finally {
       setSetsLoading(false);
     }
@@ -156,6 +140,13 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
   const handleConfirm = (set: BattleSet | null) => {
     if (!selectedPokemon) return;
     const { pokemon, nameKo } = selectedPokemon;
+    // 슬롯에 보이는 기술/아이템 번역만 저장한다(localStorage).
+    const shown = set
+      ? [
+          ...set.moves.map((m) => labelKey("moves", [m].flat()[0])),
+          labelKey("items", [set.item].flat()[0] ?? ""),
+        ]
+      : [];
     onSelect({
       id: pokemon.id,
       nameEn: pokemon.name,
@@ -163,6 +154,9 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
       spriteUrl: getPixelSpriteUrl(pokemon),
       types: pokemon.types.map((t) => t.type.name as PokemonTypeName),
       set,
+      labels: Object.fromEntries(
+        shown.flatMap((k) => (labels[k] ? [[k, labels[k]]] : []))
+      ),
     });
   };
 
@@ -263,8 +257,15 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
                     >
                       <p className="font-semibold text-blue-600 dark:text-blue-400">{set.name}</p>
                       <p className="text-xs text-neutral-500">
-                        {set.moves.map((m) => (Array.isArray(m) ? m[0] : m)).join(" / ")}
+                        {set.moves
+                          .map((m) => labelOf(labels, "moves", [m].flat()[0]))
+                          .join(" / ")}
                       </p>
+                      {[set.item].flat()[0] && (
+                        <p className="text-xs text-neutral-500">
+                          @ {labelOf(labels, "items", [set.item].flat()[0])}
+                        </p>
+                      )}
                     </button>
                   ))}
                 </div>

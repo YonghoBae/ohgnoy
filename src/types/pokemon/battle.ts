@@ -35,4 +35,21 @@ export interface PokemonBattleData {
   month: string;
   usage: UsageStat | null;
   sets: BattleSet[];
+  // labelKey(kind, 영어 이름) → 한국어. 영어 값은 Showdown 내보내기용으로 그대로 둔다.
+  labels: Record<string, string>;
 }
+
+export type LabelKind = "items" | "moves" | "abilities" | "natures" | "types" | "pokemon";
+
+// Smogon id: "Choice Specs" → "choicespecs"
+export const toID = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+// 종류를 붙이는 이유: 기술 Psychic(사이코키네시스)과 타입 Psychic(에스퍼),
+// 아이템/기술 Metronome처럼 id가 겹친다.
+export const labelKey = (kind: LabelKind, name: string) => `${kind}:${toID(name)}`;
+
+export const labelOf = (
+  labels: Record<string, string> | undefined,
+  kind: LabelKind,
+  name: string
+) => labels?.[labelKey(kind, name)] ?? name;
