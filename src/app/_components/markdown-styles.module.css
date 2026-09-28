@@ -9,10 +9,56 @@
   @apply my-6;
 }
 
+.markdown a {
+  @apply text-primary underline hover:text-primary-hover;
+}
+
+.markdown ul {
+  @apply list-disc pl-8;
+}
+
+.markdown ol {
+  @apply list-decimal pl-8;
+}
+
+.markdown pre {
+  @apply overflow-x-auto;
+}
+
+.markdown img {
+  max-width: 100%;
+  height: auto;
+}
+
+.markdown code {
+  @apply bg-surface-2 text-text-base rounded px-1.5 py-0.5 text-[0.9em];
+}
+
+.markdown pre code {
+  @apply bg-transparent p-0;
+}
+
 .markdown h2 {
   @apply text-3xl mt-12 mb-4 leading-snug;
+  text-wrap: balance;
 }
 
 .markdown h3 {
   @apply text-2xl mt-8 mb-4 leading-snug;
+  text-wrap: balance;
+}
+
+.markdown h4 {
+  @apply text-xl mt-6 mb-3 leading-snug;
+  text-wrap: balance;
+}
+
+.markdown h5 {
+  @apply text-lg mt-6 mb-3 leading-snug;
+  text-wrap: balance;
+}
+
+.markdown h6 {
+  @apply text-base mt-6 mb-3 leading-snug;
+  text-wrap: balance;
 }

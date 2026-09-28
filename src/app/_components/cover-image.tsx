@@ -6,15 +6,18 @@ type Props = {
   title: string;
   src: string;
   slug?: string;
+  basePath?: string;
 };
 
-const CoverImage = ({ title, src, slug }: Props) => {
+const CoverImage = ({ title, src, slug, basePath = "/posts" }: Props) => {
   const image = (
     <Image
       src={src}
-      alt={`Cover Image for ${title}`}
+      alt=""
+      sizes="(min-width: 768px) 50vw, 100vw"
       className={cn("shadow-sm w-full", {
-        "hover:shadow-lg transition-shadow duration-200": slug,
+        "transition-shadow duration-200 group-hover:shadow-lg group-focus-visible:shadow-lg":
+          slug,
       })}
       width={1300}
       height={630}
@@ -23,7 +26,13 @@ const CoverImage = ({ title, src, slug }: Props) => {
   return (
     <div className="sm:mx-0">
       {slug ? (
-        <Link href={`/posts/${slug}`} aria-label={title}>
+        <Link
+          href={`${basePath}/${slug}`}
+          aria-label={title}
+          tabIndex={-1}
+          aria-hidden="true"
+          className="group block"
+        >
           {image}
         </Link>
       ) : (

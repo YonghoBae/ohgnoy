@@ -17,15 +17,15 @@ export default async function Study({ params }: Params) {
 
   return (
     <div>
-        <article className="mb-32">
-          <PostHeader
-            title={post.title}
-            coverImage={post.coverImage}
-            date={post.date}
-            author={post.author}
-          />
-          <PostBody content={content} />
-        </article>
+      <article className="mb-32">
+        <PostHeader
+          title={post.title}
+          coverImage={post.coverImage}
+          date={post.date}
+          author={post.author}
+        />
+        <PostBody content={content} />
+      </article>
     </div>
   );
 }
@@ -43,7 +43,7 @@ export function generateMetadata({ params }: Params): Metadata {
     return notFound();
   }
 
-  const title = `${post.title} | Next.js Blog Example with ${BLOG_NAME}`;
+  const title = `${post.title} | ${BLOG_NAME}`;
 
   return {
     title,
