@@ -18,6 +18,9 @@ import {
 // ponytail: 조각 캐시가 비어 있으면 Smogon 원본(약 10MB)을 통째로 다시 받는다.
 // 포켓몬마다 처음 한 번씩이다. 백엔드로 옮기면 없어지는 비용이다.
 
+// bump when UsageStat's shape changes
+const CACHE_VERSION = "v2";
+
 const cutoffFor = (format: string) => CUTOFF_BY_FORMAT[format] ?? 1695;
 
 export async function fetchUsageRanking(
@@ -32,7 +35,7 @@ export async function fetchUsageRanking(
     return await unstable_cache(
       async () =>
         getUsageRanking(await loadUsageStats(format, m, cutoff), limit),
-      [`usage-ranking-${format}-${m}-${cutoff}-${limit}`],
+      [`usage-ranking-${CACHE_VERSION}-${format}-${m}-${cutoff}-${limit}`],
       { revalidate: false }
     )();
   } catch (e) {
@@ -52,7 +55,7 @@ export async function fetchPokemonBattleData(
     unstable_cache(
       async () =>
         getPokemonUsage(await loadUsageStats(format, m, cutoff), name),
-      [`usage-pokemon-${format}-${m}-${cutoff}-${name.toLowerCase()}`],
+      [`usage-pokemon-${CACHE_VERSION}-${format}-${m}-${cutoff}-${name.toLowerCase()}`],
       { revalidate: false }
     )().catch((e) => {
       console.error(`[battle] usage for ${name} ${format} ${m} failed:`, e);
