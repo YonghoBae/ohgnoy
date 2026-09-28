@@ -68,8 +68,12 @@ const CreatePost = () => {
     if (noExcerpt) return excerptRef.current?.focus();
 
     const formData = new FormData();
-    formData.append('title', post.title);
-    formData.append('excerpt', post.excerpt);
+    formData.append(
+      'data',
+      new Blob([JSON.stringify({ title: post.title, excerpt: post.excerpt })], {
+        type: 'application/json',
+      }),
+    );
     if (post.coverImage) {
       formData.append('coverImage', post.coverImage);
     }
@@ -79,15 +83,17 @@ const CreatePost = () => {
       const token = localStorage.getItem('token') ?? '';
       const result = await postApi.create(formData, token);
 
-      if (result.msg === 'Success') {
+      if (result.postId != null) {
         setSubmitted(true);
         router.push('/');
       } else {
-        setSubmitErr('게시글을 등록하지 못했습니다. 잠시 후 다시 시도하세요.');
+        setSubmitErr(
+          result.message ?? '게시글을 등록하지 못했습니다. 잠시 후 다시 시도하세요.',
+        );
       }
     } catch (err) {
       console.error('API 에러 발생', err);
-      setSubmitErr('서버에 연결하지 못했습니다. 잠시 후 다시 시도하세요.');
+      setSubmitErr('로그인이 만료되었을 수 있습니다. 다시 로그인한 뒤 시도하세요.');
     } finally {
       setPending(false);
     }
