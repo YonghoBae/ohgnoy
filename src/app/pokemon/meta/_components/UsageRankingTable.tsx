@@ -36,16 +36,19 @@ async function RankRow({
 
   const content = (
     <>
-      <span className="w-8 text-right text-sm font-bold tabular-nums text-text-muted">
+      <span className="w-6 text-right text-sm font-bold tabular-nums text-text-muted sm:w-8">
         {entry.rank}
       </span>
-      <div className="relative h-12 w-12 flex-shrink-0">
+      <div className="relative h-10 w-10 flex-shrink-0 sm:h-12 sm:w-12">
         {pokemon && <PixelSprite pokemon={pokemon} alt="" fill />}
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex min-w-0 items-center gap-2">
           <span className="truncate font-bold">{nameKo}</span>
-          <span className="truncate text-xs text-neutral-500">{entry.nameEn}</span>
+          {/* Below sm the Korean name needs the whole line; the English name
+              stays in the accessible text only. */}
+          <span className="hidden truncate text-xs text-neutral-500 sm:block">{entry.nameEn}</span>
+          <span className="sr-only sm:hidden">{entry.nameEn}</span>
         </div>
         <div className="flex flex-wrap items-center gap-1 whitespace-nowrap">
           {types.map((t) => (
@@ -72,7 +75,7 @@ async function RankRow({
   // 없을 가능성이 높으므로 링크 대신 일반 행으로 표시
   if (!pokemon) {
     return (
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-none px-4 py-2 sm:flex-nowrap">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-none px-2 py-2 sm:flex-nowrap sm:gap-x-4 sm:px-4">
         {content}
       </div>
     );
@@ -81,7 +84,7 @@ async function RankRow({
   return (
     <Link
       href={`/pokemon/${id}`}
-      className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-none px-4 py-2 sm:flex-nowrap transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-700"
+      className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-none px-2 py-2 sm:flex-nowrap sm:gap-x-4 sm:px-4 transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-700"
     >
       {content}
     </Link>
