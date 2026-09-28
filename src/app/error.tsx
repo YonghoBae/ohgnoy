@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import PixelButton from "@/app/_components/ui/pixel/PixelButton";
 import PixelCard from "@/app/_components/ui/pixel/PixelCard";
@@ -8,11 +9,16 @@ const linkClass =
   "font-semibold text-primary underline-offset-4 hover:underline";
 
 export default function ErrorPage({
+  error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    console.error(error);
+  }, [error]);
+
   return (
     <div className="mx-auto flex w-full max-w-md flex-col px-4 py-16">
       <PixelCard className="flex flex-col items-center gap-4 p-6 text-center">
