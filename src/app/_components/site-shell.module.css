@@ -47,10 +47,56 @@
   overflow-y: auto;
 }
 
+/* Above 640px these wrappers generate no box, so the logo, nav and icon row
+   stay direct flex items of .sidebar and the layout is unchanged. */
+.topBar,
+.navPanel {
+  display: contents;
+}
+
+.menuToggle {
+  composes: pixelFrameSmall pixelPanelBg from "./ui/pixel/pixel-theme.module.css";
+  display: none;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 4px 10px;
+  color: var(--px-text);
+  font-size: 13px;
+  cursor: url("/frames/cursor-pikachu-click.png") 1 1, pointer;
+}
+
+.menuToggle:hover {
+  background: var(--px-active);
+}
+
 @media (max-width: 640px) {
   .sidebar {
     border-right: none;
     border-bottom: 2px solid var(--px-border);
+  }
+
+  .topBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .menuToggle {
+    display: inline-flex;
+  }
+
+  /* Collapsed by default so SSR matches; display:none also drops the links
+     from the tab order. */
+  .navPanel {
+    display: none;
+  }
+
+  .navPanelOpen {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
   }
 }
 
@@ -202,6 +248,12 @@
   align-items: center;
   gap: 6px;
   padding: 12px;
+}
+
+@media (max-width: 640px) {
+  .sidebarSprite {
+    display: none;
+  }
 }
 
 .spriteFrame {

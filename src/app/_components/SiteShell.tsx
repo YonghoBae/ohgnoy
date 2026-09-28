@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import {
   FaGithub,
   FaExternalLinkAlt,
@@ -54,117 +54,150 @@ const NAV_ITEMS: NavItem[] = [
 
 export default function SiteShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  // Only matters at <=640px; CSS keeps the panel always shown on wider screens.
+  const [menuOpen, setMenuOpen] = useState(false);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
 
   return (
     <div className={`${styles.pageBg} site-shell-pagebg`}>
       <BootScreen />
       <div className={`${styles.shellGrid} site-shell-grid`}>
-        <aside className={`${styles.sidebar} site-shell-sidebar`}>
-          <Link href="/" className={styles.logoRow}>
-            <Image
-              src="/frames/pokeball.png"
-              alt=""
-              width={18}
-              height={18}
-              className={styles.logoIcon}
-            />
-            <span className={styles.logo} translate="no">{BLOG_NAME.toUpperCase()}</span>
-          </Link>
-
-          <nav className={styles.nav} aria-label="주요 메뉴">
-            {NAV_ITEMS.map((item) => {
-              const Icon = item.icon;
-              const active = item.matchPrefix ? pathname.startsWith(item.matchPrefix) : false;
-              const inner = (
-                <>
-                  <span className={styles.navCursor} aria-hidden="true">▶</span>
-                  <Icon size={14} aria-hidden="true" />
-                  {item.label}
-                  {item.external && <span className="sr-only"> (새 탭)</span>}
-                </>
-              );
-
-              if (item.external) {
-                return (
-                  <a
-                    key={item.href}
-                    href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={styles.navItem}
-                  >
-                    {inner}
-                  </a>
-                );
-              }
-
-              const isExactHref = pathname === item.href;
-              const parentAriaCurrent = active ? (isExactHref ? "page" : "true") : undefined;
-
-              return (
-                <div key={item.href}>
-                  <EncounterLink
-                    href={item.href}
-                    className={`${styles.navItem} ${active ? styles.navItemActive : ""}`}
-                    aria-current={parentAriaCurrent}
-                  >
-                    {inner}
-                  </EncounterLink>
-                  {item.subLinks && active && (
-                    <div className={styles.subNav}>
-                      {item.subLinks.map((sub) => (
-                        <EncounterLink
-                          key={sub.href}
-                          href={sub.href}
-                          className={`${styles.subNavItem} ${
-                            pathname === sub.href ? styles.subNavItemActive : ""
-                          }`}
-                          aria-current={pathname === sub.href ? "page" : undefined}
-                        >
-                          {sub.label}
-                        </EncounterLink>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </nav>
-
-          <div className={styles.iconRow}>
-            <a
-              href={GITHUB_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="GitHub (새 탭)"
-              className="group"
-            >
-              <PixelIconBox className="group-focus-visible:bg-[var(--px-active)] group-focus-visible:text-[var(--px-text)]">
-                <FaGithub size={16} aria-hidden="true" />
-              </PixelIconBox>
-            </a>
-            <a
-              href={DIGITAL_GARDEN_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="디지털가든 (새 탭)"
-              className="group"
-            >
-              <PixelIconBox className="group-focus-visible:bg-[var(--px-active)] group-focus-visible:text-[var(--px-text)]">
-                <FaExternalLinkAlt size={14} aria-hidden="true" />
-              </PixelIconBox>
-            </a>
-            <a href={`mailto:${EMAIL}`} aria-label="이메일" className="group">
-              <PixelIconBox className="group-focus-visible:bg-[var(--px-active)] group-focus-visible:text-[var(--px-text)]">
-                <MdEmail size={16} aria-hidden="true" />
-              </PixelIconBox>
-            </a>
-            <Link href="/auth/login" aria-label="로그인" className="group">
-              <PixelIconBox className="group-focus-visible:bg-[var(--px-active)] group-focus-visible:text-[var(--px-text)]">
-                <FaRegUser size={14} aria-hidden="true" />
-              </PixelIconBox>
+        <aside
+          className={`${styles.sidebar} site-shell-sidebar`}
+          onKeyDown={(e) => {
+            if (menuOpen && e.key === "Escape") {
+              setMenuOpen(false);
+              toggleRef.current?.focus();
+            }
+          }}
+        >
+          <div className={styles.topBar}>
+            <Link href="/" className={styles.logoRow}>
+              <Image
+                src="/frames/pokeball.png"
+                alt=""
+                width={18}
+                height={18}
+                className={styles.logoIcon}
+              />
+              <span className={styles.logo} translate="no">{BLOG_NAME.toUpperCase()}</span>
             </Link>
-            <ThemeSwitcher />
+            <button
+              ref={toggleRef}
+              type="button"
+              className={styles.menuToggle}
+              aria-expanded={menuOpen}
+              aria-controls="site-nav-panel"
+              onClick={() => setMenuOpen((o) => !o)}
+            >
+              <span aria-hidden="true">{menuOpen ? "✕" : "☰"}</span>
+              {menuOpen ? "닫기" : "메뉴"}
+            </button>
+          </div>
+
+          <div
+            id="site-nav-panel"
+            className={`${styles.navPanel} ${menuOpen ? styles.navPanelOpen : ""}`}
+          >
+            <nav className={styles.nav} aria-label="주요 메뉴">
+              {NAV_ITEMS.map((item) => {
+                const Icon = item.icon;
+                const active = item.matchPrefix ? pathname.startsWith(item.matchPrefix) : false;
+                const inner = (
+                  <>
+                    <span className={styles.navCursor} aria-hidden="true">▶</span>
+                    <Icon size={14} aria-hidden="true" />
+                    {item.label}
+                    {item.external && <span className="sr-only"> (새 탭)</span>}
+                  </>
+                );
+  
+                if (item.external) {
+                  return (
+                    <a
+                      key={item.href}
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.navItem}
+                    >
+                      {inner}
+                    </a>
+                  );
+                }
+  
+                const isExactHref = pathname === item.href;
+                const parentAriaCurrent = active ? (isExactHref ? "page" : "true") : undefined;
+  
+                return (
+                  <div key={item.href}>
+                    <EncounterLink
+                      href={item.href}
+                      className={`${styles.navItem} ${active ? styles.navItemActive : ""}`}
+                      aria-current={parentAriaCurrent}
+                    >
+                      {inner}
+                    </EncounterLink>
+                    {item.subLinks && active && (
+                      <div className={styles.subNav}>
+                        {item.subLinks.map((sub) => (
+                          <EncounterLink
+                            key={sub.href}
+                            href={sub.href}
+                            className={`${styles.subNavItem} ${
+                              pathname === sub.href ? styles.subNavItemActive : ""
+                            }`}
+                            aria-current={pathname === sub.href ? "page" : undefined}
+                          >
+                            {sub.label}
+                          </EncounterLink>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </nav>
+  
+            <div className={styles.iconRow}>
+              <a
+                href={GITHUB_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="GitHub (새 탭)"
+                className="group"
+              >
+                <PixelIconBox className="group-focus-visible:bg-[var(--px-active)] group-focus-visible:text-[var(--px-text)]">
+                  <FaGithub size={16} aria-hidden="true" />
+                </PixelIconBox>
+              </a>
+              <a
+                href={DIGITAL_GARDEN_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="디지털가든 (새 탭)"
+                className="group"
+              >
+                <PixelIconBox className="group-focus-visible:bg-[var(--px-active)] group-focus-visible:text-[var(--px-text)]">
+                  <FaExternalLinkAlt size={14} aria-hidden="true" />
+                </PixelIconBox>
+              </a>
+              <a href={`mailto:${EMAIL}`} aria-label="이메일" className="group">
+                <PixelIconBox className="group-focus-visible:bg-[var(--px-active)] group-focus-visible:text-[var(--px-text)]">
+                  <MdEmail size={16} aria-hidden="true" />
+                </PixelIconBox>
+              </a>
+              <Link href="/auth/login" aria-label="로그인" className="group">
+                <PixelIconBox className="group-focus-visible:bg-[var(--px-active)] group-focus-visible:text-[var(--px-text)]">
+                  <FaRegUser size={14} aria-hidden="true" />
+                </PixelIconBox>
+              </Link>
+              <ThemeSwitcher />
+            </div>
           </div>
 
           <div className={styles.sidebarSprite}>
