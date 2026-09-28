@@ -53,6 +53,9 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
   }, [query, koIndex, koIndexLoading]);
 
   useEffect(() => {
+    // Reset here too: the cleanup below cancels an in-flight search, and the
+    // early returns would otherwise leave "검색 중" up.
+    setLoading(false);
     if (!query.trim()) {
       setResults([]);
       return;
@@ -77,22 +80,35 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
       return;
     }
 
+    let cancelled = false;
     setLoading(true);
-    Promise.all(
+    // Form slugs (pikachu-rock-star, charizard-mega-x) have no pokemon-species
+    // entry of their own, so take the species URL from the pokemon, and keep
+    // whatever loaded instead of dropping every result when one request fails.
+    Promise.allSettled(
       matched.map(async (name) => {
-        const [pokeRes, speciesRes] = await Promise.all([
-          fetch(`https://pokeapi.co/api/v2/pokemon/${name}`),
-          fetch(`https://pokeapi.co/api/v2/pokemon-species/${name}`),
-        ]);
+        const pokeRes = await fetch(`https://pokeapi.co/api/v2/pokemon/${name}`);
+        if (!pokeRes.ok) throw new Error(`${name}: ${pokeRes.status}`);
         const pokemon = await pokeRes.json() as Pokemon;
-        const species = await speciesRes.json() as { names: { language: { name: string }; name: string }[] };
-        const ko = species.names.find((n) => n.language.name === "ko");
+        const speciesRes = await fetch(pokemon.species.url);
+        const species = speciesRes.ok
+          ? await speciesRes.json() as { names: { language: { name: string }; name: string }[] }
+          : null;
+        const ko = species?.names.find((n) => n.language.name === "ko");
         return { pokemon, nameKo: ko?.name ?? name };
       })
     )
-      .then(setResults)
-      .catch(() => setResults([]))
-      .finally(() => setLoading(false));
+      .then((settled) => {
+        if (cancelled) return;
+        setResults(settled.flatMap((r) => (r.status === "fulfilled" ? [r.value] : [])));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    // A slower response for an older query must not overwrite newer results.
+    return () => {
+      cancelled = true;
+    };
   }, [query, allNames, koIndex]);
 
   const handleSelectPokemon = async (result: SearchResult) => {
@@ -176,6 +192,9 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
             )}
             {loading && (
               <p className="text-center text-xs text-neutral-500">검색 중...</p>
+            )}
+            {!loading && !koIndexLoading && query.trim() && results.length === 0 && (
+              <p className="text-center text-xs text-neutral-500">검색 결과가 없습니다.</p>
             )}
             <div className="flex max-h-72 flex-col gap-1 overflow-y-auto">
               {results.map((r) => (
