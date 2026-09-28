@@ -1,3 +1,4 @@
+import localFont from "next/font/local";
 import { PokemonTypeName } from "@/types/pokemon/domain";
 
 const TYPE_KO: Record<PokemonTypeName, string> = {
@@ -21,27 +22,43 @@ const TYPE_KO: Record<PokemonTypeName, string> = {
   fairy:    "페어리",
 };
 
+// Real Pokémon type colors — keep as-is (docs/design/pixel-theme-unification.md).
 const TYPE_COLORS: Record<PokemonTypeName, string> = {
-  normal:   "bg-[#A8A878] text-white",
-  fire:     "bg-[#F08030] text-white",
-  water:    "bg-[#6890F0] text-white",
-  electric: "bg-[#F8D030] text-neutral-800",
-  grass:    "bg-[#78C850] text-white",
-  ice:      "bg-[#98D8D8] text-neutral-800",
-  fighting: "bg-[#C03028] text-white",
-  poison:   "bg-[#A040A0] text-white",
-  ground:   "bg-[#E0C068] text-neutral-800",
-  flying:   "bg-[#A890F0] text-white",
-  psychic:  "bg-[#F85888] text-white",
-  bug:      "bg-[#A8B820] text-white",
-  rock:     "bg-[#B8A038] text-white",
-  ghost:    "bg-[#705898] text-white",
-  dragon:   "bg-[#7038F8] text-white",
-  dark:     "bg-[#705848] text-white",
-  steel:    "bg-[#B8B8D0] text-neutral-800",
-  fairy:    "bg-[#EE99AC] text-white",
+  normal:   "#A8A878",
+  fire:     "#F08030",
+  water:    "#6890F0",
+  electric: "#F8D030",
+  grass:    "#78C850",
+  ice:      "#98D8D8",
+  fighting: "#C03028",
+  poison:   "#A040A0",
+  ground:   "#E0C068",
+  flying:   "#A890F0",
+  psychic:  "#F85888",
+  bug:      "#A8B820",
+  rock:     "#B8A038",
+  ghost:    "#705898",
+  dragon:   "#7038F8",
+  dark:     "#705848",
+  steel:    "#B8B8D0",
+  fairy:    "#EE99AC",
 };
 
+// Galmuri (OFL) at its native pixel sizes: Galmuri9 is drawn for 10px,
+// Galmuri11 for 12px. ponytail: subset to the 18 type names only (~1.6KB each
+// vs 430KB/167KB full); re-run pyftsubset with more --text if reused elsewhere.
+const galmuri9 = localFont({
+  src: "./fonts/galmuri9-types.woff2",
+  display: "swap",
+});
+const galmuri11Bold = localFont({
+  src: "./fonts/galmuri11-bold-types.woff2",
+  weight: "700",
+  display: "swap",
+});
+
+// Gen 5 / Showdown badge: same-hue dark 1px border, white text with a gray
+// 1px shadow right, below and diagonal (the L-shape the BW sprites use).
 export default function TypeBadge({
   type,
   size = "md",
@@ -49,10 +66,18 @@ export default function TypeBadge({
   type: PokemonTypeName;
   size?: "sm" | "md";
 }) {
-  const sizeClass = size === "sm" ? "px-2 py-0.5 text-[10px]" : "px-3 py-1 text-xs";
+  const sizeClass =
+    size === "sm"
+      ? `${galmuri9.className} px-2 py-0.5 text-[10px]`
+      : `${galmuri11Bold.className} px-3 py-1 text-xs font-bold`;
+  const color = TYPE_COLORS[type];
   return (
     <span
-      className={`rounded-none border border-text-base font-mono-pixel font-bold uppercase tracking-wide ${sizeClass} ${TYPE_COLORS[type]}`}
+      className={`rounded-none border text-white [text-shadow:1px_0_0_#525252,0_1px_0_#525252,1px_1px_0_#525252] ${sizeClass}`}
+      style={{
+        backgroundColor: color,
+        borderColor: `color-mix(in srgb, ${color} 45%, #000)`,
+      }}
     >
       {TYPE_KO[type]}
     </span>
