@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ReactNode } from "react";
 import { Pokemon } from "pokenode-ts";
@@ -10,6 +11,8 @@ import PixelCard from "@/app/_components/ui/pixel/PixelCard";
 import PixelSprite from "@/app/_components/ui/pixel/PixelSprite";
 import TypeBadge from "@/app/_components/TypeBadge";
 import { cn } from "@/lib/utils";
+
+export const metadata: Metadata = { title: "포켓몬 비교 | Ohgnoy" };
 
 interface Props {
   searchParams: Promise<{ a?: string | string[]; b?: string | string[] }>;

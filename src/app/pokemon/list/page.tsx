@@ -1,7 +1,10 @@
+import type { Metadata } from "next";
 import { fetchAllPokemonNames, fetchPokemonBatch } from "@/lib/pokemon/fetchers/fetchPokemon";
 import { fetchGenerationIds, fetchGenerationList } from "@/lib/pokemon/fetchers/fetchGeneration";
 import { extractKoNames, fetchSpeciesBatch } from "@/lib/pokemon/fetchers/fetchSpecies";
 import PokemonGrid from "./_components/PokemonGrid";
+
+export const metadata: Metadata = { title: "포켓몬 도감 | Ohgnoy" };
 
 export const dynamic = 'force-dynamic';
 

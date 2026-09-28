@@ -14,7 +14,28 @@ function getRecentMonths(count = 6): string[] {
   return months;
 }
 
-export default function FormatSelector({ current, currentMonth }: { current: string; currentMonth?: string }) {
+const monthFormat = new Intl.DateTimeFormat("ko-KR", {
+  year: "numeric",
+  month: "long",
+  timeZone: "UTC",
+});
+
+// "2026-08" → "2026년 8월". Built and formatted in UTC so the month never shifts.
+function formatMonth(month: string): string {
+  const [y, m] = month.split("-").map(Number);
+  return monthFormat.format(new Date(Date.UTC(y, m - 1, 1)));
+}
+
+export default function FormatSelector({
+  current,
+  currentMonth,
+  latestMonth,
+}: {
+  current: string;
+  currentMonth?: string;
+  /** The month "최신" resolves to (getLatestMonth on the server). */
+  latestMonth: string;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
@@ -87,7 +108,7 @@ export default function FormatSelector({ current, currentMonth }: { current: str
                 : "border-neutral-300 bg-neutral-200 text-neutral-600 hover:bg-neutral-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600"
             }`}
           >
-            최신
+            최신 ({formatMonth(latestMonth)})
           </button>
           {months.map((m) => (
             <button
@@ -101,7 +122,7 @@ export default function FormatSelector({ current, currentMonth }: { current: str
                   : "border-neutral-300 bg-neutral-200 text-neutral-600 hover:bg-neutral-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600"
               }`}
             >
-              {m}
+              {formatMonth(m)}
             </button>
           ))}
         </div>

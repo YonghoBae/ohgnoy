@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { fetchPokemon } from "@/lib/pokemon/fetchers/fetchPokemon";
 import { fetchSpecies } from "@/lib/pokemon/fetchers/fetchSpecies";
@@ -16,6 +17,20 @@ import PokemonDetailTabs from "./_components/PokemonDetailTabs";
 
 interface Props {
   params: Promise<{ id: string }>;
+}
+
+// Same fetches as the page (cached via revalidate: false), same name as the header.
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  try {
+    const pokemon = await fetchPokemon(isNaN(Number(id)) ? id : Number(id));
+    const speciesId = Number(pokemon.species.url.match(/\/(\d+)\/?$/)?.[1]);
+    const species = await fetchSpecies(speciesId);
+    const { ko } = await getPokemonNames(pokemon, species);
+    return { title: `${ko} | Ohgnoy` };
+  } catch {
+    return { title: "포켓몬 도감 | Ohgnoy" };
+  }
 }
 
 export default async function PokemonDetailPage({ params }: Props) {

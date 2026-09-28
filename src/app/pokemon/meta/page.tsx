@@ -1,9 +1,13 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { fetchUsageRanking } from "@/lib/battle/fetchers/fetchBattleData";
+import { getLatestMonth } from "@/lib/battle/fetchers/fetchUsageStats";
 import { CUTOFF_BY_FORMAT, DEFAULT_FORMAT, FORMATS } from "@/lib/battle/constants";
 import FormatSelector from "./_components/FormatSelector";
 import UsageRankingTable from "./_components/UsageRankingTable";
 import PixelCard from "@/app/_components/ui/pixel/PixelCard";
+
+export const metadata: Metadata = { title: "메타 분석 | Ohgnoy" };
 
 interface Props {
   searchParams: Promise<{ format?: string; month?: string }>;
@@ -30,7 +34,11 @@ export default async function MetaPage({ searchParams }: Props) {
       </div>
 
       <Suspense fallback={null}>
-        <FormatSelector current={formatId} currentMonth={month} />
+        <FormatSelector
+          current={formatId}
+          currentMonth={month}
+          latestMonth={getLatestMonth()}
+        />
       </Suspense>
 
       <PixelCard className="p-4">
@@ -41,7 +49,7 @@ export default async function MetaPage({ searchParams }: Props) {
           </h2>
           {ranking && (
             <span className="whitespace-nowrap text-xs text-neutral-500">
-              컷오프 <span className="tabular-nums">{cutoff}</span>+
+              레이팅 <span className="tabular-nums">{cutoff}</span> 이상
             </span>
           )}
         </div>

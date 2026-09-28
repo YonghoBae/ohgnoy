@@ -69,22 +69,13 @@ note(`문서 파싱 · OCR`), 문제 해결(`스캔 PDF 텍스트 추출 — Gem
 
 소유자는 2번을 선호한다고 밝혔다(2026-09-18). 2번을 하면 1번은 필요 없어진다.
 
-## 이름에 하이픈이 있는 포켓몬은 상세 페이지에 실전 데이터가 안 나온다
-
-`fetchPokemonBattleData(pokemon.name, ...)`는 PokeAPI 이름(`great-tusk`)으로
-Smogon 데이터를 찾는데, Smogon 키는 `Great Tusk`다. `getPokemonUsage`와
-`getPokemonSets`는 대소문자만 무시하고 비교하므로 하이픈과 공백 차이로
-못 찾는다(`/api/pokemon/battle?name=great-tusk` → usage 없음, `name=Great%20Tusk`
-→ usage와 세트 4개). 폼 이름(`landorus-therian` ↔ `Landorus-Therian`)처럼
-하이픈이 원래 있는 경우는 맞는다. 이름 변환 규칙은 포켓몬 백엔드 API로 옮길 때
-그쪽에서 정하는 편이 낫다(2026-09-28 발견).
-
 ## /pokemon/list 검색은 영어 이름만 찾는다
 
 목록 검색(`usePokemonSearch`)은 PokeAPI 영어 slug를 `startsWith`로만 맞춘다. 그래서
 "피카츄"로는 찾을 수 없고, 검색창 안내 문구도 영어 예시("예: pikachu")로 바꿔 두었다.
 빌더의 포켓몬 선택(`PokemonPicker`)은 `/api/pokemon/ko-names` 인덱스로 한국어 검색을
 하므로, 같은 인덱스를 목록 검색에도 쓰면 된다(2026-09-29 기록).
+결과 카드의 이름은 이제 한국어로 나오지만, 매칭은 여전히 영어 slug로만 한다.
 
 ## 회원가입 인증번호를 브라우저에서 비교한다
 
