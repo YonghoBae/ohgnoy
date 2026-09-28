@@ -12,7 +12,14 @@
   --size: 24px;
   height: var(--size);
   width: var(--size);
-  transition: all 0.3s ease-in-out 0s !important;
+  transition: box-shadow 0.3s ease-in-out, background-color 0.3s ease-in-out,
+    border-color 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+/* `all: unset` above also strips the focus outline. */
+.switch:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
 }
 
 [data-mode="system"] .switch::after {

@@ -27,9 +27,9 @@ function StatBar({ label, value }: { label: string; value: number }) {
         {label}
       </span>
       <span className="w-8 text-right text-sm font-bold font-mono-pixel">{value}</span>
-      <div className="flex-1 overflow-hidden rounded-full bg-neutral-300 dark:bg-neutral-600">
+      <div className="flex-1 overflow-hidden rounded-none bg-neutral-300 dark:bg-neutral-600">
         <div
-          className={`h-2 rounded-full ${color} transition-all duration-500`}
+          className={`h-2 rounded-none ${color} transition-[width] duration-500`}
           style={{ width: `${percent}%` }}
         />
       </div>
@@ -51,7 +51,7 @@ export default function PokemonStatsSection({ stats }: { stats: PokemonStats }) 
           <span className="w-14 text-right text-xs font-semibold text-text-muted">
             합계
           </span>
-          <span className="text-sm font-bold">{total}</span>
+          <span className="text-sm font-bold tabular-nums">{total}</span>
         </div>
       </div>
     </PixelCard>

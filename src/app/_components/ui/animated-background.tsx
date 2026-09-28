@@ -53,6 +53,8 @@ export function AnimatedBackground({
       ? {
           onMouseEnter: () => handleSetActiveId(id),
           onMouseLeave: () => handleSetActiveId(null),
+          onFocus: () => handleSetActiveId(id),
+          onBlur: () => handleSetActiveId(null),
         }
       : {
           onClick: () => handleSetActiveId(id),

@@ -23,11 +23,11 @@ async function EvolutionNodeCard({ node }: { node: EvolutionNode }) {
   return (
     <Link
       href={`/pokemon/${node.speciesId}`}
-      className="flex flex-col items-center gap-1 rounded-xl p-2 transition-all hover:bg-neutral-200 dark:hover:bg-neutral-600"
+      className="flex flex-col items-center gap-1 rounded-none p-2 transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-600"
     >
       {spriteUrl && (
         <div className="relative h-20 w-20">
-          <PixelSprite spriteUrl={spriteUrl} alt={koName} fill />
+          <PixelSprite spriteUrl={spriteUrl} alt="" fill />
         </div>
       )}
       <span className="text-xs font-semibold">{koName}</span>
@@ -43,7 +43,7 @@ async function EvolutionNodeCard({ node }: { node: EvolutionNode }) {
 
 function EvolutionArrow() {
   return (
-    <span className="mx-2 text-xl text-neutral-400 dark:text-neutral-500">→</span>
+    <span aria-hidden className="mx-2 text-xl text-neutral-400 dark:text-neutral-500">→</span>
   );
 }
 
@@ -56,13 +56,15 @@ function renderChain(node: EvolutionNode): React.ReactNode {
     <div className="flex flex-col items-center gap-2">
       <div className="flex flex-row flex-wrap items-center justify-center">
         <EvolutionNodeCard node={node} />
-        <EvolutionArrow />
-        <div className="flex flex-col gap-2">
-          {node.nextEvolutions.map((next) => (
-            <div key={next.speciesId} className="flex flex-row items-center">
-              {renderChain(next)}
-            </div>
-          ))}
+        <div className="flex flex-row items-center">
+          <EvolutionArrow />
+          <div className="flex flex-col gap-2">
+            {node.nextEvolutions.map((next) => (
+              <div key={next.speciesId} className="flex flex-row items-center">
+                {renderChain(next)}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

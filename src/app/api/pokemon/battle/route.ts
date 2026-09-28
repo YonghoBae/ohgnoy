@@ -1,27 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchUsageStats, getPokemonUsage } from "@/lib/battle/fetchers/fetchUsageStats";
-import { fetchSets, getPokemonSets } from "@/lib/battle/fetchers/fetchSets";
-import { PokemonBattleData } from "@/types/pokemon/battle";
-import { CUTOFF_BY_FORMAT } from "@/lib/battle/constants";
+import { fetchPokemonBattleData } from "@/lib/battle/fetchers/fetchBattleData";
+import { FORMATS } from "@/lib/battle/constants";
+
+const bad = (error: string) => NextResponse.json({ error }, { status: 400 });
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const name = searchParams.get("name") ?? "";
   const format = searchParams.get("format") ?? "gen9ou";
-  const month = searchParams.get("month") ?? undefined;
-  const cutoff = CUTOFF_BY_FORMAT[format] ?? 1695;
+  const month = searchParams.get("month") || undefined;
 
-  const [statsMap, setsMap] = await Promise.all([
-    fetchUsageStats(format, month, cutoff),
-    fetchSets(format),
-  ]);
+  // These end up in Smogon URLs and cache keys.
+  if (!FORMATS.some((f) => f.id === format)) return bad("unknown format");
+  if (month && !/^\d{4}-\d{2}$/.test(month)) return bad("month must be YYYY-MM");
+  if (!/^[a-z0-9 .'-]{1,40}$/i.test(name)) return bad("invalid name");
 
-  const result: PokemonBattleData = {
-    format,
-    month: month ?? new Date().toISOString().slice(0, 7),
-    usage: statsMap ? getPokemonUsage(statsMap, name) : null,
-    sets: setsMap ? getPokemonSets(setsMap, name) : [],
-  };
-
-  return NextResponse.json(result);
+  return NextResponse.json(await fetchPokemonBattleData(name, format, month));
 }

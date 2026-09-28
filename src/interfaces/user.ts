@@ -14,8 +14,3 @@ export type UserInfo = {
   nickname: string;
   email: string;
 };
-
-export type EmailAuth = {
-  auth_code: number | undefined;
-  auth_code_input: number | undefined;
-};

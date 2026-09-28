@@ -6,11 +6,11 @@ Personal site/portfolio built on Next.js App Router. Started from the Next.js bl
 
 - **Framework**: Next.js (App Router), React 18, TypeScript.
 - **Styling**: Tailwind CSS v3 with Nord-palette CSS custom properties (`src/app/globals.css`) driving light/dark mode via a `.dark` class toggle (`src/app/_components/theme-switcher.tsx`). A few pages that intentionally break from the site-wide theme use plain CSS Modules instead (`markdown-styles.module.css`, `switch.module.css`, `pokedex-home.module.css` — see below).
-- **State**: Zustand, but only for one store — `src/app/_components/compareMons.tsx` (the pokemon-compare feature). Don't assume Zustand is used broadly; most pages just use local `useState`/server data.
+- **State**: Zustand, but only for one store — `src/app/_components/compareMons.tsx` (the pokemon-compare feature: card toggles fill two slots, `CompareTray` on `/pokemon/list` shows them and links to `/pokemon/compare?a={id}&b={id}`, a server page that refetches both by id — the store is not read there). Don't assume Zustand is used broadly; most pages just use local `useState`/server data.
 - **Auth**: `next-auth` is a dependency but is **not actually wired up** — it's referenced only as a type import in `src/interfaces/pokemon.ts`. Real auth is a custom flow: a token in `localStorage`, checked manually per-page (e.g. `PokemonGrid` redirects to `/auth/login` if no token is present). Don't assume `next-auth` session APIs work anywhere in this codebase.
 - **Chat**: STOMP over SockJS (`@stomp/stompjs` + `sockjs-client`, see `src/lib/socket.ts`, `src/app/_components/ChatWidget.tsx`, `src/app/chat/user/page.tsx`) is the real, live transport. `socket.io-client` is in `package.json` but is **dead — not imported anywhere in `src/`**, a leftover from before the STOMP migration.
 - **Pokémon data**: `pokenode-ts` wraps PokeAPI. Fetchers live in `src/lib/pokemon/fetchers/` (pokemon, species, generation, evolution chain, move), shaped by `src/lib/pokemon/transformers/` (`toPokemonDetail.ts`, `toEvolutionChain.ts`, `toMoveList.ts`) into the domain types in `src/types/pokemon/domain.ts`. Korean name/flavor-text extraction lives in `src/lib/pokemon/i18n.ts`. Sprite URL resolution (prefer the small pixel sprite, fall back to official artwork) is centralized in `src/lib/pokemon/spriteUrl.ts` — always use `getPixelSpriteUrl()`/`PixelSprite` rather than reading `pokemon.sprites.*` directly in a component.
-- **Battle/meta data**: `src/lib/battle/fetchers/` pulls competitive usage stats and sets (Pokémon Showdown / pkmn.cc-style data) for the `/pokemon/meta` and team-builder pages.
+- **Battle/meta data**: `src/lib/battle/fetchers/` pulls competitive usage stats and sets (Pokémon Showdown / pkmn.cc-style data) for the `/pokemon/meta` and team-builder pages. Pages read it only through `fetchBattleData.ts` (`fetchUsageRanking`, `fetchPokemonBattleData`), which caches small slices and never caches a failure; that file is the swap point for the planned Pokémon backend API.
 - **Blog/posts**: `src/lib/api.ts` + `gray-matter` parse markdown from `_posts/`. Currently demo content only — see `docs/known-issues.md` before building anything on top of it.
 
 ## Directory map
@@ -29,7 +29,8 @@ src/
                            pokemon/ko-names, users/[userId]/likedMons
     auth/                  login, regist (register), forgot — custom localStorage-token auth
     chat/                  user, bot — STOMP/SockJS chat UI
-    pokemon/               list, [id] (detail), builder (team builder), meta (usage stats)
+    pokemon/               list, [id] (detail), builder (team builder), meta (usage stats),
+                           compare (?a=&b= side-by-side; fed by the list's CompareTray)
     posts/                 create, [slug] — blog-starter leftover, see known-issues.md
     studys/                list, create, [slug] — "study notes"; currently backed by the
                            same demo _posts data as posts/, see known-issues.md
@@ -38,6 +39,7 @@ src/
     page.tsx               home — the pixel Pokédex screen, see docs/design/pixel-pokedex-home.md
     layout.tsx             root layout: renders `<SiteShell>{children}</SiteShell>` (persistent
                            left sidebar + main content slot) plus the floating ChatWidget
+                           (which renders nothing on /chat/*)
     globals.css            Nord theme tokens + the shell-escape-hatch CSS rules
   lib/
     api.ts, api/            blog-starter post fetching (post.ts), user API
@@ -55,7 +57,7 @@ src/
 
 ## Shell escape hatch (opting a page out of the sidebar shell)
 
-`layout.tsx` renders `<SiteShell>{children}</SiteShell>` — a persistent left sidebar (nav, socials, theme switcher, partner sprite) plus a `<main>` content slot — around every route's page content, in addition to the floating `ChatWidget`. This replaced the old header/footer/Container chrome; `Intro`, `Footer`, `Container`, and `PokemonDropdown` no longer exist in the codebase.
+`layout.tsx` renders `<SiteShell>{children}</SiteShell>` — a persistent left sidebar (nav, socials, theme switcher, partner sprite) plus a `<main>` content slot — around every route's page content, in addition to the floating `ChatWidget` (not mounted on `/chat/*`, which has its own chat UI — `ChatWidget` returns `null` there). This replaced the old header/footer/Container chrome; `Intro`, `Footer`, `Container`, and `PokemonDropdown` no longer exist in the codebase.
 
 Two route groups keep their own standalone, full-bleed layouts instead of the sidebar shell:
 
@@ -469,4 +471,4 @@ The home page (`src/app/page.tsx`) does NOT opt out — it renders inside `SiteS
 ## Design docs
 
 - `docs/design/pixel-pokedex-home.md` — the home page's dedicated dark pixel-art design system (colors, the border-image pixel-frame technique, typography rules). Read this before touching `src/app/page.tsx` or `pokedex-home.module.css`.
-- `docs/known-issues.md` — things discovered to be broken/incomplete that aren't fixed yet; check before building on top of `_posts`, `/studys`, or `pokemonCard.tsx`.
+- `docs/known-issues.md` — things discovered to be broken/incomplete that aren't fixed yet; check before building on top of `_posts` or `/studys`.

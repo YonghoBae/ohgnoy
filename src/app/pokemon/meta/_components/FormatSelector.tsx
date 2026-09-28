@@ -1,5 +1,6 @@
 "use client";
 
+import { useId, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FORMATS } from "@/lib/battle/constants";
 
@@ -16,12 +17,16 @@ function getRecentMonths(count = 6): string[] {
 export default function FormatSelector({ current, currentMonth }: { current: string; currentMonth?: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
   const months = getRecentMonths(6);
+  const periodLabelId = useId();
 
   const update = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set(key, value);
-    router.push(`/pokemon/meta?${params.toString()}`);
+    startTransition(() => {
+      router.push(`/pokemon/meta?${params.toString()}`);
+    });
   };
 
   const byGen = FORMATS.reduce<Record<number, typeof FORMATS>>((acc, f) => {
@@ -31,45 +36,55 @@ export default function FormatSelector({ current, currentMonth }: { current: str
   }, {});
 
   return (
-    <div className="flex flex-col gap-4">
+    <div
+      aria-busy={isPending}
+      className={`flex flex-col gap-4 transition-opacity ${isPending ? "opacity-60" : ""}`}
+    >
       {/* 포맷 선택 */}
       <div className="flex flex-wrap gap-3">
         {Object.entries(byGen)
           .sort(([a], [b]) => Number(b) - Number(a))
-          .map(([gen, formats]) => (
-            <div key={gen} className="flex flex-col gap-1">
-              <span className="text-xs font-bold text-neutral-500 dark:text-neutral-400">
-                Gen {gen}
-              </span>
-              <div className="flex flex-wrap gap-1">
-                {formats.map((f) => (
-                  <button
-                    key={f.id}
-                    onClick={() => update("format", f.id)}
-                    className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
-                      current === f.id
-                        ? "bg-blue-600 text-white"
-                        : "bg-neutral-200 text-neutral-600 hover:bg-neutral-300 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600"
-                    }`}
-                  >
-                    {f.label}
-                  </button>
-                ))}
+          .map(([gen, formats]) => {
+            const genLabelId = `format-selector-gen-${gen}`;
+            return (
+              <div key={gen} className="flex flex-col gap-1">
+                <span id={genLabelId} className="text-xs font-bold text-neutral-500 dark:text-neutral-400">
+                  {gen}세대
+                </span>
+                <div role="group" aria-labelledby={genLabelId} className="flex flex-wrap gap-1">
+                  {formats.map((f) => (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={() => update("format", f.id)}
+                      aria-pressed={current === f.id}
+                      className={`rounded-none border-2 px-3 py-1 text-xs font-semibold transition-colors ${
+                        current === f.id
+                          ? "border-blue-600 bg-blue-600 text-white"
+                          : "border-neutral-300 bg-neutral-200 text-neutral-600 hover:bg-neutral-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600"
+                      }`}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
       </div>
 
       {/* 월 선택 */}
       <div className="flex flex-col gap-1">
-        <span className="text-xs font-bold text-neutral-500 dark:text-neutral-400">기간</span>
-        <div className="flex flex-wrap gap-1">
+        <span id={periodLabelId} className="text-xs font-bold text-neutral-500 dark:text-neutral-400">기간</span>
+        <div role="group" aria-labelledby={periodLabelId} className="flex flex-wrap gap-1">
           <button
+            type="button"
             onClick={() => update("month", "")}
-            className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+            aria-pressed={!currentMonth}
+            className={`rounded-none border-2 px-3 py-1 text-xs font-semibold transition-colors ${
               !currentMonth
-                ? "bg-blue-600 text-white"
-                : "bg-neutral-200 text-neutral-600 hover:bg-neutral-300 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600"
+                ? "border-blue-600 bg-blue-600 text-white"
+                : "border-neutral-300 bg-neutral-200 text-neutral-600 hover:bg-neutral-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600"
             }`}
           >
             최신
@@ -77,11 +92,13 @@ export default function FormatSelector({ current, currentMonth }: { current: str
           {months.map((m) => (
             <button
               key={m}
+              type="button"
               onClick={() => update("month", m)}
-              className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+              aria-pressed={currentMonth === m}
+              className={`rounded-none border-2 px-3 py-1 text-xs font-semibold transition-colors ${
                 currentMonth === m
-                  ? "bg-blue-600 text-white"
-                  : "bg-neutral-200 text-neutral-600 hover:bg-neutral-300 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600"
+                  ? "border-blue-600 bg-blue-600 text-white"
+                  : "border-neutral-300 bg-neutral-200 text-neutral-600 hover:bg-neutral-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600"
               }`}
             >
               {m}

@@ -1,6 +1,10 @@
 import { apiClient } from './client';
 
-type CreatePostResponse = { msg: string };
+type CreatePostResponse = {
+  postId?: number;
+  code?: number;
+  message?: string;
+};
 
 export const postApi = {
   create: (formData: FormData, token: string) =>

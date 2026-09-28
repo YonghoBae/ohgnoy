@@ -14,11 +14,26 @@ export default function BootScreen() {
   const [phase, setPhase] = useState<Phase>("pending");
 
   useEffect(() => {
-    if (sessionStorage.getItem(SESSION_KEY)) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      try {
+        sessionStorage.setItem(SESSION_KEY, "1");
+      } catch {
+        // ignore: nothing to persist if storage is unavailable
+      }
       setPhase("done");
       return;
     }
-    sessionStorage.setItem(SESSION_KEY, "1");
+
+    try {
+      if (sessionStorage.getItem(SESSION_KEY)) {
+        setPhase("done");
+        return;
+      }
+      sessionStorage.setItem(SESSION_KEY, "1");
+    } catch {
+      setPhase("done");
+      return;
+    }
     setPhase("loading");
 
     const fadeTimer = setTimeout(() => setPhase("fading"), BOOT_DURATION_MS);

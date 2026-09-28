@@ -20,7 +20,7 @@
 .shellGrid {
   composes: pixelFrame pixelPanelBg from "./ui/pixel/pixel-theme.module.css";
   display: grid;
-  grid-template-columns: 176px 1fr;
+  grid-template-columns: 176px minmax(0, 1fr);
   min-height: calc(100dvh - 20px);
   color: var(--px-text);
   font-family: "IBM Plex Mono", "Pretendard", monospace;
@@ -28,13 +28,13 @@
 
 @media (max-width: 900px) {
   .shellGrid {
-    grid-template-columns: 140px 1fr;
+    grid-template-columns: 140px minmax(0, 1fr);
   }
 }
 
 @media (max-width: 640px) {
   .shellGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -47,10 +47,57 @@
   overflow-y: auto;
 }
 
+/* Above 640px these wrappers generate no box, so the logo, nav and icon row
+   stay direct flex items of .sidebar and the layout is unchanged. */
+.topBar,
+.navPanel {
+  display: contents;
+}
+
+.menuToggle {
+  composes: pixelFrameSmall pixelPanelBg from "./ui/pixel/pixel-theme.module.css";
+  display: none;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 4px 10px;
+  color: var(--px-text);
+  font-size: 13px;
+  cursor: url("/frames/cursor-pikachu-click.png") 1 1, pointer;
+}
+
+.menuToggle:hover,
+.menuToggle:focus-visible {
+  background: var(--px-active);
+}
+
 @media (max-width: 640px) {
   .sidebar {
     border-right: none;
     border-bottom: 2px solid var(--px-border);
+  }
+
+  .topBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .menuToggle {
+    display: inline-flex;
+  }
+
+  /* Collapsed by default so SSR matches; display:none also drops the links
+     from the tab order. */
+  .navPanel {
+    display: none;
+  }
+
+  .navPanelOpen {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
   }
 }
 
@@ -152,6 +199,17 @@
   animation: pixelBlink 900ms steps(1) infinite;
 }
 
+/* The cursor is only visible via the blink, so a clamped animation would
+   hide the active-item marker. Show it steady instead. */
+@media (prefers-reduced-motion: reduce) {
+  .navItem:hover .navCursor,
+  .navItem:focus-visible .navCursor,
+  .navItemActive .navCursor {
+    animation: none;
+    opacity: 1;
+  }
+}
+
 .subNav {
   display: flex;
   flex-direction: column;
@@ -160,6 +218,9 @@
 }
 
 .subNavItem {
+  display: flex;
+  align-items: center;
+  min-height: 24px;
   padding: 4px 8px;
   font-size: 12px;
   color: var(--px-text-muted);
@@ -188,6 +249,12 @@
   align-items: center;
   gap: 6px;
   padding: 12px;
+}
+
+@media (max-width: 640px) {
+  .sidebarSprite {
+    display: none;
+  }
 }
 
 .spriteFrame {
@@ -229,7 +296,7 @@
   justify-content: center;
   background: var(--px-panel-2);
   opacity: 1;
-  transition: opacity 300ms linear;
+  transition: opacity 200ms linear;
 }
 
 .bootOverlayFading {
@@ -266,14 +333,16 @@
 
 .bootBarFill {
   height: 100%;
-  width: 0%;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left;
   background: var(--px-border);
   animation: bootFill 500ms steps(10) forwards;
 }
 
 @keyframes bootFill {
   to {
-    width: 100%;
+    transform: scaleX(1);
   }
 }
 

@@ -26,6 +26,9 @@ export type MorphingDialogContextType = {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>
   uniqueId: string
   triggerRef: React.RefObject<HTMLDivElement>
+  // Set while a Description is mounted, so aria-describedby never dangles.
+  hasDescription: boolean
+  setHasDescription: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const MorphingDialogContext =
@@ -51,6 +54,7 @@ function MorphingDialogProvider({
   transition,
 }: MorphingDialogProviderProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [hasDescription, setHasDescription] = useState(false)
   const uniqueId = useId()
   const triggerRef = useRef<HTMLDivElement>(null!)
 
@@ -60,8 +64,10 @@ function MorphingDialogProvider({
       setIsOpen,
       uniqueId,
       triggerRef,
+      hasDescription,
+      setHasDescription,
     }),
-    [isOpen, uniqueId],
+    [isOpen, uniqueId, hasDescription],
   )
 
   return (
@@ -89,6 +95,8 @@ export type MorphingDialogTriggerProps = {
   className?: string
   style?: React.CSSProperties
   triggerRef?: React.RefObject<HTMLDivElement>
+  /** Accessible name for the trigger; omit to use the children's own name. */
+  'aria-label'?: string
 }
 
 function MorphingDialogTrigger({
@@ -96,8 +104,24 @@ function MorphingDialogTrigger({
   className,
   style,
   triggerRef,
+  'aria-label': ariaLabel,
 }: MorphingDialogTriggerProps) {
-  const { setIsOpen, isOpen, uniqueId } = useMorphingDialog()
+  const {
+    setIsOpen,
+    isOpen,
+    uniqueId,
+    triggerRef: contextTriggerRef,
+  } = useMorphingDialog()
+
+  // The context ref returns focus on close; mirror into the caller's ref if given.
+  const setRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      for (const ref of [contextTriggerRef, triggerRef]) {
+        if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node
+      }
+    },
+    [contextTriggerRef, triggerRef],
+  )
 
   const handleClick = useCallback(() => {
     setIsOpen(!isOpen)
@@ -115,17 +139,18 @@ function MorphingDialogTrigger({
 
   return (
     <motion.div
-      ref={triggerRef}
+      ref={setRef}
       layoutId={`dialog-${uniqueId}`}
       className={cn('relative cursor-pointer', className)}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       style={style}
       role="button"
+      tabIndex={0}
       aria-haspopup="dialog"
       aria-expanded={isOpen}
       aria-controls={`motion-ui-morphing-dialog-content-${uniqueId}`}
-      aria-label={`Open dialog ${uniqueId}`}
+      aria-label={ariaLabel}
     >
       {children}
     </motion.div>
@@ -143,7 +168,8 @@ function MorphingDialogContent({
   className,
   style,
 }: MorphingDialogContentProps) {
-  const { setIsOpen, isOpen, uniqueId, triggerRef } = useMorphingDialog()
+  const { setIsOpen, isOpen, uniqueId, triggerRef, hasDescription } =
+    useMorphingDialog()
   const containerRef = useRef<HTMLDivElement>(null!)
   const [firstFocusableElement, setFirstFocusableElement] =
     useState<HTMLElement | null>(null)
@@ -156,7 +182,11 @@ function MorphingDialogContent({
         setIsOpen(false)
       }
       if (event.key === 'Tab') {
-        if (!firstFocusableElement || !lastFocusableElement) return
+        // Nothing focusable inside: keep focus on the content node.
+        if (!firstFocusableElement || !lastFocusableElement) {
+          event.preventDefault()
+          return
+        }
 
         if (event.shiftKey) {
           if (document.activeElement === firstFocusableElement) {
@@ -180,22 +210,25 @@ function MorphingDialogContent({
   }, [setIsOpen, firstFocusableElement, lastFocusableElement])
 
   useEffect(() => {
-    if (isOpen) {
-      document.body.classList.add('overflow-hidden')
-      const focusableElements = containerRef.current?.querySelectorAll(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-      )
-      if (focusableElements && focusableElements.length > 0) {
-        setFirstFocusableElement(focusableElements[0] as HTMLElement)
-        setLastFocusableElement(
-          focusableElements[focusableElements.length - 1] as HTMLElement,
-        )
-        ;(focusableElements[0] as HTMLElement).focus()
-      }
-    } else {
-      document.body.classList.remove('overflow-hidden')
+    if (!isOpen) {
       triggerRef.current?.focus()
+      return
     }
+    document.body.classList.add('overflow-hidden')
+    const focusableElements = containerRef.current?.querySelectorAll(
+      'button, [href], input, select, textarea, video[controls], audio[controls], [tabindex]:not([tabindex="-1"])',
+    )
+    if (focusableElements && focusableElements.length > 0) {
+      setFirstFocusableElement(focusableElements[0] as HTMLElement)
+      setLastFocusableElement(
+        focusableElements[focusableElements.length - 1] as HTMLElement,
+      )
+      ;(focusableElements[0] as HTMLElement).focus()
+    } else {
+      containerRef.current?.focus()
+    }
+    // Runs on close and on unmount while open.
+    return () => document.body.classList.remove('overflow-hidden')
   }, [isOpen, triggerRef])
 
   useClickOutside(containerRef, () => {
@@ -210,10 +243,16 @@ function MorphingDialogContent({
       layoutId={`dialog-${uniqueId}`}
       className={cn('overflow-hidden', className)}
       style={style}
+      id={`motion-ui-morphing-dialog-content-${uniqueId}`}
+      tabIndex={-1}
       role="dialog"
       aria-modal="true"
       aria-labelledby={`motion-ui-morphing-dialog-title-${uniqueId}`}
-      aria-describedby={`motion-ui-morphing-dialog-description-${uniqueId}`}
+      aria-describedby={
+        hasDescription
+          ? `motion-ui-morphing-dialog-description-${uniqueId}`
+          : undefined
+      }
     >
       {children}
     </motion.div>
@@ -274,6 +313,7 @@ function MorphingDialogTitle({
   return (
     <motion.div
       layoutId={`dialog-title-container-${uniqueId}`}
+      id={`motion-ui-morphing-dialog-title-${uniqueId}`}
       className={className}
       style={style}
       layout
@@ -324,7 +364,12 @@ function MorphingDialogDescription({
   variants,
   disableLayoutAnimation,
 }: MorphingDialogDescriptionProps) {
-  const { uniqueId } = useMorphingDialog()
+  const { uniqueId, setHasDescription } = useMorphingDialog()
+
+  useEffect(() => {
+    setHasDescription(true)
+    return () => setHasDescription(false)
+  }, [setHasDescription])
 
   return (
     <motion.div
@@ -339,7 +384,7 @@ function MorphingDialogDescription({
       initial="initial"
       animate="animate"
       exit="exit"
-      id={`dialog-description-${uniqueId}`}
+      id={`motion-ui-morphing-dialog-description-${uniqueId}`}
     >
       {children}
     </motion.div>
@@ -399,7 +444,10 @@ function MorphingDialogClose({
       type="button"
       aria-label="Close dialog"
       key={`dialog-close-${uniqueId}`}
-      className={cn('absolute top-6 right-6', className)}
+      className={cn(
+        'absolute top-6 right-6 transition-opacity hover:opacity-70',
+        className,
+      )}
       initial="initial"
       animate="animate"
       exit="exit"

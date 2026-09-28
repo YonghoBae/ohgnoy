@@ -8,10 +8,6 @@ Things discovered while working on this codebase that are real but out of scope 
 
 **Do not** wire any new feature (a homepage "recent posts" panel, a search index, anything) to `getAllPosts()`/`_posts/` without first checking whether this has been fixed — as of this writing it hasn't. A real fix means either replacing `_posts/*.md` with real content, or pointing `/studys` at a different real source (the external Obsidian digital garden linked via `DIGITAL_GARDEN_URL`, or a backend API — `/studys/create` exists as a route, implying a real backend was intended for studys specifically).
 
-## `src/app/_components/pokemonCard.tsx` (lowercase) is dead code
-
-Not imported anywhere. The actual card used on `/pokemon/list` is `src/app/pokemon/list/_components/PokemonCard.tsx`. The two diverged over time — the unused one still points at `official-artwork` sprites, the live one was updated to pixel sprites. Safe to delete; nothing depends on it. Left in place only because deleting unrelated files was out of scope for the task that found it.
-
 ## `/portfolio` (web) content is now stale relative to `/portfolio-pdf`
 
 `/portfolio-pdf` was rebuilt from the owner's Notion portfolio (2026-09-01) and
@@ -72,3 +68,27 @@ note(`문서 파싱 · OCR`), 문제 해결(`스캔 PDF 텍스트 추출 — Gem
    지점(실제 샘플 PDF 부재)을 적어 뒀다.
 
 소유자는 2번을 선호한다고 밝혔다(2026-09-18). 2번을 하면 1번은 필요 없어진다.
+
+## 이름에 하이픈이 있는 포켓몬은 상세 페이지에 실전 데이터가 안 나온다
+
+`fetchPokemonBattleData(pokemon.name, ...)`는 PokeAPI 이름(`great-tusk`)으로
+Smogon 데이터를 찾는데, Smogon 키는 `Great Tusk`다. `getPokemonUsage`와
+`getPokemonSets`는 대소문자만 무시하고 비교하므로 하이픈과 공백 차이로
+못 찾는다(`/api/pokemon/battle?name=great-tusk` → usage 없음, `name=Great%20Tusk`
+→ usage와 세트 4개). 폼 이름(`landorus-therian` ↔ `Landorus-Therian`)처럼
+하이픈이 원래 있는 경우는 맞는다. 이름 변환 규칙은 포켓몬 백엔드 API로 옮길 때
+그쪽에서 정하는 편이 낫다(2026-09-28 발견).
+
+## /pokemon/list 검색은 영어 이름만 찾는다
+
+목록 검색(`usePokemonSearch`)은 PokeAPI 영어 slug를 `startsWith`로만 맞춘다. 그래서
+"피카츄"로는 찾을 수 없고, 검색창 안내 문구도 영어 예시("예: pikachu")로 바꿔 두었다.
+빌더의 포켓몬 선택(`PokemonPicker`)은 `/api/pokemon/ko-names` 인덱스로 한국어 검색을
+하므로, 같은 인덱스를 목록 검색에도 쓰면 된다(2026-09-29 기록).
+
+## 회원가입 인증번호를 브라우저에서 비교한다
+
+`POST /users/email` 응답의 `data`에 인증번호가 그대로 들어오고,
+`/auth/regist`가 사용자가 입력한 값과 브라우저에서 비교한다. 개발자 도구로 번호를 볼 수
+있다. 백엔드에 "번호 확인" 엔드포인트를 만들고 응답에서 번호를 빼야 고칠 수 있다
+(2026-09-29 기록).

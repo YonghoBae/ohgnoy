@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useId, useRef } from "react";
 import { Pokemon } from "pokenode-ts";
 import { BattleSet } from "@/types/pokemon/battle";
 import { PokemonTypeName } from "@/types/pokemon/domain";
@@ -10,6 +10,7 @@ import { DEFAULT_FORMAT } from "@/lib/battle/constants";
 import PixelCard from "@/app/_components/ui/pixel/PixelCard";
 import PixelButton from "@/app/_components/ui/pixel/PixelButton";
 import PixelSprite, { getPixelSpriteUrl } from "@/app/_components/ui/pixel/PixelSprite";
+import ModalDialog from "./ModalDialog";
 
 interface Props {
   allNames: string[];
@@ -34,6 +35,7 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
   const [koIndex, setKoIndex] = useState<Record<string, string> | null>(null);
   const [koIndexLoading, setKoIndexLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const titleId = useId();
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -51,6 +53,9 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
   }, [query, koIndex, koIndexLoading]);
 
   useEffect(() => {
+    // Reset here too: the cleanup below cancels an in-flight search, and the
+    // early returns would otherwise leave "검색 중" up.
+    setLoading(false);
     if (!query.trim()) {
       setResults([]);
       return;
@@ -75,22 +80,35 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
       return;
     }
 
+    let cancelled = false;
     setLoading(true);
-    Promise.all(
+    // Form slugs (pikachu-rock-star, charizard-mega-x) have no pokemon-species
+    // entry of their own, so take the species URL from the pokemon, and keep
+    // whatever loaded instead of dropping every result when one request fails.
+    Promise.allSettled(
       matched.map(async (name) => {
-        const [pokeRes, speciesRes] = await Promise.all([
-          fetch(`https://pokeapi.co/api/v2/pokemon/${name}`),
-          fetch(`https://pokeapi.co/api/v2/pokemon-species/${name}`),
-        ]);
+        const pokeRes = await fetch(`https://pokeapi.co/api/v2/pokemon/${name}`);
+        if (!pokeRes.ok) throw new Error(`${name}: ${pokeRes.status}`);
         const pokemon = await pokeRes.json() as Pokemon;
-        const species = await speciesRes.json() as { names: { language: { name: string }; name: string }[] };
-        const ko = species.names.find((n) => n.language.name === "ko");
+        const speciesRes = await fetch(pokemon.species.url);
+        const species = speciesRes.ok
+          ? await speciesRes.json() as { names: { language: { name: string }; name: string }[] }
+          : null;
+        const ko = species?.names.find((n) => n.language.name === "ko");
         return { pokemon, nameKo: ko?.name ?? name };
       })
     )
-      .then(setResults)
-      .catch(() => setResults([]))
-      .finally(() => setLoading(false));
+      .then((settled) => {
+        if (cancelled) return;
+        setResults(settled.flatMap((r) => (r.status === "fulfilled" ? [r.value] : [])));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    // A slower response for an older query must not overwrite newer results.
+    return () => {
+      cancelled = true;
+    };
   }, [query, allNames, koIndex]);
 
   const handleSelectPokemon = async (result: SearchResult) => {
@@ -149,37 +167,47 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <PixelCard className="flex w-full max-w-md flex-col gap-4 p-5">
+    <ModalDialog labelledBy={titleId} onClose={onClose} className="max-w-md">
+      <PixelCard className="flex w-full flex-col gap-4 p-5">
         <div className="flex items-center justify-between">
-          <h3 className="font-bold">포켓몬 선택</h3>
-          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-700">✕</button>
+          <h3 id={titleId} className="font-bold">포켓몬 선택</h3>
+          <button type="button" onClick={onClose} aria-label="닫기" className="text-neutral-400 hover:text-neutral-700">✕</button>
         </div>
 
         {!selectedPokemon ? (
           <>
             <input
               ref={inputRef}
+              type="search"
+              aria-label="포켓몬 이름으로 검색"
+              autoComplete="off"
+              spellCheck={false}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="이름으로 검색 (예: 이상해씨, garchomp)"
-              className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2 text-sm outline-none focus:border-blue-400 dark:border-neutral-600 dark:bg-neutral-700"
+              className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2 text-sm focus:border-blue-400 dark:border-neutral-600 dark:bg-neutral-700"
             />
-            {koIndexLoading && (
-              <p className="text-center text-xs text-neutral-500">한국어 이름 인덱스 로딩 중...</p>
-            )}
-            {loading && (
-              <p className="text-center text-xs text-neutral-500">검색 중...</p>
-            )}
+            <div aria-live="polite">
+              {koIndexLoading && (
+                <p className="text-center text-xs text-neutral-500">한국어 이름 인덱스 로딩 중…</p>
+              )}
+              {loading && (
+                <p className="text-center text-xs text-neutral-500">검색 중…</p>
+              )}
+              {!loading && !koIndexLoading && query.trim() && results.length === 0 && (
+                <p className="text-center text-xs text-neutral-500">검색 결과가 없습니다.</p>
+              )}
+            </div>
             <div className="flex max-h-72 flex-col gap-1 overflow-y-auto">
               {results.map((r) => (
                 <button
                   key={r.pokemon.id}
+                  type="button"
                   onClick={() => void handleSelectPokemon(r)}
                   className="flex items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700"
                 >
                   <div className="relative h-10 w-10 flex-shrink-0">
-                    <PixelSprite pokemon={r.pokemon} alt={r.pokemon.name} fill />
+                    <PixelSprite pokemon={r.pokemon} alt="" fill />
                   </div>
                   <div className="flex flex-col">
                     <span className="text-sm font-bold">{r.nameKo}</span>
@@ -199,7 +227,7 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
             {/* 포켓몬 확인 */}
             <div className="flex items-center gap-3 rounded-xl bg-neutral-100 px-4 py-3 dark:bg-neutral-700">
               <div className="relative h-14 w-14">
-                <PixelSprite pokemon={selectedPokemon.pokemon} alt={selectedPokemon.nameKo} fill />
+                <PixelSprite pokemon={selectedPokemon.pokemon} alt="" fill />
               </div>
               <div>
                 <p className="font-bold">{selectedPokemon.nameKo}</p>
@@ -221,7 +249,7 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
             <div className="flex flex-col gap-2">
               <p className="text-sm font-semibold">세트 선택 (선택 사항)</p>
               {setsLoading ? (
-                <p className="text-xs text-neutral-500">세트 불러오는 중...</p>
+                <p className="text-xs text-neutral-500">세트 불러오는 중…</p>
               ) : sets.length === 0 ? (
                 <p className="text-xs text-neutral-500">추천 세트 없음</p>
               ) : (
@@ -229,6 +257,7 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
                   {sets.map((set) => (
                     <button
                       key={set.name}
+                      type="button"
                       onClick={() => handleConfirm(set)}
                       className="rounded-xl border border-neutral-200 px-4 py-2 text-left text-sm transition-colors hover:border-blue-400 hover:bg-blue-50 dark:border-neutral-600 dark:hover:bg-blue-900"
                     >
@@ -248,6 +277,6 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
           </>
         )}
       </PixelCard>
-    </div>
+    </ModalDialog>
   );
 }

@@ -5,16 +5,13 @@ import { extractEvolutionChainId, fetchEvolutionChain } from "@/lib/pokemon/fetc
 import { extractMoveIdsWithLearnInfo, MoveWithLearnInfo } from "@/lib/pokemon/transformers/toMoveList";
 import { fetchMove } from "@/lib/pokemon/fetchers/fetchMove";
 import { toPokemonDetail } from "@/lib/pokemon/transformers/toPokemonDetail";
-import { fetchUsageStats, getPokemonUsage } from "@/lib/battle/fetchers/fetchUsageStats";
-import { fetchSets, getPokemonSets } from "@/lib/battle/fetchers/fetchSets";
-import { PokemonBattleData } from "@/types/pokemon/battle";
+import { fetchPokemonBattleData } from "@/lib/battle/fetchers/fetchBattleData";
+import { DEFAULT_FORMAT } from "@/lib/battle/constants";
 import PokemonHeader from "./_components/PokemonHeader";
 import PokemonInfo from "./_components/PokemonInfo";
 import PokemonStatsSection from "./_components/PokemonStats";
 import EvolutionChainSection from "./_components/EvolutionChain";
 import PokemonDetailTabs from "./_components/PokemonDetailTabs";
-
-const DEFAULT_FORMAT = "gen9ou";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -26,16 +23,17 @@ export default async function PokemonDetailPage({ params }: Props) {
 
   try {
     const pokemon = await fetchPokemon(idOrName);
-    const species = await fetchSpecies(pokemon.id);
+    // Form Pokémon (e.g. 10034) have no species of their own; use species.url.
+    const speciesId = Number(pokemon.species.url.match(/\/(\d+)\/?$/)?.[1]);
+    const species = await fetchSpecies(speciesId);
 
     const evolutionChainId = extractEvolutionChainId(species.evolution_chain.url);
     const moveInfoList = extractMoveIdsWithLearnInfo(pokemon);
 
-    const [evolutionChain, moves, usageStatsMap, setsMap] = await Promise.all([
+    const [evolutionChain, moves, battleData] = await Promise.all([
       fetchEvolutionChain(evolutionChainId),
       Promise.all(moveInfoList.map(({ id }) => fetchMove(id))),
-      fetchUsageStats(DEFAULT_FORMAT),
-      fetchSets(DEFAULT_FORMAT),
+      fetchPokemonBattleData(pokemon.name, DEFAULT_FORMAT),
     ]);
 
     const movesWithInfo: MoveWithLearnInfo[] = moveInfoList.map((info, i) => ({
@@ -45,13 +43,6 @@ export default async function PokemonDetailPage({ params }: Props) {
     }));
 
     const detail = toPokemonDetail(pokemon, species, evolutionChain, movesWithInfo);
-
-    const battleData: PokemonBattleData = {
-      format: DEFAULT_FORMAT,
-      month: new Date().toISOString().slice(0, 7),
-      usage: usageStatsMap ? getPokemonUsage(usageStatsMap, pokemon.name) : null,
-      sets: setsMap ? getPokemonSets(setsMap, pokemon.name) : [],
-    };
 
     // 서버 컴포넌트(EvolutionChain 포함)를 children으로 전달
     const infoContent = (

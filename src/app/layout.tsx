@@ -19,7 +19,7 @@ const inter = Inter({ subsets: ['latin'] });
 // Next.js의 페이지 메타데이터를 정의
 export const metadata: Metadata = {
   title: `${BLOG_NAME}`, // 페이지 제목 (블로그 이름을 제목으로 사용)
-  description: `개발 공부를 하면서 만든 연습용 블로그그 ${BLOG_NAME}.`, // 페이지 설명
+  description: `개발 공부를 하면서 만든 연습용 블로그 ${BLOG_NAME}.`, // 페이지 설명
   openGraph: {
     images: [HOME_OG_IMAGE_URL], // Open Graph 프로토콜에서 사용될 이미지 (미리보기 이미지 등)
   },
@@ -70,8 +70,9 @@ export default function RootLayout({
           name="msapplication-config"
           content="/favicon/browserconfig.xml"
         />
-        {/* 브라우저의 테마 색상을 지정 */}
-        <meta name="theme-color" content="#000" />
+        {/* 브라우저의 테마 색상을 지정 (라이트/다크 각각의 셸 배경색) */}
+        <meta name="theme-color" content="#D8DEE9" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#1e2e3d" media="(prefers-color-scheme: dark)" />
         {/* RSS 피드에 대한 링크 설정 */}
         {/* <link rel="alternate" type="application/rss+xml" href="/feed.xml" /> */}
       </head>
@@ -84,6 +85,12 @@ export default function RootLayout({
           pixelTheme.pixelTheme,
         )}
       >
+          <a
+            href="#main"
+            className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-[200] focus:rounded-none focus:bg-[#ECEFF4] focus:px-3 focus:py-2 focus:text-[#2E3440] dark:focus:bg-[#2E3440] dark:focus:text-[#ECEFF4]"
+          >
+            본문으로 건너뛰기
+          </a>
           <SiteShell>{children}</SiteShell>
           <ChatWidget />
       </body>

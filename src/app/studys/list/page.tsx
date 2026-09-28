@@ -4,10 +4,9 @@ import Container from '@/app/_components/container';
 
 const list = () => {
   const allPosts = getAllPosts();
-  const morePosts = allPosts.slice(1);
   return (
     <Container>
-      {morePosts.length > 0 && <MoreStories posts={morePosts} />}
+      <MoreStories posts={allPosts} basePath="/studys" />
     </Container>
   );
 };

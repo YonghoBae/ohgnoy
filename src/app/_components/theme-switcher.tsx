@@ -11,6 +11,11 @@ type ColorSchemePreference = "system" | "dark" | "light";
 
 const STORAGE_KEY = "nextjs-blog-starter-theme";
 const modes: ColorSchemePreference[] = ["system", "dark", "light"];
+const MODE_LABEL: Record<ColorSchemePreference, string> = {
+  system: "시스템",
+  dark: "다크",
+  light: "라이트",
+};
 
 /** to reuse updateDOM function defined inside injected script */
 
@@ -45,6 +50,7 @@ export const NoFOUCScript = (storageKey: string) => {
     if (resolvedMode === DARK) classList.add(DARK);
     else classList.remove(DARK);
     document.documentElement.setAttribute("data-mode", mode);
+    document.documentElement.style.colorScheme = resolvedMode;
     restoreTransitions();
   };
   window.updateDOM();
@@ -75,7 +81,7 @@ const Switch = () => {
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, mode);
-    updateDOM();
+    updateDOM?.();
   }, [mode]);
 
   /** toggle mode */
@@ -88,7 +94,7 @@ const Switch = () => {
       suppressHydrationWarning
       className={styles.switch}
       onClick={handleModeSwitch}
-      aria-label={`테마 전환 (현재: ${mode})`}
+      aria-label={`테마 전환 (현재: ${MODE_LABEL[mode]})`}
     />
   );
 };

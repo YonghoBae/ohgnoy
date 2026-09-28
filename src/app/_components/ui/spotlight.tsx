@@ -1,6 +1,12 @@
 'use client'
 import React, { useRef, useState, useCallback, useEffect } from 'react'
-import { motion, useSpring, useTransform, SpringOptions } from 'motion/react'
+import {
+  motion,
+  useSpring,
+  useTransform,
+  useReducedMotion,
+  SpringOptions,
+} from 'motion/react'
 import { cn } from '@/lib/utils'
 
 export type SpotlightProps = {
@@ -17,12 +23,14 @@ export function Spotlight({
   const containerRef = useRef<HTMLDivElement>(null)
   const [isHovered, setIsHovered] = useState(false)
   const [parentElement, setParentElement] = useState<HTMLElement | null>(null)
+  // Stays rendered (invisible, no listeners) so the markup matches SSR.
+  const reduceMotion = useReducedMotion()
 
   const mouseX = useSpring(0, springOptions)
   const mouseY = useSpring(0, springOptions)
 
-  const spotlightLeft = useTransform(mouseX, (x) => `${x - size / 2}px`)
-  const spotlightTop = useTransform(mouseY, (y) => `${y - size / 2}px`)
+  const spotlightX = useTransform(mouseX, (x) => x - size / 2)
+  const spotlightY = useTransform(mouseY, (y) => y - size / 2)
 
   useEffect(() => {
     if (containerRef.current) {
@@ -46,18 +54,21 @@ export function Spotlight({
   )
 
   useEffect(() => {
-    if (!parentElement) return
+    if (!parentElement || reduceMotion) return
+
+    const handleMouseEnter = () => setIsHovered(true)
+    const handleMouseLeave = () => setIsHovered(false)
 
     parentElement.addEventListener('mousemove', handleMouseMove)
-    parentElement.addEventListener('mouseenter', () => setIsHovered(true))
-    parentElement.addEventListener('mouseleave', () => setIsHovered(false))
+    parentElement.addEventListener('mouseenter', handleMouseEnter)
+    parentElement.addEventListener('mouseleave', handleMouseLeave)
 
     return () => {
       parentElement.removeEventListener('mousemove', handleMouseMove)
-      parentElement.removeEventListener('mouseenter', () => setIsHovered(true))
-      parentElement.removeEventListener('mouseleave', () => setIsHovered(false))
+      parentElement.removeEventListener('mouseenter', handleMouseEnter)
+      parentElement.removeEventListener('mouseleave', handleMouseLeave)
     }
-  }, [parentElement, handleMouseMove])
+  }, [parentElement, handleMouseMove, reduceMotion])
 
   return (
     <motion.div
@@ -65,14 +76,17 @@ export function Spotlight({
       className={cn(
         'pointer-events-none absolute rounded-full bg-[radial-gradient(circle_at_center,var(--tw-gradient-stops),transparent_80%)] blur-xl transition-opacity duration-200',
         'from-zinc-50 via-zinc-100 to-zinc-200',
-        isHovered ? 'opacity-100' : 'opacity-0',
+        isHovered && !reduceMotion ? 'opacity-100' : 'opacity-0',
         className,
       )}
       style={{
         width: size,
         height: size,
-        left: spotlightLeft,
-        top: spotlightTop,
+        // Pin to the corner so any top/left in className doesn't offset the transform.
+        left: 0,
+        top: 0,
+        x: spotlightX,
+        y: spotlightY,
       }}
     />
   )

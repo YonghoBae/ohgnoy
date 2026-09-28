@@ -28,6 +28,7 @@ const config: Config = {
         "text-muted":"rgb(var(--color-text-muted) / <alpha-value>)",
         primary:    "rgb(var(--color-primary) / <alpha-value>)",
         "primary-hover":"rgb(var(--color-primary-hover) / <alpha-value>)",
+        "on-primary":"rgb(var(--color-on-primary) / <alpha-value>)",
         /* shadcn-compatible tokens (select.tsx) */
         popover:    "rgb(var(--popover) / <alpha-value>)",
         "popover-foreground":"rgb(var(--popover-foreground) / <alpha-value>)",

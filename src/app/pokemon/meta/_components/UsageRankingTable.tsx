@@ -34,39 +34,59 @@ async function RankRow({
 
   const barWidth = maxUsage > 0 ? (entry.usagePercent / maxUsage) * 100 : 0;
 
-  return (
-    <Link
-      href={`/pokemon/${id}`}
-      className="flex items-center gap-4 rounded-xl px-4 py-2 transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-700"
-    >
-      <span className="w-8 text-right text-sm font-bold text-neutral-400">
+  const content = (
+    <>
+      <span className="w-6 text-right text-sm font-bold tabular-nums text-text-muted sm:w-8">
         {entry.rank}
       </span>
-      <div className="relative h-12 w-12 flex-shrink-0">
-        {pokemon && <PixelSprite pokemon={pokemon} alt={entry.nameEn} fill />}
+      <div className="relative h-10 w-10 flex-shrink-0 sm:h-12 sm:w-12">
+        {pokemon && <PixelSprite pokemon={pokemon} alt="" fill />}
       </div>
-      <div className="flex flex-1 flex-col gap-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="font-bold">{nameKo}</span>
-          <span className="text-xs text-neutral-500">{entry.nameEn}</span>
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="truncate font-bold">{nameKo}</span>
+          {/* Below sm the Korean name needs the whole line; the English name
+              stays in the accessible text only. */}
+          <span className="hidden truncate text-xs text-neutral-500 sm:block">{entry.nameEn}</span>
+          <span className="sr-only sm:hidden">{entry.nameEn}</span>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex flex-wrap items-center gap-1 whitespace-nowrap">
           {types.map((t) => (
             <TypeBadge key={t} type={t} size="sm" />
           ))}
         </div>
       </div>
-      <div className="flex w-32 flex-shrink-0 flex-col gap-1">
-        <div className="overflow-hidden rounded-full bg-neutral-300 dark:bg-neutral-600">
+      {/* Below sm the bar + percent wrap onto their own full-width line. */}
+      <div className="flex w-full flex-shrink-0 items-center gap-2 sm:w-32 sm:flex-col sm:items-stretch sm:gap-1">
+        <div className="flex-1 overflow-hidden rounded-full bg-neutral-300 dark:bg-neutral-600 sm:flex-none">
           <div
             className="h-2 rounded-full bg-blue-500"
             style={{ width: `${barWidth}%` }}
           />
         </div>
-        <span className="text-right text-xs font-semibold text-blue-600 dark:text-blue-400">
+        <span className="text-right text-xs font-semibold tabular-nums text-blue-600 dark:text-blue-400">
           {entry.usagePercent.toFixed(2)}%
         </span>
       </div>
+    </>
+  );
+
+  // 이름 조회에 실패하면 id가 nameEn으로 폴백된 상태 — 실제 상세 페이지가
+  // 없을 가능성이 높으므로 링크 대신 일반 행으로 표시
+  if (!pokemon) {
+    return (
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-none px-2 py-2 sm:flex-nowrap sm:gap-x-4 sm:px-4">
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      href={`/pokemon/${id}`}
+      className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-none px-2 py-2 sm:flex-nowrap sm:gap-x-4 sm:px-4 transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-700"
+    >
+      {content}
     </Link>
   );
 }
@@ -83,10 +103,12 @@ export default async function UsageRankingTable({
   const maxUsage = ranking[0]?.usagePercent ?? 1;
 
   return (
-    <div className="flex flex-col divide-y divide-neutral-200 dark:divide-neutral-700">
+    <ol className="flex list-none flex-col divide-y divide-neutral-200 dark:divide-neutral-700">
       {ranking.map((entry) => (
-        <RankRow key={entry.nameEn} entry={entry} maxUsage={maxUsage} />
+        <li key={entry.nameEn}>
+          <RankRow entry={entry} maxUsage={maxUsage} />
+        </li>
       ))}
-    </div>
+    </ol>
   );
 }

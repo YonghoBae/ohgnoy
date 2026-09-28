@@ -16,7 +16,7 @@ export const inputClass =
 export const buttonPrimaryClass =
   'flex w-full justify-center rounded-md ' +
   'bg-primary hover:bg-primary-hover ' +
-  'px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm ' +
+  'px-3 py-1.5 text-sm font-semibold leading-6 text-on-primary shadow-sm ' +
   'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ' +
   'focus-visible:outline-primary transition-colors';
 

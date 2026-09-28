@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId, useRef } from "react";
 import { PokemonBattleData, BattleSet } from "@/types/pokemon/battle";
 import { FORMATS } from "@/lib/battle/constants";
 import TypeBadge from "@/app/_components/TypeBadge";
@@ -37,22 +37,22 @@ function TopList({
 
   return (
     <div>
-      <h4 className="mb-2 text-sm font-bold text-neutral-600 dark:text-neutral-300">
+      <h3 className="mb-2 text-sm font-bold text-neutral-600 dark:text-neutral-300">
         {label}
-      </h4>
+      </h3>
       <div className="flex flex-col gap-1">
         {sorted.map(([name, pct]) => (
           <div key={name} className="flex items-center gap-2">
-            <div className="flex-1 overflow-hidden rounded-full bg-neutral-300 dark:bg-neutral-600">
+            <div className="flex-1 overflow-hidden rounded-none bg-neutral-300 dark:bg-neutral-600">
               <div
-                className="h-2 rounded-full bg-blue-500"
+                className="h-2 rounded-none bg-blue-500"
                 style={{ width: `${Math.min(pct, 100)}%` }}
               />
             </div>
-            <span className="w-32 truncate text-xs text-neutral-700 dark:text-neutral-300">
+            <span translate="no" className="w-32 truncate text-xs text-neutral-700 dark:text-neutral-300">
               {name}
             </span>
-            <span className="w-12 text-right text-xs font-semibold">
+            <span className="w-12 text-right text-xs font-semibold tabular-nums">
               {pct.toFixed(1)}%
             </span>
           </div>
@@ -88,7 +88,7 @@ function SetCard({ set }: { set: BattleSet }) {
 
   return (
     <PixelCard className="p-4">
-      <p className="mb-3 text-sm font-bold text-blue-600 dark:text-blue-400">
+      <p translate="no" className="mb-3 text-sm font-bold text-blue-600 dark:text-blue-400">
         {set.name}
       </p>
       <div className="flex flex-col gap-2 text-sm">
@@ -98,6 +98,7 @@ function SetCard({ set }: { set: BattleSet }) {
             {set.moves.map((m, i) => (
               <span
                 key={i}
+                translate="no"
                 className="rounded-none border border-text-base bg-surface px-2 py-0.5 text-xs"
               >
                 {Array.isArray(m) ? m.join(" / ") : m}
@@ -108,19 +109,19 @@ function SetCard({ set }: { set: BattleSet }) {
         {itemDisplay && (
           <div className="flex gap-2">
             <span className="text-xs text-neutral-500">아이템</span>
-            <span className="text-xs font-semibold">{itemDisplay}</span>
+            <span translate="no" className="text-xs font-semibold">{itemDisplay}</span>
           </div>
         )}
         {abilityDisplay && (
           <div className="flex gap-2">
             <span className="text-xs text-neutral-500">특성</span>
-            <span className="text-xs font-semibold">{abilityDisplay}</span>
+            <span translate="no" className="text-xs font-semibold">{abilityDisplay}</span>
           </div>
         )}
         {set.nature && (
           <div className="flex gap-2">
             <span className="text-xs text-neutral-500">성격</span>
-            <span className="text-xs font-semibold">{set.nature}</span>
+            <span translate="no" className="text-xs font-semibold">{set.nature}</span>
           </div>
         )}
         {topSpread && (
@@ -150,26 +151,50 @@ function SetCard({ set }: { set: BattleSet }) {
 
 type BattleInnerTab = "sets" | "usage" | "teammates" | "counters";
 
+const NO_USAGE_MESSAGE = "이 포맷의 사용률 데이터가 없습니다.";
+
 export default function BattleTab({ data, pokemonName }: { data: PokemonBattleData; pokemonName: string }) {
   const [tab, setTab] = useState<BattleInnerTab>("sets");
   const [format, setFormat] = useState(data.format);
   const [battleData, setBattleData] = useState<PokemonBattleData>(data);
   const [formatLoading, setFormatLoading] = useState(false);
+  const baseId = useId();
+  const tabRefs = useRef<Record<BattleInnerTab, HTMLButtonElement | null>>({
+    sets: null,
+    usage: null,
+    teammates: null,
+    counters: null,
+  });
 
   useEffect(() => {
     if (format === data.format) {
       setBattleData(data);
+      setFormatLoading(false);
       return;
     }
+    const controller = new AbortController();
     setFormatLoading(true);
     // 포켓몬 이름은 data.usage?.nameEn 또는 URL에서 추출
     const encodedName = encodeURIComponent(pokemonName);
-    fetch(`/api/pokemon/battle?name=${encodedName}&format=${format}`)
-      .then((r) => r.json() as Promise<PokemonBattleData>)
-      .then(setBattleData)
-      .catch(() => setBattleData({ ...data, format, usage: null, sets: [] }))
-      .finally(() => setFormatLoading(false));
-  }, [format, data]);
+    fetch(`/api/pokemon/battle?name=${encodedName}&format=${format}`, {
+      signal: controller.signal,
+    })
+      .then((r) => {
+        if (!r.ok) throw new Error("bad response");
+        return r.json() as Promise<PokemonBattleData>;
+      })
+      .then((json) => {
+        setBattleData(json);
+        setFormatLoading(false);
+      })
+      .catch(() => {
+        // A newer request superseded this one; its own handler owns the state.
+        if (controller.signal.aborted) return;
+        setBattleData({ ...data, format, usage: null, sets: [] });
+        setFormatLoading(false);
+      });
+    return () => controller.abort();
+  }, [format, data, pokemonName]);
 
   const tabs: { key: BattleInnerTab; label: string }[] = [
     { key: "sets", label: "추천 세트" },
@@ -179,30 +204,52 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
   ];
 
   const { usage, sets } = battleData;
+  const currentFormat = FORMATS.find((f) => f.id === format);
+  const formatLabel = currentFormat?.label ?? format;
+
+  const selectInnerTab = (next: BattleInnerTab) => {
+    setTab(next);
+    tabRefs.current[next]?.focus();
+  };
+
+  const handleInnerKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+    let nextIndex: number | null = null;
+    if (e.key === "ArrowRight") nextIndex = (index + 1) % tabs.length;
+    else if (e.key === "ArrowLeft") nextIndex = (index - 1 + tabs.length) % tabs.length;
+    else if (e.key === "Home") nextIndex = 0;
+    else if (e.key === "End") nextIndex = tabs.length - 1;
+    if (nextIndex !== null) {
+      e.preventDefault();
+      selectInnerTab(tabs[nextIndex].key);
+    }
+  };
 
   return (
     <PixelCard className="flex flex-col gap-4 p-5">
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <h2 className="font-pixel text-xs">실전 데이터</h2>
-          {usage && !formatLoading && (
-            <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700 dark:bg-blue-900 dark:text-blue-300">
-              {format.toUpperCase()} {usage.usagePercent.toFixed(1)}%
-            </span>
-          )}
-          {formatLoading && (
-            <span className="text-xs text-neutral-500">로딩 중...</span>
-          )}
+          <span role="status" className="text-xs">
+            {formatLoading ? (
+              <span className="text-neutral-500">불러오는 중…</span>
+            ) : usage ? (
+              <span className="rounded-none bg-blue-100 px-3 py-1 font-bold tabular-nums text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                {formatLabel} {usage.usagePercent.toFixed(1)}%
+              </span>
+            ) : null}
+          </span>
         </div>
         {/* 포맷 선택 */}
         <div className="flex flex-wrap gap-1">
           {FORMATS.map((f) => (
             <button
               key={f.id}
+              type="button"
               onClick={() => setFormat(f.id)}
+              aria-pressed={format === f.id}
               className={`rounded-none border-2 border-text-base px-2.5 py-0.5 text-xs font-semibold transition-colors ${
                 format === f.id
-                  ? "bg-primary text-white"
+                  ? "bg-primary text-on-primary"
                   : "bg-surface text-text-base hover:border-primary hover:text-primary"
               }`}
             >
@@ -218,97 +265,142 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
         </p>
       ) : (
         <>
-          <div className="flex flex-wrap gap-2">
-            {tabs.map((t) => (
-              <button
-                key={t.key}
-                onClick={() => setTab(t.key)}
-                className={`rounded-none border-2 border-text-base px-3 py-1 text-xs font-semibold transition-colors ${
-                  tab === t.key
-                    ? "bg-primary text-white"
-                    : "bg-surface text-text-base hover:border-primary hover:text-primary"
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
+          <div role="tablist" aria-label="실전 데이터 항목" className="flex flex-wrap gap-2">
+            {tabs.map((t, i) => {
+              const active = tab === t.key;
+              return (
+                <button
+                  key={t.key}
+                  ref={(el) => {
+                    tabRefs.current[t.key] = el;
+                  }}
+                  id={`${baseId}-tab-${t.key}`}
+                  role="tab"
+                  type="button"
+                  aria-selected={active}
+                  aria-controls={`${baseId}-panel-${t.key}`}
+                  tabIndex={active ? 0 : -1}
+                  onClick={() => selectInnerTab(t.key)}
+                  onKeyDown={(e) => handleInnerKeyDown(e, i)}
+                  className={`rounded-none border-2 border-text-base px-3 py-1 text-xs font-semibold transition-colors ${
+                    active
+                      ? "bg-primary text-on-primary"
+                      : "bg-surface text-text-base hover:border-primary hover:text-primary"
+                  }`}
+                >
+                  {t.label}
+                </button>
+              );
+            })}
           </div>
 
-          {tab === "sets" && (
-            <div className="flex flex-col gap-3">
-              {sets.length > 0 ? (
-                sets.map((set) => <SetCard key={set.name} set={set} />)
-              ) : (
-                <p className="text-sm text-neutral-500">추천 세트 정보 없음</p>
-              )}
-            </div>
-          )}
+          <div
+            id={`${baseId}-panel-sets`}
+            role="tabpanel"
+            aria-labelledby={`${baseId}-tab-sets`}
+            hidden={tab !== "sets"}
+            className="flex flex-col gap-3"
+          >
+            {sets.length > 0 ? (
+              sets.map((set) => <SetCard key={set.name} set={set} />)
+            ) : (
+              <p className="text-sm text-neutral-500">추천 세트 정보 없음</p>
+            )}
+          </div>
 
-          {tab === "usage" && usage && (
-            <div className="flex flex-col gap-5">
-              <TopList data={usage.moves} label="주요 기술" />
-              <TopList data={usage.items} label="주요 아이템" />
-              <TopList data={usage.abilities} label="주요 특성" />
-              {usage.teraTypes && (
-                <TopList data={usage.teraTypes} label="테라스탈 타입" />
-              )}
+          <div
+            id={`${baseId}-panel-usage`}
+            role="tabpanel"
+            aria-labelledby={`${baseId}-tab-usage`}
+            hidden={tab !== "usage"}
+            className="flex flex-col gap-5"
+          >
+            {usage ? (
+              <>
+                <TopList data={usage.moves} label="주요 기술" />
+                <TopList data={usage.items} label="주요 아이템" />
+                <TopList data={usage.abilities} label="주요 특성" />
+                {usage.teraTypes && (
+                  <TopList data={usage.teraTypes} label="테라스탈 타입" />
+                )}
+                <div>
+                  <h3 className="mb-2 text-sm font-bold text-neutral-600 dark:text-neutral-300">
+                    주요 EV 스프레드
+                  </h3>
+                  <div className="flex flex-col gap-1">
+                    {Object.entries(usage.spreads)
+                      .sort((a, b) => b[1] - a[1])
+                      .slice(0, 3)
+                      .map(([spread, pct]) => {
+                        const { nature, evs } = parseSpread(spread);
+                        return (
+                          <div key={spread} className="text-xs">
+                            <span translate="no" className="font-semibold">{nature}</span>
+                            <span className="ml-2 text-neutral-500">{evs}</span>
+                            <span className="ml-2 font-semibold tabular-nums text-blue-600">
+                              {pct.toFixed(1)}%
+                            </span>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-neutral-500">{NO_USAGE_MESSAGE}</p>
+            )}
+          </div>
+
+          <div
+            id={`${baseId}-panel-teammates`}
+            role="tabpanel"
+            aria-labelledby={`${baseId}-tab-teammates`}
+            hidden={tab !== "teammates"}
+          >
+            {usage ? (
+              <TopList data={usage.teammates} label="같이 자주 쓰는 포켓몬" />
+            ) : (
+              <p className="text-sm text-neutral-500">{NO_USAGE_MESSAGE}</p>
+            )}
+          </div>
+
+          <div
+            id={`${baseId}-panel-counters`}
+            role="tabpanel"
+            aria-labelledby={`${baseId}-tab-counters`}
+            hidden={tab !== "counters"}
+          >
+            {usage ? (
               <div>
-                <h4 className="mb-2 text-sm font-bold text-neutral-600 dark:text-neutral-300">
-                  주요 EV 스프레드
-                </h4>
-                <div className="flex flex-col gap-1">
-                  {Object.entries(usage.spreads)
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, 3)
-                    .map(([spread, pct]) => {
-                      const { nature, evs } = parseSpread(spread);
-                      return (
-                        <div key={spread} className="text-xs">
-                          <span className="font-semibold">{nature}</span>
-                          <span className="ml-2 text-neutral-500">{evs}</span>
-                          <span className="ml-2 font-semibold text-blue-600">
-                            {pct.toFixed(1)}%
-                          </span>
+                <h3 className="mb-2 text-sm font-bold text-neutral-600 dark:text-neutral-300">
+                  카운터 포켓몬
+                </h3>
+                <div className="flex flex-col gap-2">
+                  {Object.entries(usage.counters)
+                    .sort((a, b) => b[1][0] - a[1][0])
+                    .slice(0, 5)
+                    .map(([name, [score]]) => (
+                      <div key={name} className="flex items-center gap-2">
+                        <div className="flex-1 overflow-hidden rounded-none bg-neutral-300 dark:bg-neutral-600">
+                          <div
+                            className="h-2 rounded-none bg-red-500"
+                            style={{ width: `${Math.min((score / 100) * 100, 100)}%` }}
+                          />
                         </div>
-                      );
-                    })}
+                        <span translate="no" className="w-32 truncate text-xs text-neutral-700 dark:text-neutral-300">
+                          {name}
+                        </span>
+                        <span className="w-10 text-right text-xs font-semibold tabular-nums">
+                          {score.toFixed(0)}
+                        </span>
+                      </div>
+                    ))}
                 </div>
               </div>
-            </div>
-          )}
-
-          {tab === "teammates" && usage && (
-            <TopList data={usage.teammates} label="같이 자주 쓰는 포켓몬" />
-          )}
-
-          {tab === "counters" && usage && (
-            <div>
-              <h4 className="mb-2 text-sm font-bold text-neutral-600 dark:text-neutral-300">
-                카운터 포켓몬
-              </h4>
-              <div className="flex flex-col gap-2">
-                {Object.entries(usage.counters)
-                  .sort((a, b) => b[1][0] - a[1][0])
-                  .slice(0, 5)
-                  .map(([name, [score]]) => (
-                    <div key={name} className="flex items-center gap-2">
-                      <div className="flex-1 overflow-hidden rounded-full bg-neutral-300 dark:bg-neutral-600">
-                        <div
-                          className="h-2 rounded-full bg-red-500"
-                          style={{ width: `${Math.min((score / 100) * 100, 100)}%` }}
-                        />
-                      </div>
-                      <span className="w-32 truncate text-xs text-neutral-700 dark:text-neutral-300">
-                        {name}
-                      </span>
-                      <span className="w-10 text-right text-xs font-semibold">
-                        {score.toFixed(0)}
-                      </span>
-                    </div>
-                  ))}
-              </div>
-            </div>
-          )}
+            ) : (
+              <p className="text-sm text-neutral-500">{NO_USAGE_MESSAGE}</p>
+            )}
+          </div>
         </>
       )}
     </PixelCard>
