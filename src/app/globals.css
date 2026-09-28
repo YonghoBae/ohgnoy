@@ -12,8 +12,8 @@
   --color-border:        192 200 216;
   --color-text:           46  52  64;   /* nord0  #2E3440 */
   --color-text-muted:     76  86 106;   /* nord3  #4C566A */
-  --color-primary:        94 129 172;   /* nord10 #5E81AC */
-  --color-primary-hover: 129 161 193;   /* nord9  #81A1C1 */
+  --color-primary:        74 109 151;   /* #4A6D97: white 5.35:1, on #ECEFF4 4.64:1 */
+  --color-primary-hover:  63  95 135;   /* #3F5F87: white 6.57:1 */
   --color-on-primary:    255 255 255;   /* text on primary fills */
   --popover:             236 239 244;
   --popover-foreground:   46  52  64;
