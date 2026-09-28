@@ -78,3 +78,17 @@ Smogon 데이터를 찾는데, Smogon 키는 `Great Tusk`다. `getPokemonUsage`�
 → usage와 세트 4개). 폼 이름(`landorus-therian` ↔ `Landorus-Therian`)처럼
 하이픈이 원래 있는 경우는 맞는다. 이름 변환 규칙은 포켓몬 백엔드 API로 옮길 때
 그쪽에서 정하는 편이 낫다(2026-09-28 발견).
+
+## /pokemon/list 검색은 영어 이름만 찾는다
+
+목록 검색(`usePokemonSearch`)은 PokeAPI 영어 slug를 `startsWith`로만 맞춘다. 그래서
+"피카츄"로는 찾을 수 없고, 검색창 안내 문구도 영어 예시("예: pikachu")로 바꿔 두었다.
+빌더의 포켓몬 선택(`PokemonPicker`)은 `/api/pokemon/ko-names` 인덱스로 한국어 검색을
+하므로, 같은 인덱스를 목록 검색에도 쓰면 된다(2026-09-29 기록).
+
+## 회원가입 인증번호를 브라우저에서 비교한다
+
+`POST /users/email` 응답의 `data`에 인증번호가 그대로 들어오고,
+`/auth/regist`가 사용자가 입력한 값과 브라우저에서 비교한다. 개발자 도구로 번호를 볼 수
+있다. 백엔드에 "번호 확인" 엔드포인트를 만들고 응답에서 번호를 빼야 고칠 수 있다
+(2026-09-29 기록).
