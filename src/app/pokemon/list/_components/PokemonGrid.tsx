@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 
 import PokemonCard from "./PokemonCard";
 import GenerationFilter from "./GenerationFilter";
+import CompareTray from "./CompareTray";
+import useCompare from "@/lib/pokemon/hooks/useCompare";
 import usePokemonSearch from "@/lib/pokemon/hooks/usePokemonSearch";
 import { UserInfo } from "@/interfaces/user";
 import { userInfo } from "@/lib/user/token";
@@ -34,6 +36,8 @@ export default function PokemonGrid({
   const [isPending, startTransition] = useTransition();
 
   const { searchResults, search, clearSearch } = usePokemonSearch(allNames);
+  const { compare } = useCompare();
+  const trayOpen = Boolean(compare.mon_1 || compare.mon_2);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -95,8 +99,11 @@ export default function PokemonGrid({
   const isSearchActive = query.trim().length > 0;
   const displayPokemons = isSearchActive ? Array.from(searchResults.values()) : pokemons;
 
+  // The tray is a sibling, not a child: backdrop-blur makes this div the
+  // containing block for position: fixed descendants.
   return (
-    <div className="-mx-5 flex flex-col border-x border-border bg-surface-2/20 backdrop-blur-sm">
+    <>
+    <div className={`-mx-5 flex flex-col border-x border-border bg-surface-2/20 backdrop-blur-sm${trayOpen ? " pb-40" : ""}`}>
       <h1 className="px-4 pt-4 text-2xl font-extrabold">포켓몬 도감</h1>
       <div className="sticky top-[var(--header-h)] z-40 bg-[#ECEFF4]/90 dark:bg-[#2E3440]/90 backdrop-blur-sm py-3 px-4">
         <div className="relative flex w-full flex-row rounded-none border-2 border-text-base sm:w-2/3 sm:mx-auto">
@@ -143,5 +150,7 @@ export default function PokemonGrid({
         </div>
       )}
     </div>
+    <CompareTray koNames={koNames} />
+    </>
   );
 }

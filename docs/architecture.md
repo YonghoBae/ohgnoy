@@ -6,7 +6,7 @@ Personal site/portfolio built on Next.js App Router. Started from the Next.js bl
 
 - **Framework**: Next.js (App Router), React 18, TypeScript.
 - **Styling**: Tailwind CSS v3 with Nord-palette CSS custom properties (`src/app/globals.css`) driving light/dark mode via a `.dark` class toggle (`src/app/_components/theme-switcher.tsx`). A few pages that intentionally break from the site-wide theme use plain CSS Modules instead (`markdown-styles.module.css`, `switch.module.css`, `pokedex-home.module.css` — see below).
-- **State**: Zustand, but only for one store — `src/app/_components/compareMons.tsx` (the pokemon-compare feature). Don't assume Zustand is used broadly; most pages just use local `useState`/server data.
+- **State**: Zustand, but only for one store — `src/app/_components/compareMons.tsx` (the pokemon-compare feature: card toggles fill two slots, `CompareTray` on `/pokemon/list` shows them and links to `/pokemon/compare?a={id}&b={id}`, a server page that refetches both by id — the store is not read there). Don't assume Zustand is used broadly; most pages just use local `useState`/server data.
 - **Auth**: `next-auth` is a dependency but is **not actually wired up** — it's referenced only as a type import in `src/interfaces/pokemon.ts`. Real auth is a custom flow: a token in `localStorage`, checked manually per-page (e.g. `PokemonGrid` redirects to `/auth/login` if no token is present). Don't assume `next-auth` session APIs work anywhere in this codebase.
 - **Chat**: STOMP over SockJS (`@stomp/stompjs` + `sockjs-client`, see `src/lib/socket.ts`, `src/app/_components/ChatWidget.tsx`, `src/app/chat/user/page.tsx`) is the real, live transport. `socket.io-client` is in `package.json` but is **dead — not imported anywhere in `src/`**, a leftover from before the STOMP migration.
 - **Pokémon data**: `pokenode-ts` wraps PokeAPI. Fetchers live in `src/lib/pokemon/fetchers/` (pokemon, species, generation, evolution chain, move), shaped by `src/lib/pokemon/transformers/` (`toPokemonDetail.ts`, `toEvolutionChain.ts`, `toMoveList.ts`) into the domain types in `src/types/pokemon/domain.ts`. Korean name/flavor-text extraction lives in `src/lib/pokemon/i18n.ts`. Sprite URL resolution (prefer the small pixel sprite, fall back to official artwork) is centralized in `src/lib/pokemon/spriteUrl.ts` — always use `getPixelSpriteUrl()`/`PixelSprite` rather than reading `pokemon.sprites.*` directly in a component.
@@ -29,7 +29,8 @@ src/
                            pokemon/ko-names, users/[userId]/likedMons
     auth/                  login, regist (register), forgot — custom localStorage-token auth
     chat/                  user, bot — STOMP/SockJS chat UI
-    pokemon/               list, [id] (detail), builder (team builder), meta (usage stats)
+    pokemon/               list, [id] (detail), builder (team builder), meta (usage stats),
+                           compare (?a=&b= side-by-side; fed by the list's CompareTray)
     posts/                 create, [slug] — blog-starter leftover, see known-issues.md
     studys/                list, create, [slug] — "study notes"; currently backed by the
                            same demo _posts data as posts/, see known-issues.md
