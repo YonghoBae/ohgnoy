@@ -133,8 +133,20 @@ export default function TeamBuilder({ allNames }: { allNames: string[] }) {
 
   const openPicker = (slotIndex: number) => setPickerSlot(slotIndex);
 
+  // 되돌리기 스냅샷/확인 프롬프트는 "비우기" 이후 팀이 그대로일 때만 유효함 —
+  // 되돌리기 자체가 아닌 다른 팀 변경이 생기면 무효화한다.
+  const invalidatePendingClear = () => {
+    if (undoTimerRef.current) {
+      clearTimeout(undoTimerRef.current);
+      undoTimerRef.current = null;
+    }
+    setUndoTeam(null);
+    setConfirmingClear(false);
+  };
+
   const handleSelect = (member: TeamMember) => {
     if (pickerSlot === null) return;
+    invalidatePendingClear();
     setTeam((prev) => {
       const next = [...prev];
       next[pickerSlot] = member;
@@ -144,6 +156,7 @@ export default function TeamBuilder({ allNames }: { allNames: string[] }) {
   };
 
   const handleRemove = (index: number) => {
+    invalidatePendingClear();
     setTeam((prev) => {
       const next = [...prev];
       next[index] = null;
@@ -152,6 +165,7 @@ export default function TeamBuilder({ allNames }: { allNames: string[] }) {
   };
 
   const handleSetChange = (index: number, set: BattleSet | null) => {
+    invalidatePendingClear();
     setTeam((prev) => {
       const next = [...prev];
       const member = next[index];
