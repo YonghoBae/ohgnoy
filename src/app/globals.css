@@ -4,6 +4,7 @@
 
 /* Nord Design Tokens */
 :root {
+  color-scheme: light;
   --header-h: 56px;
   --color-bg:            236 239 244;   /* nord6  #ECEFF4 */
   --color-surface:       229 233 240;   /* nord5  #E5E9F0 */
@@ -23,6 +24,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --color-bg:             46  52  64;   /* nord0  #2E3440 */
   --color-surface:        59  66  82;   /* nord1  #3B4252 */
   --color-surface-2:      67  76  94;   /* nord2  #434C5E */

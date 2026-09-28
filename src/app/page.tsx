@@ -46,8 +46,8 @@ export default function Home() {
         href="https://cdn.jsdelivr.net/gh/neodgm/neodgm-webfont@1.601/neodgm/style.css"
       />
 
-      <section className={styles.panel}>
-        <div className={styles.panelHeader}>TRAINER DATA</div>
+      <section className={styles.panel} aria-labelledby="trainer-data-heading">
+        <h2 id="trainer-data-heading" className={styles.panelHeader}>TRAINER DATA</h2>
         <div className={styles.panelBody}>
           <div className={styles.identityRow}>
             <div className={styles.avatarBox}>
@@ -55,7 +55,7 @@ export default function Home() {
             </div>
             <div>
               <p className={styles.identityNumber}>No. 0001</p>
-              <h1 className={styles.identityName}>OHGNOY</h1>
+              <h1 className={styles.identityName} translate="no">OHGNOY</h1>
               <p className={styles.identityTagline}>개발하며 기록하는 공간</p>
             </div>
           </div>
@@ -64,37 +64,40 @@ export default function Home() {
               href={GITHUB_URL}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="GitHub"
+              aria-label="GitHub (새 탭)"
               className={styles.iconBox}
             >
-              <FaGithub size={16} />
+              <FaGithub size={16} aria-hidden="true" />
             </a>
             <a
               href={DIGITAL_GARDEN_URL}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="디지털가든"
+              aria-label="디지털가든 (새 탭)"
               className={styles.iconBox}
             >
-              <FaExternalLinkAlt size={14} />
+              <FaExternalLinkAlt size={14} aria-hidden="true" />
             </a>
             <a href={`mailto:${EMAIL}`} aria-label="이메일" className={styles.iconBox}>
-              <MdEmail size={16} />
+              <MdEmail size={16} aria-hidden="true" />
             </a>
           </div>
         </div>
       </section>
 
-      <section className={styles.panel}>
-        <div className={styles.panelHeader}>MAIN MENU</div>
+      <section className={styles.panel} aria-labelledby="main-menu-heading">
+        <h2 id="main-menu-heading" className={styles.panelHeader}>MAIN MENU</h2>
         <div className={styles.menuGrid}>
           {sections.map((section, index) => {
             const inner = (
               <>
-                <span className={styles.menuTileIndex}>{String(index + 1).padStart(2, "0")}</span>
-                <span className={styles.menuTileTitle}>{section.title}</span>
+                <span className={styles.menuTileIndex} aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                <span className={styles.menuTileTitle}>
+                  {section.title}
+                  {section.external && <span className="sr-only"> (새 탭)</span>}
+                </span>
                 <span className={styles.menuTileDesc}>{section.description}</span>
-                <span className={styles.menuTileArrow}>▸</span>
+                <span className={styles.menuTileArrow} aria-hidden="true">▸</span>
               </>
             );
 
@@ -119,7 +122,7 @@ export default function Home() {
 
       <div className={styles.dialog}>
         <span>Ohgnoy의 기록 공간에 오신 것을 환영합니다</span>
-        <span className={styles.dialogCursor}>▼</span>
+        <span className={styles.dialogCursor} aria-hidden="true">▼</span>
       </div>
     </>
   );

@@ -31,6 +31,14 @@ export default function EncounterLink({
   const shownAtRef = useRef<number | null>(null);
 
   useEffect(() => {
+    router.prefetch(href);
+  }, [router, href]);
+
+  const handleMouseEnter = () => {
+    router.prefetch(href);
+  };
+
+  useEffect(() => {
     if (isPending) {
       const timer = setTimeout(() => {
         shownAtRef.current = Date.now();
@@ -63,13 +71,19 @@ export default function EncounterLink({
 
   return (
     <>
-      <a href={href} onClick={handleClick} className={className} {...rest}>
+      <a
+        href={href}
+        onClick={handleClick}
+        onMouseEnter={handleMouseEnter}
+        className={className}
+        {...rest}
+      >
         {children}
       </a>
       {showOverlay && (
         <div className={styles.encounterOverlay} aria-hidden="true">
           <span className={styles.encounterText}>
-            <span className={styles.dialogCursor}>▶</span> 이동 중
+            <span className={styles.dialogCursor}>▶</span> 이동 중…
           </span>
         </div>
       )}

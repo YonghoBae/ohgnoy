@@ -13,6 +13,7 @@ interface PixelSpriteProps {
   fill?: boolean;
   priority?: boolean;
   className?: string;
+  sizes?: string;
 }
 
 export default function PixelSprite({
@@ -23,6 +24,7 @@ export default function PixelSprite({
   fill = false,
   priority,
   className,
+  sizes = `${size}px`,
 }: PixelSpriteProps) {
   const src = spriteUrl ?? (pokemon ? getPixelSpriteUrl(pokemon) : "");
   if (!src) return null;
@@ -33,6 +35,7 @@ export default function PixelSprite({
         src={src}
         alt={alt}
         fill
+        sizes={sizes}
         priority={priority}
         style={{ imageRendering: "pixelated" }}
         className={cn("object-contain", className)}

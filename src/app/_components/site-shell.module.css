@@ -171,6 +171,9 @@
 }
 
 .subNavItem {
+  display: flex;
+  align-items: center;
+  min-height: 24px;
   padding: 4px 8px;
   font-size: 12px;
   color: var(--px-text-muted);
@@ -240,7 +243,7 @@
   justify-content: center;
   background: var(--px-panel-2);
   opacity: 1;
-  transition: opacity 300ms linear;
+  transition: opacity 200ms linear;
 }
 
 .bootOverlayFading {
@@ -277,14 +280,16 @@
 
 .bootBarFill {
   height: 100%;
-  width: 0%;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left;
   background: var(--px-border);
   animation: bootFill 500ms steps(10) forwards;
 }
 
 @keyframes bootFill {
   to {
-    width: 100%;
+    transform: scaleX(1);
   }
 }
 
