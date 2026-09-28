@@ -20,7 +20,7 @@
 .shellGrid {
   composes: pixelFrame pixelPanelBg from "./ui/pixel/pixel-theme.module.css";
   display: grid;
-  grid-template-columns: 176px 1fr;
+  grid-template-columns: 176px minmax(0, 1fr);
   min-height: calc(100dvh - 20px);
   color: var(--px-text);
   font-family: "IBM Plex Mono", "Pretendard", monospace;
@@ -28,13 +28,13 @@
 
 @media (max-width: 900px) {
   .shellGrid {
-    grid-template-columns: 140px 1fr;
+    grid-template-columns: 140px minmax(0, 1fr);
   }
 }
 
 @media (max-width: 640px) {
   .shellGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -66,7 +66,8 @@
   cursor: url("/frames/cursor-pikachu-click.png") 1 1, pointer;
 }
 
-.menuToggle:hover {
+.menuToggle:hover,
+.menuToggle:focus-visible {
   background: var(--px-active);
 }
 

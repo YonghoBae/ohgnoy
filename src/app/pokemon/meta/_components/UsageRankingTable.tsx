@@ -53,7 +53,7 @@ async function RankRow({
           ))}
         </div>
       </div>
-      <div className="flex w-32 flex-shrink-0 flex-col gap-1">
+      <div className="flex w-16 flex-shrink-0 flex-col gap-1 sm:w-32">
         <div className="overflow-hidden rounded-full bg-neutral-300 dark:bg-neutral-600">
           <div
             className="h-2 rounded-full bg-blue-500"

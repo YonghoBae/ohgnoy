@@ -103,7 +103,16 @@ export default function SiteShell({ children }: { children: ReactNode }) {
             id="site-nav-panel"
             className={`${styles.navPanel} ${menuOpen ? styles.navPanelOpen : ""}`}
           >
-            <nav className={styles.nav} aria-label="주요 메뉴">
+            {/* Other links close the panel via the route change; the current
+                page's own link doesn't change the route, so close it here. */}
+            <nav
+              className={styles.nav}
+              aria-label="주요 메뉴"
+              onClick={(e) => {
+                const link = (e.target as HTMLElement).closest("a");
+                if (link && link.pathname === pathname) setMenuOpen(false);
+              }}
+            >
               {NAV_ITEMS.map((item) => {
                 const Icon = item.icon;
                 const active = item.matchPrefix ? pathname.startsWith(item.matchPrefix) : false;
@@ -115,7 +124,7 @@ export default function SiteShell({ children }: { children: ReactNode }) {
                     {item.external && <span className="sr-only"> (새 탭)</span>}
                   </>
                 );
-  
+
                 if (item.external) {
                   return (
                     <a
@@ -129,10 +138,10 @@ export default function SiteShell({ children }: { children: ReactNode }) {
                     </a>
                   );
                 }
-  
+
                 const isExactHref = pathname === item.href;
                 const parentAriaCurrent = active ? (isExactHref ? "page" : "true") : undefined;
-  
+
                 return (
                   <div key={item.href}>
                     <EncounterLink
@@ -162,7 +171,7 @@ export default function SiteShell({ children }: { children: ReactNode }) {
                 );
               })}
             </nav>
-  
+
             <div className={styles.iconRow}>
               <a
                 href={GITHUB_URL}
