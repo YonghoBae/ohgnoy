@@ -37,7 +37,7 @@ export default function TypeCoverage({ teamTypes }: { teamTypes: PokemonTypeName
               className={`flex items-center gap-1 rounded-none p-0.5 ${danger}`}
             >
               <TypeBadge type={type} size="sm" />
-              <span className="rounded-none bg-black bg-opacity-20 px-1.5 text-xs font-bold text-white">
+              <span className="rounded-none bg-text-base px-1.5 text-xs font-bold text-surface">
                 {count}
               </span>
             </div>

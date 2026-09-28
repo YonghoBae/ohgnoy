@@ -120,7 +120,7 @@ export default function PokemonGrid({
             type="search"
             autoComplete="off"
             spellCheck={false}
-            placeholder="포켓몬 이름으로 검색 (예: 피카츄)…"
+            placeholder="포켓몬 영어 이름으로 검색 (예: pikachu)…"
           />
           <GenerationFilter
             generations={generations}

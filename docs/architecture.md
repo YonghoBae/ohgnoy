@@ -39,6 +39,7 @@ src/
     page.tsx               home — the pixel Pokédex screen, see docs/design/pixel-pokedex-home.md
     layout.tsx             root layout: renders `<SiteShell>{children}</SiteShell>` (persistent
                            left sidebar + main content slot) plus the floating ChatWidget
+                           (which renders nothing on /chat/*)
     globals.css            Nord theme tokens + the shell-escape-hatch CSS rules
   lib/
     api.ts, api/            blog-starter post fetching (post.ts), user API
@@ -56,7 +57,7 @@ src/
 
 ## Shell escape hatch (opting a page out of the sidebar shell)
 
-`layout.tsx` renders `<SiteShell>{children}</SiteShell>` — a persistent left sidebar (nav, socials, theme switcher, partner sprite) plus a `<main>` content slot — around every route's page content, in addition to the floating `ChatWidget`. This replaced the old header/footer/Container chrome; `Intro`, `Footer`, `Container`, and `PokemonDropdown` no longer exist in the codebase.
+`layout.tsx` renders `<SiteShell>{children}</SiteShell>` — a persistent left sidebar (nav, socials, theme switcher, partner sprite) plus a `<main>` content slot — around every route's page content, in addition to the floating `ChatWidget` (not mounted on `/chat/*`, which has its own chat UI — `ChatWidget` returns `null` there). This replaced the old header/footer/Container chrome; `Intro`, `Footer`, `Container`, and `PokemonDropdown` no longer exist in the codebase.
 
 Two route groups keep their own standalone, full-bleed layouts instead of the sidebar shell:
 
@@ -470,4 +471,4 @@ The home page (`src/app/page.tsx`) does NOT opt out — it renders inside `SiteS
 ## Design docs
 
 - `docs/design/pixel-pokedex-home.md` — the home page's dedicated dark pixel-art design system (colors, the border-image pixel-frame technique, typography rules). Read this before touching `src/app/page.tsx` or `pokedex-home.module.css`.
-- `docs/known-issues.md` — things discovered to be broken/incomplete that aren't fixed yet; check before building on top of `_posts`, `/studys`, or `pokemonCard.tsx`.
+- `docs/known-issues.md` — things discovered to be broken/incomplete that aren't fixed yet; check before building on top of `_posts` or `/studys`.

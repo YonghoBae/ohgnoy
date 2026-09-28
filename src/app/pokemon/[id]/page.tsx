@@ -23,7 +23,9 @@ export default async function PokemonDetailPage({ params }: Props) {
 
   try {
     const pokemon = await fetchPokemon(idOrName);
-    const species = await fetchSpecies(pokemon.id);
+    // Form Pokémon (e.g. 10034) have no species of their own; use species.url.
+    const speciesId = Number(pokemon.species.url.match(/\/(\d+)\/?$/)?.[1]);
+    const species = await fetchSpecies(speciesId);
 
     const evolutionChainId = extractEvolutionChainId(species.evolution_chain.url);
     const moveInfoList = extractMoveIdsWithLearnInfo(pokemon);

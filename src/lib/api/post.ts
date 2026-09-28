@@ -2,9 +2,7 @@ import { apiClient } from './client';
 
 type CreatePostResponse = {
   postId?: number;
-  title?: string;
-  excerpt?: string;
-  code?: string;
+  code?: number;
   message?: string;
 };
 

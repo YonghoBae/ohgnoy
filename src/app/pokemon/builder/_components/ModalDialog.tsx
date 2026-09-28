@@ -21,8 +21,10 @@ export default function ModalDialog({
 
   useEffect(() => {
     const dialog = ref.current;
-    dialog?.showModal();
-    return () => dialog?.close();
+    // No close() on cleanup: StrictMode's mount→cleanup→mount would queue a
+    // `close` event that fires onClose right after opening. Unmounting removes
+    // the element (and its top-layer entry) without firing `close`.
+    if (dialog && !dialog.open) dialog.showModal();
   }, []);
 
   return (

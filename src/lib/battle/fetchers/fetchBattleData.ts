@@ -25,16 +25,18 @@ export async function fetchUsageRanking(
   month: string = getLatestMonth(),
   limit = 50
 ): Promise<UsageRankEntry[] | null> {
+  // ?month= can arrive as "" (the 최신 button); defaults only cover undefined.
+  const m = month || getLatestMonth();
   const cutoff = cutoffFor(format);
   try {
     return await unstable_cache(
       async () =>
-        getUsageRanking(await loadUsageStats(format, month, cutoff), limit),
-      [`usage-ranking-${format}-${month}-${cutoff}-${limit}`],
+        getUsageRanking(await loadUsageStats(format, m, cutoff), limit),
+      [`usage-ranking-${format}-${m}-${cutoff}-${limit}`],
       { revalidate: false }
     )();
   } catch (e) {
-    console.error(`[battle] usage ranking ${format} ${month} failed:`, e);
+    console.error(`[battle] usage ranking ${format} ${m} failed:`, e);
     return null;
   }
 }
@@ -44,22 +46,23 @@ export async function fetchPokemonBattleData(
   format: string,
   month: string = getLatestMonth()
 ): Promise<PokemonBattleData> {
+  const m = month || getLatestMonth();
   const cutoff = cutoffFor(format);
   const [usage, setsMap] = await Promise.all([
     unstable_cache(
       async () =>
-        getPokemonUsage(await loadUsageStats(format, month, cutoff), name),
-      [`usage-pokemon-${format}-${month}-${cutoff}-${name.toLowerCase()}`],
+        getPokemonUsage(await loadUsageStats(format, m, cutoff), name),
+      [`usage-pokemon-${format}-${m}-${cutoff}-${name.toLowerCase()}`],
       { revalidate: false }
     )().catch((e) => {
-      console.error(`[battle] usage for ${name} ${format} ${month} failed:`, e);
+      console.error(`[battle] usage for ${name} ${format} ${m} failed:`, e);
       return null;
     }),
     fetchSets(format),
   ]);
   return {
     format,
-    month,
+    month: m,
     usage,
     sets: setsMap ? getPokemonSets(setsMap, name) : [],
   };

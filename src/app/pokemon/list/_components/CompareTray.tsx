@@ -92,9 +92,7 @@ export default function CompareTray({
                 비교하기
               </Link>
             ) : (
-              <a
-                role="link"
-                aria-disabled="true"
+              <span
                 className={cn(
                   ACTION_CLASS,
                   styles.pixelPanelBg,
@@ -102,7 +100,7 @@ export default function CompareTray({
                 )}
               >
                 비교하기
-              </a>
+              </span>
             )}
           </div>
         </PixelCard>

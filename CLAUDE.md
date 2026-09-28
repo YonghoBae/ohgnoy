@@ -55,7 +55,7 @@ point at a deployed backend. All backend calls should go through `apiClient`
 ## Layout shell
 
 `app/layout.tsx` wraps every route in `<SiteShell>` (persistent left sidebar +
-`<main>` slot) plus a floating `ChatWidget`. A page opts out by giving its root a
+`<main>` slot) plus a floating `ChatWidget` (skipped on `/chat/*`). A page opts out by giving its root a
 unique `id` and adding `body:has(#that-id)` rules in `globals.css` that hide the
 shell chrome — that is how `/auth/*` and `/portfolio*` get full-bleed layouts.
 Follow that pattern; don't invent a second mechanism.
