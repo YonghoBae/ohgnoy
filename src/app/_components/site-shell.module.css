@@ -152,6 +152,17 @@
   animation: pixelBlink 900ms steps(1) infinite;
 }
 
+/* The cursor is only visible via the blink, so a clamped animation would
+   hide the active-item marker. Show it steady instead. */
+@media (prefers-reduced-motion: reduce) {
+  .navItem:hover .navCursor,
+  .navItem:focus-visible .navCursor,
+  .navItemActive .navCursor {
+    animation: none;
+    opacity: 1;
+  }
+}
+
 .subNav {
   display: flex;
   flex-direction: column;

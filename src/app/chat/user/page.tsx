@@ -108,7 +108,7 @@ const Chat = () => {
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
       buttonRef.current?.click();
     }
   };
@@ -172,7 +172,7 @@ const Chat = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="w-full pl-3 pr-1 py-1 rounded-3xl border border-border bg-surface items-center gap-2 flex flex-wrap justify-between mt-4 pb-4">
+      <div className="w-full pl-3 pr-1 py-1 rounded-3xl border border-border bg-surface has-[input:focus-visible]:outline has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-text-base items-center gap-2 flex flex-wrap justify-between mt-4 pb-4">
         <div className="flex items-center gap-2 flex-grow">
           <input
             aria-label="메시지 입력"

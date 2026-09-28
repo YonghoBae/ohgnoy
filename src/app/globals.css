@@ -38,6 +38,27 @@
   --muted-foreground:    216 222 233;
 }
 
+/* Site-wide keyboard focus ring. --color-text keeps ≥9:1 on every panel
+   background in both themes (primary drops under 3:1 on the light pixel bg).
+   In the base layer so component utilities and module rules still win. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid rgb(var(--color-text));
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 @media print {
   body {
     background: #fff !important;

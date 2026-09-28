@@ -163,7 +163,7 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="이름으로 검색 (예: 이상해씨, garchomp)"
-              className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2 text-sm outline-none focus:border-blue-400 dark:border-neutral-600 dark:bg-neutral-700"
+              className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2 text-sm focus:border-blue-400 dark:border-neutral-600 dark:bg-neutral-700"
             />
             {koIndexLoading && (
               <p className="text-center text-xs text-neutral-500">한국어 이름 인덱스 로딩 중...</p>

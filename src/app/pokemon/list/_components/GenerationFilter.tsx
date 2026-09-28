@@ -21,7 +21,7 @@ export default function GenerationFilter({ generations, current, onChange }: Pro
       onValueChange={(value) => onChange(generations.indexOf(value) + 1)}
       value={generations[current - 1]}
     >
-      <SelectTrigger className="absolute right-0 w-auto border-0 outline-none ring-0" />
+      <SelectTrigger className="absolute right-0 w-auto border-0" />
       <SelectContent align="center">
         {generations.map((gen) => (
           <SelectItem

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { motion } from 'motion/react';
+import { MotionConfig, motion } from 'motion/react';
 import { 
   XIcon, 
   DownloadIcon, 
@@ -287,7 +287,7 @@ function ProjectCard({ project }: { project: (typeof PROJECTS)[number] }) {
 
 // --- 메인 컴포넌트 ---
 
-export default function Personal() {
+function Personal() {
   return (
     <motion.div
       id="portfolio-shell-root"
@@ -456,5 +456,14 @@ export default function Personal() {
         </div>
       </motion.section>
     </motion.div>
+  );
+}
+
+// Honor the OS reduced-motion setting for every motion component on the page.
+export default function PortfolioPage() {
+  return (
+    <MotionConfig reducedMotion="user">
+      <Personal />
+    </MotionConfig>
   );
 }

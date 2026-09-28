@@ -208,7 +208,9 @@ export default function ChatWidget() {
               ref={inputRef}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              onKeyDown={(e) =>
+                e.key === "Enter" && !e.nativeEvent.isComposing && sendMessage()
+              }
               placeholder="메시지 입력..."
               aria-label="메시지 입력"
               className="flex-1 rounded-full bg-surface px-3 py-1.5 text-sm text-text-base placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary"

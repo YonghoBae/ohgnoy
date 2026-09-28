@@ -78,7 +78,7 @@ export default function TeamExport({
         <textarea
           readOnly
           value={exportText}
-          className="h-72 rounded-xl bg-neutral-100 p-4 font-mono text-xs outline-none dark:bg-neutral-700"
+          className="h-72 rounded-xl bg-neutral-100 p-4 font-mono text-xs dark:bg-neutral-700"
         />
         <div className="flex gap-3">
           <button
