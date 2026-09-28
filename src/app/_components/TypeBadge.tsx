@@ -1,7 +1,10 @@
 import localFont from "next/font/local";
 import { PokemonTypeName } from "@/types/pokemon/domain";
 
-const TYPE_KO: Record<PokemonTypeName, string> = {
+// Stellar is a tera type only, so it stays out of PokemonTypeName (type chart keys).
+type BadgeType = PokemonTypeName | "stellar";
+
+const TYPE_KO: Record<BadgeType, string> = {
   normal:   "노말",
   fire:     "불꽃",
   water:    "물",
@@ -20,10 +23,11 @@ const TYPE_KO: Record<PokemonTypeName, string> = {
   dark:     "악",
   steel:    "강철",
   fairy:    "페어리",
+  stellar:  "스텔라",
 };
 
 // Real Pokémon type colors — keep as-is (docs/design/pixel-theme-unification.md).
-const TYPE_COLORS: Record<PokemonTypeName, string> = {
+const TYPE_COLORS: Record<BadgeType, string> = {
   normal:   "#A8A878",
   fire:     "#F08030",
   water:    "#6890F0",
@@ -42,11 +46,17 @@ const TYPE_COLORS: Record<PokemonTypeName, string> = {
   dark:     "#705848",
   steel:    "#B8B8D0",
   fairy:    "#EE99AC",
+  stellar:  "#7038F8", // border base; the fill is STELLAR_BG
 };
 
+// Hard-stop stripes of type colors, each 3.07–5.82:1 against the white text.
+const STELLAR_BG =
+  "linear-gradient(90deg, #C03028 0 25%, #F85888 25% 50%, #7038F8 50% 75%, #6890F0 75%)";
+
 // Galmuri (OFL) at its native pixel sizes: Galmuri9 is drawn for 10px,
-// Galmuri11 for 12px. ponytail: subset to the 18 type names only (~1.6KB each
-// vs 430KB/167KB full); re-run pyftsubset with more --text if reused elsewhere.
+// Galmuri11 for 12px. ponytail: subset to the 18 type names + 스텔라 only
+// (~1.7KB each vs 430KB/167KB full); re-run pyftsubset with more --text if
+// reused elsewhere.
 const galmuri9 = localFont({
   src: "./fonts/galmuri9-types.woff2",
   display: "swap",
@@ -63,7 +73,7 @@ export default function TypeBadge({
   type,
   size = "md",
 }: {
-  type: PokemonTypeName;
+  type: BadgeType;
   size?: "sm" | "md";
 }) {
   const sizeClass =
@@ -75,7 +85,7 @@ export default function TypeBadge({
     <span
       className={`rounded-none border text-white [text-shadow:1px_0_0_#525252,0_1px_0_#525252,1px_1px_0_#525252] ${sizeClass}`}
       style={{
-        backgroundColor: color,
+        background: type === "stellar" ? STELLAR_BG : color,
         borderColor: `color-mix(in srgb, ${color} 45%, #000)`,
       }}
     >

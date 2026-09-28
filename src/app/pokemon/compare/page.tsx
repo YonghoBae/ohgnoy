@@ -18,14 +18,16 @@ interface Props {
 interface Side {
   pokemon: Pokemon;
   name: string;
+  /** Species id: 6 for charizard-mega-x (pokemon.id 10034). */
+  dexNumber: number;
 }
 
 const STATS = [
   ["hp", "HP"],
   ["attack", "공격"],
   ["defense", "방어"],
-  ["special-attack", "특수공격"],
-  ["special-defense", "특수방어"],
+  ["special-attack", "특공"],
+  ["special-defense", "특방"],
   ["speed", "스피드"],
 ] as const;
 
@@ -52,9 +54,10 @@ async function loadSide(id: number): Promise<Side | null> {
   const speciesId = Number(pokemon.species.url.match(/\/(\d+)\/?$/)?.[1]);
   try {
     const species = await fetchSpecies(speciesId);
-    return { pokemon, name: (await getPokemonNames(pokemon, species)).ko };
+    const { ko } = await getPokemonNames(pokemon, species);
+    return { pokemon, name: ko, dexNumber: speciesId };
   } catch {
-    return { pokemon, name: pokemon.name };
+    return { pokemon, name: pokemon.name, dexNumber: speciesId };
   }
 }
 
@@ -134,7 +137,7 @@ function Bar({ value, alignEnd }: { value: number; alignEnd?: boolean }) {
 }
 
 function SideCard({ side }: { side: Side }) {
-  const { pokemon, name } = side;
+  const { pokemon, name, dexNumber } = side;
   return (
     <PixelCard className="flex flex-col items-center gap-3 p-5">
       <Link
@@ -143,7 +146,7 @@ function SideCard({ side }: { side: Side }) {
       >
         <PixelSprite pokemon={pokemon} alt="" size={120} priority />
         <span className="text-xs tabular-nums text-text-muted">
-          No.{pokemon.id}
+          #{String(dexNumber).padStart(4, "0")}
         </span>
         <h2 className="font-mono-pixel text-lg font-bold">{name}</h2>
       </Link>

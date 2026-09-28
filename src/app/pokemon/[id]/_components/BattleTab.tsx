@@ -30,10 +30,10 @@ function parseSpread(spread: string): { nature: string; evs: string } {
 
 type Labels = PokemonBattleData["labels"];
 
-// 18타입은 배지로, 그 밖(스텔라 등)은 한국어 글자로.
+// 18타입과 스텔라는 배지로, 그 밖은 한국어 글자로.
 function TeraType({ type, labels }: { type: string; labels: Labels }) {
-  const t = type.toLowerCase() as PokemonTypeName;
-  return ALL_TYPES.includes(t) ? (
+  const t = type.toLowerCase() as PokemonTypeName | "stellar";
+  return t === "stellar" || ALL_TYPES.includes(t) ? (
     <TypeBadge type={t} size="sm" />
   ) : (
     <span className="text-xs font-semibold">{labelOf(labels, "types", type)}</span>

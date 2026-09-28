@@ -31,12 +31,11 @@ async function EvolutionNodeCard({ node }: { node: EvolutionNode }) {
         </div>
       )}
       <span className="text-xs font-semibold">{koName}</span>
-      {node.minLevel && (
-        <span className="text-xs text-neutral-500">Lv. {node.minLevel}</span>
-      )}
-      {node.item && (
-        <span className="text-xs text-neutral-500 capitalize">{node.item}</span>
-      )}
+      {node.conditions.map((c) => (
+        <span key={c} className="max-w-[9rem] text-center text-xs text-text-muted">
+          {c}
+        </span>
+      ))}
     </Link>
   );
 }

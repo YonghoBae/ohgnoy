@@ -9,7 +9,7 @@ export function getKoreanName(species: PokemonSpecies): string {
 export function getKoreanGenus(species: PokemonSpecies): string {
   const ko = species.genera.find((g) => g.language.name === "ko");
   const en = species.genera.find((g) => g.language.name === "en");
-  return ko?.genus ?? en?.genus ?? "";
+  return ko?.genus ?? en?.genus ?? "미분류";
 }
 
 export function getKoreanFlavorText(species: PokemonSpecies): string {
@@ -26,7 +26,7 @@ export function getEnglishFlavorText(species: PokemonSpecies): string {
   const entries = species.flavor_text_entries.filter(
     (e) => e.language.name === "en"
   );
-  if (entries.length === 0) return "No description available.";
+  if (entries.length === 0) return "도감 설명이 없습니다.";
   return entries[entries.length - 1].flavor_text.replace(/\f|\n/g, " ");
 }
 

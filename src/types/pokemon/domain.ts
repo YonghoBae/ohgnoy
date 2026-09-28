@@ -36,9 +36,8 @@ export interface PokemonMove {
 export interface EvolutionNode {
   speciesId: number;
   speciesName: string;
-  minLevel?: number;
-  trigger?: string;
-  item?: string;
+  /** Korean phrases, one per distinct evolution method ("Lv.16", "천둥의돌 사용"). */
+  conditions: string[];
   nextEvolutions: EvolutionNode[];
 }
 
