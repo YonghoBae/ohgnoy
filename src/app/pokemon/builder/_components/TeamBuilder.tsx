@@ -75,7 +75,7 @@ function FilledSlot({
         ✕
       </button>
       <div className="relative h-16 w-16">
-        <PixelSprite spriteUrl={member.spriteUrl} alt={member.nameEn} fill />
+        <PixelSprite spriteUrl={member.spriteUrl} alt={member.nameKo} fill />
       </div>
       <span className="font-mono-pixel max-w-full truncate text-xs font-bold">{member.nameKo}</span>
       <div className="flex gap-1">

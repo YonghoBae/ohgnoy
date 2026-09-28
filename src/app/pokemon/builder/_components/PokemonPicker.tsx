@@ -26,6 +26,7 @@ interface Props {
 interface SearchResult {
   pokemon: Pokemon;
   nameKo: string;
+  nameEn: string;
 }
 
 const isKorean = (s: string) => /[가-힣]/.test(s);
@@ -91,20 +92,19 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
 
     let cancelled = false;
     setLoading(true);
-    // Form slugs (pikachu-rock-star, charizard-mega-x) have no pokemon-species
-    // entry of their own, so take the species URL from the pokemon, and keep
-    // whatever loaded instead of dropping every result when one request fails.
+    // Korean/English (form) names come from our names route ("메가리자몽X" /
+    // "Mega Charizard X"); keep whatever loaded instead of dropping every
+    // result when one request fails.
+    const namesReq = fetch(`/api/pokemon/names?slugs=${matched.join(",")}`)
+      .then((r) => (r.ok ? r.json() : {}) as Promise<Record<string, { ko: string; en: string }>>)
+      .catch(() => ({}) as Record<string, { ko: string; en: string }>);
     Promise.allSettled(
       matched.map(async (name) => {
         const pokeRes = await fetch(`https://pokeapi.co/api/v2/pokemon/${name}`);
         if (!pokeRes.ok) throw new Error(`${name}: ${pokeRes.status}`);
         const pokemon = await pokeRes.json() as Pokemon;
-        const speciesRes = await fetch(pokemon.species.url);
-        const species = speciesRes.ok
-          ? await speciesRes.json() as { names: { language: { name: string }; name: string }[] }
-          : null;
-        const ko = species?.names.find((n) => n.language.name === "ko");
-        return { pokemon, nameKo: ko?.name ?? name };
+        const names = (await namesReq)[pokemon.name];
+        return { pokemon, nameKo: names?.ko ?? name, nameEn: names?.en ?? name };
       })
     )
       .then((settled) => {
@@ -215,7 +215,7 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
                   </div>
                   <div className="flex flex-col">
                     <span className="text-sm font-bold">{r.nameKo}</span>
-                    <span className="text-xs text-neutral-500">{r.pokemon.name}</span>
+                    <span className="text-xs text-neutral-500">{r.nameEn}</span>
                   </div>
                   <div className="ml-auto flex gap-1">
                     {r.pokemon.types.map(({ type: { name } }) => (

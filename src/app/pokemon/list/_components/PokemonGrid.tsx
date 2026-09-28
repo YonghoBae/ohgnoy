@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useCallback, useEffect, useState, useTransition } from "react";
+import { ChangeEvent, useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { Pokemon } from "pokenode-ts";
 import { FaMagnifyingGlass } from "react-icons/fa6";
 import { useRouter } from "next/navigation";
@@ -38,6 +38,31 @@ export default function PokemonGrid({
   const { searchResults, search, clearSearch } = usePokemonSearch(allNames);
   const { compare } = useCompare();
   const trayOpen = Boolean(compare.mon_1 || compare.mon_2);
+
+  // koNames only covers this generation's species. Search hits from other
+  // generations, forms (charizard-mega-x) and the compare tray get theirs
+  // from /api/pokemon/names; each id is asked for once.
+  const [extraNames, setExtraNames] = useState<Record<number, string>>({});
+  const requestedRef = useRef(new Set<number>());
+  useEffect(() => {
+    const missing = [...searchResults.values(), compare.mon_1, compare.mon_2].filter(
+      (p): p is Pokemon => !!p && !koNames[p.id] && !requestedRef.current.has(p.id)
+    );
+    if (!missing.length) return;
+    missing.forEach((p) => requestedRef.current.add(p.id));
+    fetch(`/api/pokemon/names?slugs=${missing.map((p) => p.name).join(",")}`)
+      .then((r) => (r.ok ? r.json() : {}) as Promise<Record<string, { ko: string }>>)
+      .then((found) =>
+        setExtraNames((prev) => ({
+          ...prev,
+          ...Object.fromEntries(
+            missing.flatMap((p) => (found[p.name] ? [[p.id, found[p.name].ko]] : []))
+          ),
+        }))
+      )
+      .catch(() => {});
+  }, [searchResults, compare, koNames]);
+  const names = { ...extraNames, ...koNames };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -145,12 +170,12 @@ export default function PokemonGrid({
             .slice()
             .sort((a, b) => a.id - b.id)
             .map((pokemon) => (
-              <PokemonCard key={pokemon.id} pokemon={pokemon} userInfo={user} koName={koNames[pokemon.id]} />
+              <PokemonCard key={pokemon.id} pokemon={pokemon} userInfo={user} koName={names[pokemon.id]} />
             ))}
         </div>
       )}
     </div>
-    <CompareTray koNames={koNames} />
+    <CompareTray koNames={names} />
     </>
   );
 }

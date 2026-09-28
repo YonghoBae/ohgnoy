@@ -3,7 +3,8 @@ import { Pokemon } from "pokenode-ts";
 import { UsageRankEntry } from "@/lib/battle/fetchers/fetchUsageStats";
 import { fetchPokemon } from "@/lib/pokemon/fetchers/fetchPokemon";
 import { fetchSpecies } from "@/lib/pokemon/fetchers/fetchSpecies";
-import { getKoreanName } from "@/lib/pokemon/i18n";
+import { getPokemonNames } from "@/lib/pokemon/i18n";
+import { koPokemon } from "@/lib/battle/koNames";
 import TypeBadge from "@/app/_components/TypeBadge";
 import PixelSprite from "@/app/_components/ui/pixel/PixelSprite";
 import { PokemonTypeName } from "@/types/pokemon/domain";
@@ -16,18 +17,27 @@ async function RankRow({
   maxUsage: number;
 }) {
   let pokemon: Pokemon | null = null;
-  let nameKo = entry.nameEn;
+  // Smogon names ("Ogerpon-Wellspring", "Landorus") → PokeAPI slug + names.
+  const known = koPokemon(entry.nameEn);
+  let nameKo = known?.ko ?? entry.nameEn;
+  let nameEn = known?.en ?? entry.nameEn;
   let types: PokemonTypeName[] = [];
   let id: number | string = entry.nameEn;
 
   try {
-    const slug = entry.nameEn.toLowerCase().replace(/ /g, "-");
+    const slug = known?.slug ?? entry.nameEn.toLowerCase().replace(/ /g, "-");
     pokemon = await fetchPokemon(slug);
     id = pokemon.id;
     types = pokemon.types.map((t) => t.type.name as PokemonTypeName);
 
-    const species = await fetchSpecies(pokemon.id);
-    nameKo = getKoreanName(species);
+    if (!known) {
+      // Forms have no species of their own: species id comes from species.url.
+      const speciesId = Number(pokemon.species.url.match(/\/(\d+)\/?$/)?.[1]);
+      ({ ko: nameKo, en: nameEn } = await getPokemonNames(
+        pokemon,
+        await fetchSpecies(speciesId)
+      ));
+    }
   } catch {
     // 데이터 없으면 영어 이름으로 폴백
   }
@@ -47,8 +57,8 @@ async function RankRow({
           <span className="truncate font-bold">{nameKo}</span>
           {/* Below sm the Korean name needs the whole line; the English name
               stays in the accessible text only. */}
-          <span className="hidden truncate text-xs text-neutral-500 sm:block">{entry.nameEn}</span>
-          <span className="sr-only sm:hidden">{entry.nameEn}</span>
+          <span className="hidden truncate text-xs text-neutral-500 sm:block">{nameEn}</span>
+          <span className="sr-only sm:hidden">{nameEn}</span>
         </div>
         <div className="flex flex-wrap items-center gap-1 whitespace-nowrap">
           {types.map((t) => (

@@ -43,6 +43,8 @@ export interface EvolutionNode {
 }
 
 export interface PokemonDetail extends PokemonSummary {
+  /** National dex number of the species (6 for charizard-mega-x, id 10034). */
+  dexNumber: number;
   height: number;
   weight: number;
   genus: string;

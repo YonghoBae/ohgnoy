@@ -8,7 +8,7 @@ export { toID };
 type NameKind = Exclude<LabelKind, "pokemon">;
 
 const names = data as unknown as Record<NameKind, Record<string, string>> & {
-  pokemon: Record<string, { slug: string; ko: string }>;
+  pokemon: Record<string, { slug: string; ko: string; en: string }>;
 };
 
 export const koLabel = (kind: NameKind, nameOrId: string) =>

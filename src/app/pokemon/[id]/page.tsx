@@ -5,6 +5,7 @@ import { extractEvolutionChainId, fetchEvolutionChain } from "@/lib/pokemon/fetc
 import { extractMoveIdsWithLearnInfo, MoveWithLearnInfo } from "@/lib/pokemon/transformers/toMoveList";
 import { fetchMove } from "@/lib/pokemon/fetchers/fetchMove";
 import { toPokemonDetail } from "@/lib/pokemon/transformers/toPokemonDetail";
+import { getPokemonNames } from "@/lib/pokemon/i18n";
 import { fetchPokemonBattleData } from "@/lib/battle/fetchers/fetchBattleData";
 import { DEFAULT_FORMAT } from "@/lib/battle/constants";
 import PokemonHeader from "./_components/PokemonHeader";
@@ -30,10 +31,11 @@ export default async function PokemonDetailPage({ params }: Props) {
     const evolutionChainId = extractEvolutionChainId(species.evolution_chain.url);
     const moveInfoList = extractMoveIdsWithLearnInfo(pokemon);
 
-    const [evolutionChain, moves, battleData] = await Promise.all([
+    const [evolutionChain, moves, battleData, names] = await Promise.all([
       fetchEvolutionChain(evolutionChainId),
       Promise.all(moveInfoList.map(({ id }) => fetchMove(id))),
       fetchPokemonBattleData(pokemon.name, DEFAULT_FORMAT),
+      getPokemonNames(pokemon, species),
     ]);
 
     const movesWithInfo: MoveWithLearnInfo[] = moveInfoList.map((info, i) => ({
@@ -42,7 +44,13 @@ export default async function PokemonDetailPage({ params }: Props) {
       levelLearnedAt: info.levelLearnedAt,
     }));
 
-    const detail = toPokemonDetail(pokemon, species, evolutionChain, movesWithInfo);
+    const detail = toPokemonDetail(
+      pokemon,
+      species,
+      evolutionChain,
+      movesWithInfo,
+      names
+    );
 
     // 서버 컴포넌트(EvolutionChain 포함)를 children으로 전달
     const infoContent = (

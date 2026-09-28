@@ -3,6 +3,7 @@
 // Regenerate: node scripts/build-ko-names.mjs   (Node >= 18, no deps)
 //
 // Keys are Smogon ids: toID("Choice Specs") === "choicespecs".
+// pokemon: { [toID]: { slug, ko, en } } — en is PokeAPI's English display name.
 import { writeFileSync } from "node:fs";
 
 const GQL = "https://beta.pokeapi.co/graphql/v1beta";
@@ -66,11 +67,15 @@ async function names(table, namesTable, rest) {
 // PokeAPI has no ko form names for most Gen 8+ regional forms.
 const REGION = { alola: "알로라", galar: "가라르", hisui: "히스이", paldea: "팔데아" };
 
+// ko (3) and en (9): en is the display name shown under the Korean one.
+const KO_EN = "(where: {language_id: {_in: [3, 9]}})";
+const byLang = (list = [], id) => list.find((n) => n.language_id === id);
+
 async function pokemonNames() {
   const { pokemon_v2_pokemon: rows } = await gql(`{ pokemon_v2_pokemon {
     name is_default
-    pokemon_v2_pokemonspecy { name pokemon_v2_pokemonspeciesnames${KO} }
-    pokemon_v2_pokemonforms { pokemon_v2_pokemonformnames${KO} }
+    pokemon_v2_pokemonspecy { name pokemon_v2_pokemonspeciesnames${KO_EN} { name language_id } }
+    pokemon_v2_pokemonforms { pokemon_v2_pokemonformnames${KO_EN} { name pokemon_name language_id } }
   } }`);
 
   const out = {};
@@ -81,19 +86,26 @@ async function pokemonNames() {
 
   const entries = rows.map((p) => {
     const species = p.pokemon_v2_pokemonspecy;
-    const sp = species.pokemon_v2_pokemonspeciesnames[0]?.name.trim() ?? p.name;
-    const form =
-      p.pokemon_v2_pokemonforms[0]?.pokemon_v2_pokemonformnames[0]?.name.trim();
+    const spNames = species.pokemon_v2_pokemonspeciesnames;
+    const formNames = p.pokemon_v2_pokemonforms[0]?.pokemon_v2_pokemonformnames;
+    const sp = byLang(spNames, 3)?.name.trim() ?? p.name;
+    const form = byLang(formNames, 3)?.name.trim();
+    const spEn = byLang(spNames, 9)?.name.trim() ?? p.name;
+    const formEn = byLang(formNames, 9);
     const region = p.name.split("-").find((w) => REGION[w]);
     let ko = sp;
+    let en = spEn;
     // The default variety is what Smogon calls by the bare species name
     // ("Landorus"), so it keeps the plain species name.
     if (!p.is_default) {
       if (form?.includes(sp)) ko = form; // own name: 메가리자몽X, 워시로토무
       else if (form) ko = `${sp} (${form})`;
       else if (region) ko = `${sp} (${REGION[region]}의 모습)`;
+      // "Mega Charizard X", "Galarian Slowking", "Wellspring Mask Ogerpon"
+      if (formEn?.pokemon_name) en = formEn.pokemon_name.trim();
+      else if (formEn?.name) en = `${spEn} (${formEn.name.trim()})`;
     }
-    return { p, species: species.name, entry: { slug: p.name, ko } };
+    return { p, species: species.name, entry: { slug: p.name, ko, en } };
   });
 
   for (const { p, entry } of entries) add(p.name, entry);
