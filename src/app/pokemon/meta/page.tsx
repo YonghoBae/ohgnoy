@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { fetchUsageStats, getUsageRanking } from "@/lib/battle/fetchers/fetchUsageStats";
+import { fetchUsageRanking } from "@/lib/battle/fetchers/fetchBattleData";
 import { CUTOFF_BY_FORMAT, DEFAULT_FORMAT, FORMATS } from "@/lib/battle/constants";
 import FormatSelector from "./_components/FormatSelector";
 import UsageRankingTable from "./_components/UsageRankingTable";
@@ -18,8 +18,7 @@ export default async function MetaPage({ searchParams }: Props) {
   const cutoff = CUTOFF_BY_FORMAT[formatId] ?? 1695;
   const formatLabel = FORMATS.find((f) => f.id === formatId)?.label ?? formatId;
 
-  const statsMap = await fetchUsageStats(formatId, month, cutoff);
-  const ranking = statsMap ? getUsageRanking(statsMap, 50) : [];
+  const ranking = await fetchUsageRanking(formatId, month);
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-8">
@@ -37,14 +36,14 @@ export default async function MetaPage({ searchParams }: Props) {
       <PixelCard className="p-4">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="font-pixel text-xs">{formatLabel} 사용률 랭킹</h2>
-          {statsMap && (
+          {ranking && (
             <span className="text-xs text-neutral-500">
               cutoff {cutoff}+
             </span>
           )}
         </div>
 
-        {!statsMap ? (
+        {!ranking ? (
           <p className="py-8 text-center text-sm text-neutral-500">
             해당 포맷의 데이터를 불러올 수 없습니다.
           </p>

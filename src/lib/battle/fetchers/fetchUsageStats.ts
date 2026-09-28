@@ -1,8 +1,6 @@
-import { unstable_cache } from "next/cache";
 import { UsageStat } from "@/types/pokemon/battle";
 
 const SMOGON_STATS_BASE = "https://www.smogon.com/stats";
-const DEFAULT_CUTOFF = 1695;
 
 // YYYY-MM 형식으로 최근 월 반환
 export function getLatestMonth(): string {
@@ -29,53 +27,38 @@ interface RawUsageStat {
   "Tera Types"?: Record<string, number>;
 }
 
-async function _fetchUsageStats(
+// 원본(약 10MB)과 가공 결과 모두 Next 데이터 캐시 한도(2MB)를 넘어 캐시하지 않는다.
+// 캐시는 fetchBattleData.ts가 필요한 조각만 한다. 실패는 null이 아니라 예외로 던져서
+// 호출 쪽 unstable_cache가 실패를 저장하지 않게 한다.
+export async function loadUsageStats(
   format: string,
   month: string,
   cutoff: number
-): Promise<Record<string, UsageStat> | null> {
+): Promise<Record<string, UsageStat>> {
   const url = `${SMOGON_STATS_BASE}/${month}/chaos/${format}-${cutoff}.json`;
-  try {
-    // 17MB 원본을 fetch cache에 넣지 않고, no-store로 받아 처리된 결과만 unstable_cache에 저장
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) return null;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`${url} responded ${res.status}`);
 
-    const chaos = await res.json() as ChaosData;
-    const totalBattles = chaos.info["number of battles"];
+  const chaos = await res.json() as ChaosData;
+  const totalBattles = chaos.info["number of battles"];
 
-    const result: Record<string, UsageStat> = {};
-    for (const [name, raw] of Object.entries(chaos.data)) {
-      const rawCount = raw["Raw count"];
-      result[name] = {
-        nameEn: name,
-        usagePercent: totalBattles > 0 ? (rawCount / totalBattles) * 100 : 0,
-        rawCount,
-        abilities: raw.Abilities ?? {},
-        items: raw.Items ?? {},
-        moves: raw.Moves ?? {},
-        spreads: raw.Spreads ?? {},
-        teammates: raw.Teammates ?? {},
-        counters: raw["Checks and Counters"] ?? {},
-        teraTypes: raw["Tera Types"],
-      };
-    }
-    return result;
-  } catch {
-    return null;
+  const result: Record<string, UsageStat> = {};
+  for (const [name, raw] of Object.entries(chaos.data)) {
+    const rawCount = raw["Raw count"];
+    result[name] = {
+      nameEn: name,
+      usagePercent: totalBattles > 0 ? (rawCount / totalBattles) * 100 : 0,
+      rawCount,
+      abilities: raw.Abilities ?? {},
+      items: raw.Items ?? {},
+      moves: raw.Moves ?? {},
+      spreads: raw.Spreads ?? {},
+      teammates: raw.Teammates ?? {},
+      counters: raw["Checks and Counters"] ?? {},
+      teraTypes: raw["Tera Types"],
+    };
   }
-}
-
-export function fetchUsageStats(
-  format: string,
-  month?: string,
-  cutoff: number = DEFAULT_CUTOFF
-): Promise<Record<string, UsageStat> | null> {
-  const targetMonth = month ?? getLatestMonth();
-  return unstable_cache(
-    () => _fetchUsageStats(format, targetMonth, cutoff),
-    [`usage-stats-${format}-${targetMonth}-${cutoff}`],
-    { revalidate: false }
-  )();
+  return result;
 }
 
 export interface UsageRankEntry {

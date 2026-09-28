@@ -72,3 +72,13 @@ note(`문서 파싱 · OCR`), 문제 해결(`스캔 PDF 텍스트 추출 — Gem
    지점(실제 샘플 PDF 부재)을 적어 뒀다.
 
 소유자는 2번을 선호한다고 밝혔다(2026-09-18). 2번을 하면 1번은 필요 없어진다.
+
+## 이름에 하이픈이 있는 포켓몬은 상세 페이지에 실전 데이터가 안 나온다
+
+`fetchPokemonBattleData(pokemon.name, ...)`는 PokeAPI 이름(`great-tusk`)으로
+Smogon 데이터를 찾는데, Smogon 키는 `Great Tusk`다. `getPokemonUsage`와
+`getPokemonSets`는 대소문자만 무시하고 비교하므로 하이픈과 공백 차이로
+못 찾는다(`/api/pokemon/battle?name=great-tusk` → usage 없음, `name=Great%20Tusk`
+→ usage와 세트 4개). 폼 이름(`landorus-therian` ↔ `Landorus-Therian`)처럼
+하이픈이 원래 있는 경우는 맞는다. 이름 변환 규칙은 포켓몬 백엔드 API로 옮길 때
+그쪽에서 정하는 편이 낫다(2026-09-28 발견).
