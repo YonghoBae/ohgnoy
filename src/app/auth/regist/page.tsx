@@ -42,6 +42,13 @@ const Regist = () => {
     password_confirm: useRef<HTMLInputElement>(null),
   };
 
+  // Latest email, readable from inside an in-flight sendMail() to detect
+  // whether the address changed since that request was sent.
+  const emailRef = useRef(user.email);
+  useEffect(() => {
+    emailRef.current = user.email;
+  }, [user.email]);
+
   useEffect(() => {
     if (cooldown <= 0) return;
     const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
@@ -75,16 +82,21 @@ const Regist = () => {
       return;
     }
 
+    const sentEmail = user.email;
     clearError('email');
     setAuthStatus('sending');
     try {
-      const result = await userApi.sendVerificationEmail(user.email);
+      const result = await userApi.sendVerificationEmail(sentEmail);
+      // The email changed while this request was in flight: a stale
+      // response must not touch state for the address the user sees now.
+      if (emailRef.current !== sentEmail) return;
       if (result.code !== 2000 || result.data == null) throw new Error(result.message);
       setAuthCode(result.data);
       setAuthStatus('sent');
       setCooldown(RESEND_COOLDOWN);
       refs.auth_code.current?.focus();
     } catch (err) {
+      if (emailRef.current !== sentEmail) return;
       console.log('백엔드 API 오류: /user/email\n', err);
       setAuthStatus('idle');
       setErrors((prev) => ({
@@ -96,7 +108,15 @@ const Regist = () => {
   };
 
   const compareAuthCode = () => {
-    if (authCode !== undefined && String(authCode) === authInput.trim()) {
+    if (authCode === undefined) {
+      setErrors((prev) => ({
+        ...prev,
+        auth_code: '먼저 인증번호를 받으세요.',
+      }));
+      refs.auth_code.current?.focus();
+      return;
+    }
+    if (String(authCode) === authInput.trim()) {
       setAuthStatus('verified');
       clearError('auth_code');
     } else {

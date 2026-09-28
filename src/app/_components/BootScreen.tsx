@@ -15,6 +15,11 @@ export default function BootScreen() {
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      try {
+        sessionStorage.setItem(SESSION_KEY, "1");
+      } catch {
+        // ignore: nothing to persist if storage is unavailable
+      }
       setPhase("done");
       return;
     }

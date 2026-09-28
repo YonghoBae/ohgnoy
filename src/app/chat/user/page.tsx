@@ -91,7 +91,11 @@ const Chat = () => {
           }),
         });
       };
-      client.onWebSocketClose = () => setStatus('closed');
+      client.onWebSocketClose = () => {
+        // A StrictMode remount deactivates the old client; only the current
+        // client's close may flip the status.
+        if (stompClient.current === client) setStatus('closed');
+      };
 
       client.activate();
     };
@@ -146,7 +150,8 @@ const Chat = () => {
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     // Enter that commits a Korean IME syllable must not submit the form.
-    if (event.key === 'Enter' && event.nativeEvent.isComposing) {
+    // keyCode 229 covers Safari, which doesn't set isComposing.
+    if (event.key === 'Enter' && (event.nativeEvent.isComposing || event.keyCode === 229)) {
       event.preventDefault();
     }
   };

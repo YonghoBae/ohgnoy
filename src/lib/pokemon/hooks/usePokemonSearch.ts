@@ -48,6 +48,7 @@ export default function usePokemonSearch(pokemonNames: string[]) {
     // Invalidate any in-flight request so it can't land after this clear.
     requestIdRef.current += 1;
     setSearchResults(new Map());
+    setIsSearching(false);
   };
 
   return { searchResults, isSearching, search, clearSearch };

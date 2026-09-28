@@ -114,7 +114,11 @@ function ChatWidgetPanel() {
           }),
         });
       };
-      client.onWebSocketClose = () => setStatus("closed");
+      client.onWebSocketClose = () => {
+        // A StrictMode remount deactivates the old client; only the current
+        // client's close may flip the status.
+        if (stompClient.current === client) setStatus("closed");
+      };
 
       client.activate();
     };
@@ -161,7 +165,7 @@ function ChatWidgetPanel() {
   };
 
   const handleEscape = (e: React.KeyboardEvent) => {
-    if (e.key === "Escape" && open) close();
+    if (e.key === "Escape" && open && !e.nativeEvent.isComposing) close();
   };
 
   const sendMessage = (e: React.FormEvent<HTMLFormElement>) => {
@@ -286,7 +290,8 @@ function ChatWidgetPanel() {
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={(e) => {
                 // Enter that commits a Korean IME syllable must not submit.
-                if (e.key === "Enter" && e.nativeEvent.isComposing) e.preventDefault();
+                // keyCode 229 covers Safari, which doesn't set isComposing.
+                if (e.key === "Enter" && (e.nativeEvent.isComposing || e.keyCode === 229)) e.preventDefault();
               }}
               placeholder="메시지를 입력하세요…"
               aria-label="메시지 입력"

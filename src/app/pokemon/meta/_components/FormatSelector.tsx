@@ -49,7 +49,7 @@ export default function FormatSelector({ current, currentMonth }: { current: str
             return (
               <div key={gen} className="flex flex-col gap-1">
                 <span id={genLabelId} className="text-xs font-bold text-neutral-500 dark:text-neutral-400">
-                  Gen {gen}
+                  {gen}세대
                 </span>
                 <div role="group" aria-labelledby={genLabelId} className="flex flex-wrap gap-1">
                   {formats.map((f) => (
