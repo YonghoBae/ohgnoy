@@ -368,3 +368,125 @@ Files: `src/app/_components/markdown-styles.module.css`, `date-formatter.tsx`,
    (`slice(1)` was for a removed hero); empty state "아직 작성된 글이 없습니다.".
 8. `[slug]` pages: metadata title drops "Next.js Blog Example" — use
    `${title} | ${BLOG_NAME}` (from `@/lib/constants`).
+
+## Phase B — UI/UX gaps and missing features (added 2026-09-29)
+
+The owner asked for the remaining UX gaps and obviously missing features to be
+handled in the same refactor PR. Same Global Constraints as above, plus: a
+feature task may add new files where it says so.
+
+### Task 9: Deferred small fixes
+
+Files: `src/app/_components/ChatWidget.tsx`, `src/app/chat/user/page.tsx`,
+`src/app/auth/regist/page.tsx`, `src/lib/pokemon/hooks/usePokemonSearch.ts`,
+`src/app/pokemon/meta/_components/FormatSelector.tsx`,
+`src/app/_components/BootScreen.tsx`, `src/lib/utils.ts`,
+`src/interfaces/user.ts`, `src/app/_components/ui/morphing-dialog.tsx`,
+`src/app/_components/theme-switcher.tsx`, `src/app/posts/[slug]/page.tsx`,
+`src/app/studys/[slug]/page.tsx`.
+
+1. ChatWidget and chat/user: `onWebSocketClose` only sets the closed status when
+   the closing client is still the current one (`stompClient.current === client`),
+   so a StrictMode remount can't leave "연결 끊김" showing while connected.
+2. ChatWidget: Escape does not close the panel while an IME composition is
+   active (`!e.nativeEvent.isComposing`).
+3. ChatWidget and chat/user: the Enter/IME guard also treats `e.keyCode === 229`
+   as composing (Safari).
+4. regist: capture the email when sending the code; if `user.email` changed
+   before the response arrives, ignore the response. "인증번호 확인" before any
+   code was sent shows "먼저 인증번호를 받으세요." instead of the wrong-code message.
+5. usePokemonSearch: `clearSearch()` also resets `isSearching` to false.
+6. FormatSelector: group labels "Gen 9" / "Gen 8" … → "9세대" / "8세대" …
+   (labels only; format ids and the format button texts stay).
+7. BootScreen: when the overlay is skipped for reduced motion, still set the
+   session key so a later visit in the same session doesn't show it.
+8. utils.ts `buttonPrimaryClass`: `text-white` → `text-on-primary`.
+9. interfaces/user.ts: delete the unused `EmailAuth` type (grep first).
+10. morphing-dialog.tsx: drop the no-op `overscroll-contain` on the overlay.
+11. `/posts/[slug]` and `/studys/[slug]` crash ("This page couldn't load"):
+    they read `params.slug` synchronously, but on Next 16 `params` is a
+    Promise. Type `params` as `Promise<{ slug: string }>` and `await` it in
+    the page and in `generateMetadata` (keep `generateStaticParams`).
+12. theme-switcher.tsx: when the layout re-renders on the client (e.g. after a
+    route error), the injected inline script doesn't run, `window.updateDOM`
+    is undefined and the component throws "t is not a function", taking the
+    whole page down. Guard the calls (skip when `window.updateDOM` is absent)
+    so a missing script can't crash the app.
+
+### Task 10: Light-mode primary contrast
+
+Files: `src/app/globals.css`.
+
+The light-mode primary `#5E81AC` gives white text 4.0:1 and is 3.5:1 as text on
+the page background. Change only the light `:root` tokens:
+`--color-primary: 74 109 151` (`#4A6D97`: white on it 5.35:1, it on `#ECEFF4`
+4.64:1) and `--color-primary-hover` to a darker shade that keeps white text at
+≥4.5:1 (pick one, state its ratio in the report — e.g. `63 95 135` `#3F5F87`).
+Do not touch the dark tokens or the pixel theme's `--px-*` variables. Update
+the comments next to the tokens.
+
+### Task 11: Post create matches the backend contract
+
+Files: `src/app/posts/create/page.tsx`, `src/lib/api/post.ts`.
+
+The backend's `POST /posts` is `multipart/form-data` with a `data` part
+(`application/json`: `{ title, excerpt }`) and an optional `coverImage` file
+part, and returns the created Post entity (`{ postId, title, excerpt, … }`),
+or `{ code, message }` on error. The page currently appends `title` and
+`excerpt` as separate parts and checks `msg === 'Success'`, so every submit
+fails. Send `data` as
+`new Blob([JSON.stringify({ title, excerpt })], { type: 'application/json' })`,
+keep `coverImage`, treat a response with `postId` as success, anything else as
+an error with a next step; update `CreatePostResponse` in `post.ts` to match.
+Keep the success navigation as it is.
+
+### Task 12: Keep the builder team across reloads
+
+Files: `src/app/pokemon/builder/_components/TeamBuilder.tsx`.
+
+1. Save the team to `localStorage` under `ohgnoy.builder.team.v1` on every
+   change; restore it on mount (try/catch; ignore data that doesn't match the
+   `TeamMember` shape; render the empty team on the server and restore in an
+   effect to avoid a hydration mismatch).
+2. A "팀 비우기" button (shown when the team isn't empty) asks for inline
+   confirmation — "팀을 모두 비울까요?" with "비우기" / "취소" buttons — never
+   `window.confirm`. After clearing, show "팀을 비웠습니다." with a "되돌리기"
+   button for 5 seconds that restores the previous team.
+
+### Task 13: Compare two Pokémon
+
+Files: new `src/app/pokemon/compare/page.tsx` (+ `_components/` as needed),
+new `src/app/pokemon/list/_components/CompareTray.tsx`,
+`src/app/pokemon/list/_components/PokemonGrid.tsx` (to render the tray),
+`docs/architecture.md`.
+
+The compare toggle on every card writes to `useCompareStore` (two slots,
+`mon_1`/`mon_2`) but nothing shows a comparison.
+1. `CompareTray`: a fixed bottom bar on /pokemon/list, shown while at least one
+   Pokémon is selected. Each slot shows the pixel sprite (`PixelSprite`), the
+   Korean name when known, and a remove button ("{name} 비교에서 빼기"). A
+   "비교하기" `<Link>` to `/pokemon/compare?a={id}&b={id}` is enabled only with
+   two selected; with one, a hint "한 마리 더 고르세요." Pixel theme
+   (`PixelCard`/`PixelButton` look, no border-radius), safe-area bottom inset,
+   and add bottom padding to the grid so the tray never covers the last row.
+2. `/pokemon/compare` (server page): read `a` and `b`, fetch both with the
+   existing fetchers in `src/lib/pokemon/fetchers/` and transformers (Korean
+   names via `i18n.ts`), and show them side by side in `PixelCard`s: sprite,
+   name, `TypeBadge`s, height/weight, and the six base stats as paired bars
+   with the higher value emphasized (not by color alone — add "▲"/weight),
+   plus the totals, numbers `tabular-nums`. Invalid/missing ids → a clear
+   message and a link back to /pokemon/list. `<h1>` "포켓몬 비교"; each side
+   links to its detail page. Stack the two columns on narrow screens.
+3. Add the route to `docs/architecture.md`.
+
+### Task 14: Collapsible sidebar on small screens
+
+Files: `src/app/_components/SiteShell.tsx`, `src/app/_components/site-shell.module.css`.
+
+At ≤640px the whole sidebar (logo, nav, icon row, 88px sprite panel) stacks
+above `<main>`, pushing content about a screen down. On small screens show a
+compact bar — logo plus a "메뉴" toggle (`aria-expanded`, `aria-controls`) —
+and reveal the nav, icon row and theme switch when toggled; hide the partner
+sprite panel on small screens. Close it on route change and on Escape (return
+focus to the toggle). Desktop (>640px) must look exactly as now. Pixel rules
+apply: reuse the existing frame/border-image styles, no border-radius.
