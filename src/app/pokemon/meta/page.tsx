@@ -34,10 +34,13 @@ export default async function MetaPage({ searchParams }: Props) {
       </Suspense>
 
       <PixelCard className="p-4">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-pixel text-xs">{formatLabel} 사용률 랭킹</h2>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+          <h2 className="font-pixel text-xs">
+            <span className="whitespace-nowrap">{formatLabel}</span>{" "}
+            <span className="whitespace-nowrap">사용률 랭킹</span>
+          </h2>
           {ranking && (
-            <span className="text-xs text-neutral-500">
+            <span className="whitespace-nowrap text-xs text-neutral-500">
               컷오프 <span className="tabular-nums">{cutoff}</span>+
             </span>
           )}
