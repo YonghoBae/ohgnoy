@@ -14,7 +14,9 @@ interface Props {
 }
 
 export default async function MetaPage({ searchParams }: Props) {
-  const { format, month } = await searchParams;
+  const { format, month: rawMonth } = await searchParams;
+  // Only YYYY-MM reaches the Smogon URL and the cache key; anything else is 최신.
+  const month = rawMonth && /^\d{4}-\d{2}$/.test(rawMonth) ? rawMonth : undefined;
   const formatId = FORMATS.find((f) => f.id === format)
     ? format!
     : DEFAULT_FORMAT;

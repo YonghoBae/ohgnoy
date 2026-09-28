@@ -83,3 +83,28 @@ note(`문서 파싱 · OCR`), 문제 해결(`스캔 PDF 텍스트 추출 — Gem
 `/auth/regist`가 사용자가 입력한 값과 브라우저에서 비교한다. 개발자 도구로 번호를 볼 수
 있다. 백엔드에 "번호 확인" 엔드포인트를 만들고 응답에서 번호를 빼야 고칠 수 있다
 (2026-09-29 기록).
+
+## 포켓몬 폼 이름 일부가 한국어로 겹친다
+
+`koNames.json`에서 서로 다른 폼끼리 같은 한국어 이름을 쓰는 묶음이 64개 있다. 거다이맥스
+(`venusaur-gmax` → 이상해꽃), 주인 포켓몬(`gumshoos-totem`), 피카츄 옷차림, 코라이돈·미라이돈
+모드, 메테노 색, 시비꼬 깃털 같은 폼이다. PokeAPI가 이 폼들에 한국어 폼 이름을 주지 않는다
+(GraphQL도 REST `pokemon-form`도 비어 있다). `scripts/build-ko-names.mjs`는 폼 이름이 없으면
+종 이름을 그대로 쓴다. 고치려면 `REGION`처럼 `-gmax` → "(거다이맥스)" 등 접미사 표를 스크립트에
+더하면 된다(2026-09-29 기록, 65 → 64: 다투곰 (붉은 달)만 풀렸다).
+
+## VGC 2026 메가스톤·특성 일부에 한국어 이름이 없다
+
+`gen9championsvgc2026regmb`(VGC 2026 M-B)의 새 메가진화 관련 데이터는 PokeAPI에 한국어가
+없다. 2026-08 기준 도구 148개 중 34개(`staraptite`, `feraligite` 등 새
+메가스톤), 특성 194개 중 6개(`megasol`, `dragonize`, `piercingdrill` 등), 포켓몬 35종
+(`Staraptor-Mega` 등)이 `koNames.json`에 없다. 도구·특성은 영어로 나오고, 포켓몬은
+`getPokemonNames`가 "메가{종 이름}"으로 만든다. PokeAPI가 채우면 스크립트 재생성으로 풀린다
+(2026-09-29 기록).
+
+## 세트 없는 팀원은 내보내기에 slug 대문자 이름이 들어간다
+
+빌더에서 Smogon 세트가 없는 포켓몬을 넣으면 내보내기(`TeamExport`) 첫 줄이
+PokeAPI slug를 대문자로 바꾼 이름("Staraptor-Mega", "Ogerpon-Wellspring-Mask")이 된다.
+Showdown 종 이름과 다를 수 있어 가져오기에서 거부될 수 있다. Smogon 키를 모르는 폼에서만
+생긴다(2026-09-29 기록).

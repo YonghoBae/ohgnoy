@@ -91,7 +91,7 @@ export default function TeamExport({
 
   return (
     <ModalDialog labelledBy={titleId} onClose={onClose} className="max-w-lg">
-      <div className="flex w-full flex-col gap-4 rounded-2xl bg-white p-5 shadow-2xl dark:bg-neutral-800">
+      <div className="flex w-full flex-col gap-4 rounded-none bg-white p-5 shadow-2xl dark:bg-neutral-800">
         <div className="flex items-center justify-between">
           <h3 id={titleId} className="font-bold">Pokémon Showdown 내보내기</h3>
           <button type="button" onClick={onClose} aria-label="닫기" className="text-neutral-400 hover:text-neutral-700">✕</button>
@@ -105,20 +105,20 @@ export default function TeamExport({
           aria-label="Showdown 팀 텍스트"
           spellCheck={false}
           value={exportText}
-          className="h-72 rounded-xl bg-neutral-100 p-4 font-mono text-xs dark:bg-neutral-700"
+          className="h-72 rounded-none bg-neutral-100 p-4 font-mono text-xs dark:bg-neutral-700"
         />
         <div className="flex gap-3">
           <button
             type="button"
             onClick={() => void handleCopy()}
-            className="flex-1 rounded-xl bg-blue-600 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+            className="flex-1 rounded-none bg-blue-600 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
           >
             클립보드에 복사
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl bg-neutral-200 px-4 py-2 text-sm font-semibold transition-colors hover:bg-neutral-300 dark:bg-neutral-700 dark:hover:bg-neutral-600"
+            className="rounded-none bg-neutral-200 px-4 py-2 text-sm font-semibold transition-colors hover:bg-neutral-300 dark:bg-neutral-700 dark:hover:bg-neutral-600"
           >
             닫기
           </button>

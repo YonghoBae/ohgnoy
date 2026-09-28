@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { koPokemon } from "@/lib/battle/koNames";
 
 const BASE_URL = "https://pokeapi.co/api/v2";
 const CACHE = { next: { revalidate: false } } as const;
@@ -25,7 +26,8 @@ export async function GET() {
   const koToEn: Record<string, string> = {};
   for (const s of speciesList) {
     const ko = s.names.find((n) => n.language.name === "ko");
-    if (ko) koToEn[ko.name] = s.name;
+    // Species "landorus" has no /pokemon/landorus: use its default variety slug.
+    if (ko) koToEn[ko.name] = koPokemon(s.name)?.slug ?? s.name;
   }
 
   return NextResponse.json(koToEn, {

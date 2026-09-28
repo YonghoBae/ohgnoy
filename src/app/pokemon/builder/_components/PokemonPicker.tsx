@@ -189,7 +189,7 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="이름으로 검색 (예: 이상해씨, garchomp)"
-              className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2 text-sm focus:border-blue-400 dark:border-neutral-600 dark:bg-neutral-700"
+              className="rounded-none border border-neutral-200 bg-neutral-50 px-4 py-2 text-sm focus:border-blue-400 dark:border-neutral-600 dark:bg-neutral-700"
             />
             <div aria-live="polite">
               {koIndexLoading && (
@@ -208,7 +208,7 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
                   key={r.pokemon.id}
                   type="button"
                   onClick={() => void handleSelectPokemon(r)}
-                  className="flex items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                  className="flex items-center gap-3 rounded-none px-3 py-2 text-left transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700"
                 >
                   <div className="relative h-10 w-10 flex-shrink-0">
                     <PixelSprite pokemon={r.pokemon} alt="" fill />
@@ -229,7 +229,7 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
         ) : (
           <>
             {/* 포켓몬 확인 */}
-            <div className="flex items-center gap-3 rounded-xl bg-neutral-100 px-4 py-3 dark:bg-neutral-700">
+            <div className="flex items-center gap-3 rounded-none bg-neutral-100 px-4 py-3 dark:bg-neutral-700">
               <div className="relative h-14 w-14">
                 <PixelSprite pokemon={selectedPokemon.pokemon} alt="" fill />
               </div>
@@ -268,7 +268,7 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
                       key={set.name}
                       type="button"
                       onClick={() => handleConfirm(set)}
-                      className="rounded-xl border border-neutral-200 px-4 py-2 text-left text-sm transition-colors hover:border-blue-400 hover:bg-blue-50 dark:border-neutral-600 dark:hover:bg-blue-900"
+                      className="rounded-none border border-neutral-200 px-4 py-2 text-left text-sm transition-colors hover:border-blue-400 hover:bg-blue-50 dark:border-neutral-600 dark:hover:bg-blue-900"
                     >
                       <p className="font-semibold text-blue-600 dark:text-blue-400">{set.name}</p>
                       <p className="text-xs text-neutral-500">

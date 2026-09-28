@@ -93,7 +93,7 @@ const CreatePost = () => {
       if (result.postId != null) {
         setSubmitted(true);
         router.push('/');
-      } else if (result.code === 4010 || result.status === 401 || result.status === 403) {
+      } else if (result.status === 401 || result.status === 403) {
         setSubmitErr('로그인이 만료되었을 수 있습니다. 다시 로그인한 뒤 시도하세요.');
       } else if (result.status === 400) {
         setSubmitErr('제목과 요약 내용을 확인해주세요.');
@@ -102,7 +102,7 @@ const CreatePost = () => {
       }
     } catch (err) {
       console.error('API 에러 발생', err);
-      setSubmitErr('로그인이 만료되었을 수 있습니다. 다시 로그인한 뒤 시도하세요.');
+      setSubmitErr('게시글을 등록하지 못했습니다. 잠시 후 다시 시도하세요.');
     } finally {
       setPending(false);
     }

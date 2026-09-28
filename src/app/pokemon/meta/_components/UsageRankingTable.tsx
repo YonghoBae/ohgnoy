@@ -54,10 +54,10 @@ async function RankRow({
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="truncate font-bold">{nameKo}</span>
+          <span className="truncate font-bold sm:shrink-0">{nameKo}</span>
           {/* Below sm the Korean name needs the whole line; the English name
               stays in the accessible text only. */}
-          <span className="hidden truncate text-xs text-neutral-500 sm:block">{nameEn}</span>
+          <span className="hidden min-w-0 truncate text-xs text-neutral-500 sm:block">{nameEn}</span>
           <span className="sr-only sm:hidden">{nameEn}</span>
         </div>
         <div className="flex flex-wrap items-center gap-1 whitespace-nowrap">
@@ -68,9 +68,9 @@ async function RankRow({
       </div>
       {/* Below sm the bar + percent wrap onto their own full-width line. */}
       <div className="flex w-full flex-shrink-0 items-center gap-2 sm:w-32 sm:flex-col sm:items-stretch sm:gap-1">
-        <div className="flex-1 overflow-hidden rounded-full bg-neutral-300 dark:bg-neutral-600 sm:flex-none">
+        <div className="flex-1 overflow-hidden rounded-none bg-neutral-300 dark:bg-neutral-600 sm:flex-none">
           <div
-            className="h-2 rounded-full bg-blue-500"
+            className="h-2 rounded-none bg-blue-500"
             style={{ width: `${barWidth}%` }}
           />
         </div>

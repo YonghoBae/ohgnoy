@@ -28,8 +28,9 @@ import {
 // 포켓몬마다 처음 한 번씩이다. 백엔드로 옮기면 없어지는 비용이다.
 
 // bump when UsageStat's shape or the name lookup changes (v3: slug -> Smogon
-// key, v2 caches hold null for "great-tusk" etc.)
-const CACHE_VERSION = "v3";
+// key, v2 caches hold null for "great-tusk" etc.; v4: koNames.json rebuilt,
+// v3 caches hold null for necrozma-dusk-mane etc.)
+const CACHE_VERSION = "v4";
 
 const cutoffFor = (format: string) => CUTOFF_BY_FORMAT[format] ?? 1695;
 

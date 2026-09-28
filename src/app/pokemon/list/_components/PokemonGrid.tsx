@@ -41,7 +41,7 @@ export default function PokemonGrid({
 
   // koNames only covers this generation's species. Search hits from other
   // generations, forms (charizard-mega-x) and the compare tray get theirs
-  // from /api/pokemon/names; each id is asked for once.
+  // from /api/pokemon/names; each id is asked for once unless that fails.
   const [extraNames, setExtraNames] = useState<Record<number, string>>({});
   const requestedRef = useRef(new Set<number>());
   useEffect(() => {
@@ -51,7 +51,10 @@ export default function PokemonGrid({
     if (!missing.length) return;
     missing.forEach((p) => requestedRef.current.add(p.id));
     fetch(`/api/pokemon/names?slugs=${missing.map((p) => p.name).join(",")}`)
-      .then((r) => (r.ok ? r.json() : {}) as Promise<Record<string, { ko: string }>>)
+      .then((r) => {
+        if (!r.ok) throw new Error(`names ${r.status}`);
+        return r.json() as Promise<Record<string, { ko: string }>>;
+      })
       .then((found) =>
         setExtraNames((prev) => ({
           ...prev,
@@ -60,7 +63,8 @@ export default function PokemonGrid({
           ),
         }))
       )
-      .catch(() => {});
+      // Failed ids are asked for again on the next search.
+      .catch(() => missing.forEach((p) => requestedRef.current.delete(p.id)));
   }, [searchResults, compare, koNames]);
   const names = { ...extraNames, ...koNames };
 

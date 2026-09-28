@@ -1,6 +1,8 @@
 // Korean names for Smogon/pkmn battle data -> src/lib/battle/koNames.json
 //
 // Regenerate: node scripts/build-ko-names.mjs   (Node >= 18, no deps)
+// After regenerating, bump CACHE_VERSION in src/lib/battle/fetchers/
+// fetchBattleData.ts: cached lookups may hold null for names that now resolve.
 //
 // Keys are Smogon ids: toID("Choice Specs") === "choicespecs".
 // pokemon: { [toID]: { slug, ko, en } } — en is PokeAPI's English display name.
@@ -37,6 +39,24 @@ async function gql(query) {
   return json.data;
 }
 
+// slug -> ko from REST /api/v2/<rest>/<slug>, 10 requests at a time.
+async function fromRest(rest, slugs, pick) {
+  const out = {};
+  const queue = [...slugs];
+  const worker = async () => {
+    for (let slug; (slug = queue.shift()); ) {
+      const json = await getJSON(`${REST}/${rest}/${slug}`).catch(() => null);
+      const ko = json && pick(json)?.trim();
+      if (ko) out[slug] = ko;
+    }
+  };
+  await Promise.all(Array.from({ length: 10 }, worker));
+  console.log(`${rest}: ${Object.keys(out).length}/${slugs.length} filled from REST`);
+  return out;
+}
+
+const koIn = (list = []) => list.find((n) => n.language.name === "ko")?.name;
+
 // PokeAPI slug -> ko, for tables shaped { name, <namesTable> { name } }.
 // The GraphQL beta lags REST (no ko for Gen 9 moves/items/abilities), so rows
 // without ko fall back to REST /api/v2/<rest>/<slug> when `rest` is given.
@@ -50,17 +70,8 @@ async function names(table, namesTable, rest) {
     else missing.push(r.name);
   }
   if (!rest) return out;
-  let filled = 0;
-  const queue = [...missing];
-  const worker = async () => {
-    for (let slug; (slug = queue.shift()); ) {
-      const json = await getJSON(`${REST}/${rest}/${slug}`).catch(() => null);
-      const ko = json?.names.find((n) => n.language.name === "ko")?.name.trim();
-      if (ko) (out[toID(slug)] = ko), filled++;
-    }
-  };
-  await Promise.all(Array.from({ length: 10 }, worker));
-  console.log(`${rest}: ${filled}/${missing.length} filled from REST`);
+  const filled = await fromRest(rest, missing, (json) => koIn(json.names));
+  for (const [slug, ko] of Object.entries(filled)) out[toID(slug)] = ko;
   return out;
 }
 
@@ -71,9 +82,21 @@ const REGION = { alola: "알로라", galar: "가라르", hisui: "히스이", pal
 const KO_EN = "(where: {language_id: {_in: [3, 9]}})";
 const byLang = (list = [], id) => list.find((n) => n.language_id === id);
 
-async function pokemonNames() {
+// Smogon names PokeAPI has no slug for.
+const ALIASES = {
+  "necrozma-dusk-mane": "necrozma-dusk",
+  "necrozma-dawn-wings": "necrozma-dawn",
+};
+// Arceus-Ground etc. are forms of the one "arceus" Pokémon, not Pokémon.
+const TYPES = [
+  "normal", "fire", "water", "grass", "electric", "ice", "fighting", "poison",
+  "ground", "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark",
+  "steel", "fairy",
+];
+
+async function pokemonNames(types) {
   const { pokemon_v2_pokemon: rows } = await gql(`{ pokemon_v2_pokemon {
-    name is_default
+    id name
     pokemon_v2_pokemonspecy { name pokemon_v2_pokemonspeciesnames${KO_EN} { name language_id } }
     pokemon_v2_pokemonforms { pokemon_v2_pokemonformnames${KO_EN} { name pokemon_name language_id } }
   } }`);
@@ -84,12 +107,23 @@ async function pokemonNames() {
     if (id && !out[id]) out[id] = entry;
   };
 
+  // GraphQL marks ursaluna-bloodmoon is_default (REST doesn't); default
+  // varieties are the ones whose id is the species' dex number.
+  const isDefault = (p) => p.id < 10000;
+  const formNamesOf = (p) => p.pokemon_v2_pokemonforms[0]?.pokemon_v2_pokemonformnames;
+  // GraphQL lags REST here too ("붉은 달" for ursaluna-bloodmoon).
+  const restForms = await fromRest(
+    "pokemon-form",
+    rows.filter((p) => !isDefault(p) && !byLang(formNamesOf(p), 3)).map((p) => p.name),
+    (json) => koIn(json.names) || koIn(json.form_names)
+  );
+
   const entries = rows.map((p) => {
     const species = p.pokemon_v2_pokemonspecy;
     const spNames = species.pokemon_v2_pokemonspeciesnames;
-    const formNames = p.pokemon_v2_pokemonforms[0]?.pokemon_v2_pokemonformnames;
+    const formNames = formNamesOf(p);
     const sp = byLang(spNames, 3)?.name.trim() ?? p.name;
-    const form = byLang(formNames, 3)?.name.trim();
+    const form = byLang(formNames, 3)?.name.trim() ?? restForms[p.name];
     const spEn = byLang(spNames, 9)?.name.trim() ?? p.name;
     const formEn = byLang(formNames, 9);
     const region = p.name.split("-").find((w) => REGION[w]);
@@ -97,7 +131,7 @@ async function pokemonNames() {
     let en = spEn;
     // The default variety is what Smogon calls by the bare species name
     // ("Landorus"), so it keeps the plain species name.
-    if (!p.is_default) {
+    if (!isDefault(p)) {
       if (form?.includes(sp)) ko = form; // own name: 메가리자몽X, 워시로토무
       else if (form) ko = `${sp} (${form})`;
       else if (region) ko = `${sp} (${REGION[region]}의 모습)`;
@@ -111,29 +145,39 @@ async function pokemonNames() {
   for (const { p, entry } of entries) add(p.name, entry);
   // "Landorus" -> landorus-incarnate, before the trimmed aliases below can
   // hand it to landorus-therian.
-  for (const { p, species, entry } of entries) if (p.is_default) add(species, entry);
+  for (const { p, species, entry } of entries) if (isDefault(p)) add(species, entry);
   for (const { p, entry } of entries) {
     // "Ogerpon-Wellspring" -> ogerpon-wellspring-mask
     if (p.name.includes("-")) add(p.name.replace(/-[^-]+$/, ""), entry);
     // "Indeedee-F" -> indeedee-female
     if (p.name.endsWith("-female")) add(p.name.replace(/female$/, "f"), entry);
   }
+  for (const [alias, slug] of Object.entries(ALIASES)) add(alias, out[toID(slug)]);
+  for (const type of TYPES) {
+    const Type = type[0].toUpperCase() + type.slice(1);
+    add(`arceus${type}`, {
+      slug: "arceus",
+      ko: `아르세우스 (${types[type]})`,
+      en: `Arceus-${Type}`,
+    });
+  }
   return out;
 }
 
 function latestMonth() {
-  const d = new Date();
-  d.setMonth(d.getMonth() - 1);
+  const now = new Date();
+  const d = new Date(now.getFullYear(), now.getMonth() - 1, 1); // day 1: no Oct 31 skip
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
 
+const types = await names("pokemon_v2_type", "pokemon_v2_typenames");
 const data = {
   items: await names("pokemon_v2_item", "pokemon_v2_itemnames", "item"),
   moves: await names("pokemon_v2_move", "pokemon_v2_movenames", "move"),
   abilities: await names("pokemon_v2_ability", "pokemon_v2_abilitynames", "ability"),
   natures: await names("pokemon_v2_nature", "pokemon_v2_naturenames"),
-  types: await names("pokemon_v2_type", "pokemon_v2_typenames"),
-  pokemon: await pokemonNames(),
+  types,
+  pokemon: await pokemonNames(types),
 };
 writeFileSync(OUT, JSON.stringify(data));
 for (const [k, v] of Object.entries(data)) {

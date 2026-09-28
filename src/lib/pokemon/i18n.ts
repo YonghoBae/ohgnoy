@@ -26,7 +26,7 @@ export function getEnglishFlavorText(species: PokemonSpecies): string {
   const entries = species.flavor_text_entries.filter(
     (e) => e.language.name === "en"
   );
-  if (entries.length === 0) return "도감 설명이 없습니다.";
+  if (entries.length === 0) return "";
   return entries[entries.length - 1].flavor_text.replace(/\f|\n/g, " ");
 }
 
@@ -66,7 +66,12 @@ export async function getPokemonNames(
     en: nameIn(species.names, "en") ?? pokemon.name,
   };
   if (pokemon.is_default) return base;
-  const fallback = { ko: `${base.ko} (${pokemon.name})`, en: pokemon.name };
+  // Never a raw slug in ko: "staraptor-mega" → 메가찌르호크 / Staraptor-Mega.
+  const mega = pokemon.name.match(/-mega(?:-([xy]))?$/);
+  const fallback = {
+    ko: mega ? `메가${base.ko}${mega[1]?.toUpperCase() ?? ""}` : base.ko,
+    en: pokemon.name.replace(/(^|-)([a-z])/g, (_, d, c) => d + c.toUpperCase()),
+  };
   try {
     const res = await fetch(pokemon.forms[0].url, {
       next: { revalidate: false },

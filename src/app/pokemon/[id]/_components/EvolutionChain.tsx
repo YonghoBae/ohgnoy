@@ -51,6 +51,23 @@ function renderChain(node: EvolutionNode): React.ReactNode {
     return <EvolutionNodeCard node={node} />;
   }
 
+  // Eevee: eight branches in one column run off the card, so they go in a grid.
+  if (node.nextEvolutions.length > 2) {
+    return (
+      <div className="flex flex-col items-center gap-2">
+        <EvolutionNodeCard node={node} />
+        <span aria-hidden className="text-xl text-neutral-400 dark:text-neutral-500">↓</span>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {node.nextEvolutions.map((next) => (
+            <div key={next.speciesId} className="flex flex-row items-center justify-center">
+              {renderChain(next)}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="flex flex-row flex-wrap items-center justify-center">

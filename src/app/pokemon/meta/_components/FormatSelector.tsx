@@ -4,11 +4,13 @@ import { useId, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FORMATS } from "@/lib/battle/constants";
 
-function getRecentMonths(count = 6): string[] {
+// The months before the server's latestMonth ("2026-08" → 2026-07 … 2026-03),
+// not the browser clock: the two can disagree and list latestMonth twice.
+function getRecentMonths(latestMonth: string, count = 5): string[] {
+  const [y, m] = latestMonth.split("-").map(Number);
   const months: string[] = [];
-  const now = new Date();
   for (let i = 1; i <= count; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const d = new Date(y, m - 1 - i, 1);
     months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
   }
   return months;
@@ -39,7 +41,8 @@ export default function FormatSelector({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
-  const months = getRecentMonths(6);
+  const months = getRecentMonths(latestMonth);
+  const isLatest = !currentMonth || currentMonth === latestMonth;
   const periodLabelId = useId();
 
   const update = (key: string, value: string) => {
@@ -101,9 +104,9 @@ export default function FormatSelector({
           <button
             type="button"
             onClick={() => update("month", "")}
-            aria-pressed={!currentMonth}
+            aria-pressed={isLatest}
             className={`rounded-none border-2 px-3 py-1 text-xs font-semibold transition-colors ${
-              !currentMonth
+              isLatest
                 ? "border-blue-600 bg-blue-600 text-white"
                 : "border-neutral-300 bg-neutral-200 text-neutral-600 hover:bg-neutral-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600"
             }`}

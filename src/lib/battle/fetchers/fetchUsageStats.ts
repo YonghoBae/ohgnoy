@@ -2,12 +2,13 @@ import { UsageStat } from "@/types/pokemon/battle";
 
 const SMOGON_STATS_BASE = "https://www.smogon.com/stats";
 
-// YYYY-MM 형식으로 최근 월 반환
+// YYYY-MM 형식으로 지난달 반환. 1일로 잡아야 10월 31일에 "9월 31일"이
+// 10월 1일로 넘어가 한 달을 건너뛰지 않는다.
 export function getLatestMonth(): string {
   const now = new Date();
-  now.setMonth(now.getMonth() - 1);
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const d = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
   return `${year}-${month}`;
 }
 

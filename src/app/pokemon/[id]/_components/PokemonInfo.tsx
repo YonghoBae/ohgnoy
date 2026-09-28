@@ -11,7 +11,7 @@ export default function PokemonInfo({ pokemon }: { pokemon: PokemonDetail }) {
     <PixelCard className="flex flex-col gap-4 p-5">
       <h2 className="font-pixel text-xs">기본 정보</h2>
       <p className="text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
-        {pokemon.descriptionKo || pokemon.descriptionEn}
+        {pokemon.descriptionKo || pokemon.descriptionEn || "도감 설명이 없습니다."}
       </p>
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div className="flex flex-col">

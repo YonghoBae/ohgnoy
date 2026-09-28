@@ -20,6 +20,7 @@ export function parseChatDate(x: unknown): Date | null {
     if (typeof y !== 'number' || typeof month !== 'number' || typeof d !== 'number') {
       return null;
     }
+    // LocalDateTime has no zone: read as browser-local, i.e. assumes server and viewer share KST (the backend sends an Instant anyway).
     date = new Date(y, month - 1, d, h, min, s, Math.floor(nanos / 1e6));
   } else if (typeof x === 'number') {
     date = new Date(x < 1e12 ? x * 1000 : x);
