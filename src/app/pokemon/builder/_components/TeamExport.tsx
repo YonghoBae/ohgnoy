@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { TeamMember } from "./TeamBuilder";
+import ModalDialog from "./ModalDialog";
 
 function toShowdownFormat(member: TeamMember): string {
   const { nameEn, set } = member;
@@ -56,6 +57,7 @@ export default function TeamExport({
   onClose: () => void;
 }) {
   const [copied, setCopied] = useState(false);
+  const titleId = useId();
 
   const exportText = team.map(toShowdownFormat).join("\n\n");
 
@@ -66,17 +68,19 @@ export default function TeamExport({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <div className="flex w-full max-w-lg flex-col gap-4 rounded-2xl bg-white p-5 shadow-2xl dark:bg-neutral-800">
+    <ModalDialog labelledBy={titleId} onClose={onClose} className="max-w-lg">
+      <div className="flex w-full flex-col gap-4 rounded-2xl bg-white p-5 shadow-2xl dark:bg-neutral-800">
         <div className="flex items-center justify-between">
-          <h3 className="font-bold">Pokémon Showdown 내보내기</h3>
-          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-700">✕</button>
+          <h3 id={titleId} className="font-bold">Pokémon Showdown 내보내기</h3>
+          <button type="button" onClick={onClose} aria-label="닫기" className="text-neutral-400 hover:text-neutral-700">✕</button>
         </div>
         <p className="text-xs text-neutral-500">
           아래 텍스트를 복사해서 PS! 팀 임포트에 붙여넣으세요.
         </p>
         <textarea
           readOnly
+          aria-label="Showdown 팀 텍스트"
+          spellCheck={false}
           value={exportText}
           className="h-72 rounded-xl bg-neutral-100 p-4 font-mono text-xs dark:bg-neutral-700"
         />
@@ -95,6 +99,6 @@ export default function TeamExport({
           </button>
         </div>
       </div>
-    </div>
+    </ModalDialog>
   );
 }

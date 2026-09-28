@@ -47,7 +47,7 @@ function FilledSlot({
     <PixelCard className="relative flex h-36 flex-col items-center justify-center gap-1 px-2 py-2">
       <button
         onClick={onRemove}
-        aria-label="팀에서 제거"
+        aria-label={`${member.nameKo} 팀에서 제거`}
         className="absolute right-2 top-2 text-xs text-text-muted hover:text-red-500"
       >
         ✕

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useId, useRef } from "react";
 import { Pokemon } from "pokenode-ts";
 import { BattleSet } from "@/types/pokemon/battle";
 import { PokemonTypeName } from "@/types/pokemon/domain";
@@ -10,6 +10,7 @@ import { DEFAULT_FORMAT } from "@/lib/battle/constants";
 import PixelCard from "@/app/_components/ui/pixel/PixelCard";
 import PixelButton from "@/app/_components/ui/pixel/PixelButton";
 import PixelSprite, { getPixelSpriteUrl } from "@/app/_components/ui/pixel/PixelSprite";
+import ModalDialog from "./ModalDialog";
 
 interface Props {
   allNames: string[];
@@ -34,6 +35,7 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
   const [koIndex, setKoIndex] = useState<Record<string, string> | null>(null);
   const [koIndexLoading, setKoIndexLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const titleId = useId();
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -149,17 +151,21 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <PixelCard className="flex w-full max-w-md flex-col gap-4 p-5">
+    <ModalDialog labelledBy={titleId} onClose={onClose} className="max-w-md">
+      <PixelCard className="flex w-full flex-col gap-4 p-5">
         <div className="flex items-center justify-between">
-          <h3 className="font-bold">포켓몬 선택</h3>
-          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-700">✕</button>
+          <h3 id={titleId} className="font-bold">포켓몬 선택</h3>
+          <button type="button" onClick={onClose} aria-label="닫기" className="text-neutral-400 hover:text-neutral-700">✕</button>
         </div>
 
         {!selectedPokemon ? (
           <>
             <input
               ref={inputRef}
+              type="search"
+              aria-label="포켓몬 이름으로 검색"
+              autoComplete="off"
+              spellCheck={false}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="이름으로 검색 (예: 이상해씨, garchomp)"
@@ -248,6 +254,6 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
           </>
         )}
       </PixelCard>
-    </div>
+    </ModalDialog>
   );
 }
