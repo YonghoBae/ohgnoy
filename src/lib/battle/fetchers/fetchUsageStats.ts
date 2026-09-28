@@ -30,7 +30,8 @@ interface RawUsageStat {
   "Tera Types"?: Record<string, number>;
 }
 
-// 가중 횟수를 포켓몬 가중 합계(특성 합) 대비 퍼센트로. 빈 키와 "nothing"은 뺀다.
+// 가중 횟수를 포켓몬 가중 합계(특성 합) 대비 퍼센트로. 빈 키, "nothing",
+// 0 이하 값(Teammates의 음수 편차)은 뺀다.
 function toPercent(
   counts: Record<string, number> | undefined,
   total: number
@@ -38,7 +39,7 @@ function toPercent(
   const out: Record<string, number> = {};
   if (!counts || total <= 0) return out;
   for (const [k, v] of Object.entries(counts)) {
-    if (k && k !== "nothing") out[k] = (v / total) * 100;
+    if (k && k !== "nothing" && v > 0) out[k] = (v / total) * 100;
   }
   return out;
 }

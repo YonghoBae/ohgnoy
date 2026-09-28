@@ -8,9 +8,9 @@ interface RawSets {
       moves: (string | string[])[];
       item?: string | string[];
       ability?: string | string[];
-      nature?: string;
-      evs?: Partial<Record<string, number>>;
-      teratypes?: string[];
+      nature?: string | string[];
+      evs?: Partial<Record<string, number>> | Partial<Record<string, number>>[];
+      teratypes?: string | string[];
     };
   };
 }
@@ -33,9 +33,10 @@ export async function fetchSets(
         moves: data.moves ?? [],
         item: data.item ?? [],
         ability: data.ability,
-        nature: data.nature,
-        evs: data.evs as BattleSet["evs"],
-        teratypes: data.teratypes,
+        // pkmn 세트는 한 값일 때 배열 대신 문자열/객체로 준다.
+        nature: [data.nature ?? []].flat().join(" / ") || undefined,
+        evs: [data.evs ?? []].flat()[0] as BattleSet["evs"],
+        teratypes: data.teratypes ? [data.teratypes].flat() : undefined,
       }));
     }
 
