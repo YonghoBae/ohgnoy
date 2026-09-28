@@ -184,9 +184,27 @@ export function Row({
   );
 }
 
+/**
+ * resume.tsx 의 `Link` 와 같은 패턴 — PDF 에서 눌리는 `<a href>`. 덱의 표지·푸터는
+ * 원래 밑줄이 없어서 밑줄 없이, 색은 본문 그대로 둡니다.
+ */
+function Link({ href, children }: { href: string; children: React.ReactNode }) {
+  const external = /^https?:/.test(href);
+  return (
+    <a
+      href={href}
+      target={external ? '_blank' : undefined}
+      rel={external ? 'noreferrer' : undefined}
+      style={{ color: 'inherit' }}
+    >
+      {children}
+    </a>
+  );
+}
+
 export function Stars({ level }: { level: number }) {
   return (
-    <span className="tracking-[0.08em] text-[#37352F]" aria-label={`${level}점`}>
+    <span role="img" className="tracking-[0.08em] text-[#37352F]" aria-label={`${level}점`}>
       {'★'.repeat(level)}
       <span className="text-[#C6C5C1]">{'☆'.repeat(5 - level)}</span>
     </span>
@@ -317,7 +335,7 @@ function ProjectFooter({
       </div>
       {project.repo && (
         <div className="shrink-0 pl-[6mm] text-[16px] text-[#787774]">
-          {project.repo}
+          <Link href={`https://${project.repo}`}>{project.repo}</Link>
         </div>
       )}
     </footer>
@@ -715,6 +733,8 @@ function ProfilePage() {
               <img
                 src="/resume/profile.jpeg"
                 alt={`${PROFILE.name} 사진`}
+                width={200}
+                height={230}
                 className="h-[42mm] w-[32mm] shrink-0 border border-[#E9E9E7] object-cover"
               />
             )}
@@ -750,15 +770,23 @@ function ProfilePage() {
             // 전화번호는 `.env.local` 에 값이 있을 때만 — 덱은 공개 URL 이라
             // 배포본에는 빠지고, 로컬에서 PDF 를 뽑을 때만 실립니다.
             ...(process.env.NEXT_PUBLIC_RESUME_PHONE
-              ? [['연락처', process.env.NEXT_PUBLIC_RESUME_PHONE]]
+              ? [
+                  [
+                    '연락처',
+                    process.env.NEXT_PUBLIC_RESUME_PHONE,
+                    `tel:${process.env.NEXT_PUBLIC_RESUME_PHONE.replace(/-/g, '')}`,
+                  ],
+                ]
               : []),
-            ['이메일', PROFILE.email],
-            ['GitHub', PROFILE.github],
-            ['블로그', PROFILE.blog],
-          ].map(([label, value]) => (
+            ['이메일', PROFILE.email, `mailto:${PROFILE.email}`],
+            ['GitHub', PROFILE.github, PROFILE.githubUrl],
+            ['블로그', PROFILE.blog, PROFILE.blogUrl],
+          ].map(([label, value, href]) => (
             <li key={value} className="flex items-baseline gap-[2.5mm] whitespace-nowrap">
               <span className="shrink-0 text-[16px] text-[#9B9A97]">{label}</span>
-              <span className="text-[20px] text-[#37352F]">{value}</span>
+              <span className="text-[20px] text-[#37352F]">
+                <Link href={href}>{value}</Link>
+              </span>
             </li>
           ))}
         </ul>

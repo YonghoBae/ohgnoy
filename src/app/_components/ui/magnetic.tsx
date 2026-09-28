@@ -5,6 +5,7 @@ import {
   motion,
   useMotionValue,
   useSpring,
+  useReducedMotion,
   type SpringOptions,
 } from 'motion/react'
 
@@ -27,6 +28,8 @@ export function Magnetic({
 }: MagneticProps) {
   const [isHovered, setIsHovered] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  // Keep the wrapper (same markup as SSR) but never move it under reduced motion.
+  const reduceMotion = useReducedMotion()
 
   const x = useMotionValue(0)
   const y = useMotionValue(0)
@@ -35,6 +38,7 @@ export function Magnetic({
   const springY = useSpring(y, springOptions)
 
   useEffect(() => {
+    if (reduceMotion) return
     const calculateDistance = (e: MouseEvent) => {
       if (ref.current) {
         const rect = ref.current.getBoundingClientRect()
@@ -61,7 +65,7 @@ export function Magnetic({
     return () => {
       document.removeEventListener('mousemove', calculateDistance)
     }
-  }, [ref, isHovered, intensity, range])
+  }, [ref, isHovered, intensity, range, reduceMotion])
 
   useEffect(() => {
     if (actionArea === 'parent' && ref.current?.parentElement) {

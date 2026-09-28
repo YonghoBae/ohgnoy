@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo } from 'react';
-import { MotionConfig, motion } from 'motion/react';
+import { useEffect, useMemo, useRef } from 'react';
+import { MotionConfig, motion, useReducedMotion } from 'motion/react';
 import { 
   XIcon, 
   DownloadIcon, 
@@ -92,23 +92,33 @@ function resolveMediaSrc(src: string) {
 function ProjectMedia({ src, alt }: { src: string; alt: string }) {
   const resolvedSrc = resolveMediaSrc(src);
   const isVideo = VIDEO_PATTERN.test(resolvedSrc);
+  // Pause the card video under reduced motion. An effect rather than dropping
+  // autoPlay, so the server-rendered markup matches (pause() also cancels autoplay).
+  const reduceMotion = useReducedMotion();
+  const cardVideoRef = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    if (reduceMotion) cardVideoRef.current?.pause();
+  }, [reduceMotion]);
   return (
     <MorphingDialog transition={{ type: 'spring', bounce: 0, duration: 0.3 }}>
-      <MorphingDialogTrigger>
-        <div className="group relative overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
+      <MorphingDialogTrigger className="group" aria-label={`${alt} 미디어 크게 보기`}>
+        <div className="relative overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
           {isVideo ? (
             <>
+              {/* No still frame exists for the poster, so only fetch metadata. */}
               <video
+                ref={cardVideoRef}
                 src={resolvedSrc}
                 autoPlay
                 loop
                 muted
                 playsInline
+                preload="metadata"
                 className="aspect-video w-full object-cover transition-transform duration-500 group-hover:scale-105 print:hidden"
               />
-              <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+              <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100">
                 <div className="rounded-full bg-white/30 p-3 backdrop-blur-md">
-                  <PlayIcon className="h-5 w-5 text-white" />
+                  <PlayIcon aria-hidden className="h-5 w-5 text-white" />
                 </div>
               </div>
             </>
@@ -117,10 +127,12 @@ function ProjectMedia({ src, alt }: { src: string; alt: string }) {
               <img
                 src={resolvedSrc}
                 alt={alt}
+                width={1280}
+                height={720}
                 loading="lazy"
                 className="aspect-video w-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
-              <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+              <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100">
                 <div className="rounded-full bg-white/30 px-3 py-2 text-xs font-medium uppercase tracking-wide text-white/80 backdrop-blur-md">
                   Zoom
                 </div>
@@ -138,6 +150,7 @@ function ProjectMedia({ src, alt }: { src: string; alt: string }) {
               loop
               muted
               playsInline
+              controls
               className="aspect-video h-[50vh] w-full rounded-xl bg-black object-contain md:h-[70vh] print:hidden"
             />
           ) : (
@@ -145,14 +158,17 @@ function ProjectMedia({ src, alt }: { src: string; alt: string }) {
               <img
                 src={resolvedSrc}
                 alt={alt}
+                width={1280}
+                height={720}
                 className="h-full w-full object-contain"
               />
             </div>
           )}
+          {/* Inside the content so the dialog's focus logic finds it. */}
+          <MorphingDialogClose className="fixed right-6 top-6 h-fit w-fit rounded-full bg-white p-2 shadow-sm transition-transform active:scale-95">
+            <XIcon aria-hidden className="h-4 w-4 text-zinc-500" />
+          </MorphingDialogClose>
         </MorphingDialogContent>
-        <MorphingDialogClose className="fixed right-6 top-6 h-fit w-fit rounded-full bg-white p-2 shadow-sm transition-transform active:scale-95">
-          <XIcon className="h-4 w-4 text-zinc-500" />
-        </MorphingDialogClose>
       </MorphingDialogContainer>
     </MorphingDialog>
   );
@@ -183,6 +199,7 @@ function ProjectCard({ project }: { project: (typeof PROJECTS)[number] }) {
     <div className="flex flex-col space-y-4 print:space-y-3 print-break-avoid">
       <div className="flex items-start justify-between px-1">
         <div className="space-y-1">
+            <h3>
             <a
             className="group relative inline-flex items-center gap-1 font-semibold text-zinc-900 dark:text-zinc-50"
             href={project.link}
@@ -190,8 +207,9 @@ function ProjectCard({ project }: { project: (typeof PROJECTS)[number] }) {
             rel="noopener noreferrer"
             >
             {project.name}
-            <span className="absolute bottom-0 left-0 block h-[1px] w-0 bg-zinc-900 transition-all duration-300 group-hover:w-full dark:bg-zinc-50"></span>
+            <span className="absolute bottom-0 left-0 block h-[1px] w-full origin-left scale-x-0 bg-zinc-900 transition-transform duration-300 group-hover:scale-x-100 dark:bg-zinc-50"></span>
             </a>
+            </h3>
             <div className="flex flex-wrap gap-1.5">
                 {summaryTech.map((tech) => (
                 <span key={tech} className="rounded-md bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
@@ -262,9 +280,9 @@ function ProjectCard({ project }: { project: (typeof PROJECTS)[number] }) {
                         {index + 1}
                       </span>
                       <div className="space-y-2 rounded-2xl bg-zinc-50/70 p-3 ring-1 ring-zinc-100 dark:bg-zinc-900/50 dark:ring-zinc-800/60">
-                        <h5 className="text-xs font-bold uppercase tracking-wide text-zinc-900 dark:text-zinc-100">
+                        <h4 className="text-xs font-bold uppercase tracking-wide text-zinc-900 dark:text-zinc-100">
                           {LABEL_MAP[key]}
-                        </h5>
+                        </h4>
                         <ul className="space-y-1.5 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
                           {items.map((item, i) => (
                             <li key={i} className="list-disc pl-4 marker:text-zinc-400">
@@ -299,9 +317,11 @@ function Personal() {
       {/* --- 헤더 --- */}
       <header className="space-y-4 print:space-y-2 print-break-avoid">
         <div className='space-y-1'>
-          <Link href="/" className="font-semibold text-zinc-900 dark:text-zinc-50">
-            배용호 (Bae Yong-ho)
-          </Link>
+          <h1>
+            <Link href="/" className="font-semibold text-zinc-900 dark:text-zinc-50">
+              배용호 (Bae Yong-ho)
+            </Link>
+          </h1>
           <TextEffect
             as="p"
             preset="fade"
@@ -325,7 +345,7 @@ function Personal() {
 
       {/* --- 프로젝트 --- */}
       <motion.section variants={VARIANTS_SECTION} transition={TRANSITION_SECTION} className="print-break-avoid">
-        <h3 className="mb-6 font-medium text-zinc-900 dark:text-zinc-100 print:mb-3">Selected Projects</h3>
+        <h2 className="mb-6 font-medium text-zinc-900 dark:text-zinc-100 print:mb-3">Selected Projects</h2>
         <div className="flex flex-col space-y-12 print:space-y-6">
           {PROJECTS.map((project) => (
             <ProjectCard key={project.name} project={project} />
@@ -335,7 +355,7 @@ function Personal() {
 
       {/* --- 과정 프로젝트 & 스킬 --- */}
       <motion.section variants={VARIANTS_SECTION} transition={TRANSITION_SECTION} className="print-break-avoid">
-        <h3 className="mb-4 font-medium text-zinc-900 dark:text-zinc-100 print:mb-2">Course Projects & Skills</h3>
+        <h2 className="mb-4 font-medium text-zinc-900 dark:text-zinc-100 print:mb-2">Course Projects & Skills</h2>
         <div className="space-y-8">
           <div>
             <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
@@ -356,9 +376,9 @@ function Personal() {
                   />
                   <div className="relative h-full w-full rounded-[15px] bg-white p-5 transition-colors group-hover:bg-zinc-50 dark:bg-zinc-950 dark:group-hover:bg-zinc-900">
                     <div className="flex w-full flex-col justify-between gap-1 sm:flex-row sm:items-baseline">
-                       <h4 className="font-medium text-zinc-900 dark:text-zinc-100">
+                       <h3 className="font-medium text-zinc-900 dark:text-zinc-100">
                         {job.title}
-                      </h4>
+                      </h3>
                       <span className="text-xs text-zinc-400 font-mono">
                         {job.start} — {job.end}
                       </span>
@@ -404,11 +424,11 @@ function Personal() {
 
       {/* --- 학력 --- */}
       <motion.section variants={VARIANTS_SECTION} transition={TRANSITION_SECTION} className="print-break-avoid">
-        <h3 className="mb-4 font-medium text-zinc-900 dark:text-zinc-100 print:mb-2">Education</h3>
-          {EDUCATION.map((edu, index) => (
-            <div key={index} className="flex items-center justify-between py-2">
+        <h2 className="mb-4 font-medium text-zinc-900 dark:text-zinc-100 print:mb-2">Education</h2>
+          {EDUCATION.map((edu) => (
+            <div key={`${edu.school}-${edu.period}`} className="flex items-center justify-between py-2">
               <div>
-                <h4 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{edu.school}</h4>
+                <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{edu.school}</h3>
                 <p className="text-xs text-zinc-500">{edu.major}</p>
               </div>
               <span className="text-xs text-zinc-400 font-mono">{edu.period}</span>
@@ -418,7 +438,7 @@ function Personal() {
 
       {/* --- 블로그 --- */}
       <motion.section variants={VARIANTS_SECTION} transition={TRANSITION_SECTION} className="print-break-avoid">
-        <h3 className="mb-2 font-medium text-zinc-900 dark:text-zinc-100 print:mb-1">Writing</h3>
+        <h2 className="mb-2 font-medium text-zinc-900 dark:text-zinc-100 print:mb-1">Writing</h2>
         <div className="-mx-3 print:mx-0">
             <AnimatedBackground
                 enableHover
@@ -432,9 +452,9 @@ function Personal() {
                     data-id={post.uid}
                     className="flex flex-col gap-0.5 px-3 py-2"
                 >
-                    <h4 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                    <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                         {post.title}
-                    </h4>
+                    </h3>
                     <p className="text-xs text-zinc-500">
                         {post.description}
                     </p>
@@ -446,7 +466,7 @@ function Personal() {
 
       {/* --- 연락처 --- */}
       <motion.section variants={VARIANTS_SECTION} transition={TRANSITION_SECTION} className="print-break-avoid">
-        <h3 className="mb-4 font-medium text-zinc-900 dark:text-zinc-100 print:mb-2">Connect</h3>
+        <h2 className="mb-4 font-medium text-zinc-900 dark:text-zinc-100 print:mb-2">Connect</h2>
         <div className="flex flex-wrap items-center gap-3">
           {SOCIAL_LINKS.map((link) => (
             <MagneticSocialLink key={link.label} link={link.link}>

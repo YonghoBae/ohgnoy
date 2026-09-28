@@ -106,6 +106,8 @@ function PersonalSection() {
           <img
             src={PHOTO}
             alt={`${PROFILE.name} 증명사진`}
+            width={200}
+            height={230}
             className="h-[56mm] w-[42mm] shrink-0 border object-cover"
             style={{ borderColor: LINE }}
           />
@@ -248,11 +250,13 @@ function SkillsSection() {
  * 눌린다는 표시는 옅은 밑줄로만 냅니다.
  */
 function Link({ href, children }: { href: string; children: React.ReactNode }) {
+  // 새 탭은 웹 주소만 — `mailto:`/`tel:` 은 빈 탭을 띄웁니다.
+  const external = /^https?:/.test(href);
   return (
     <a
       href={href}
-      target="_blank"
-      rel="noreferrer"
+      target={external ? '_blank' : undefined}
+      rel={external ? 'noreferrer' : undefined}
       className="underline decoration-[0.4px] underline-offset-[2.5px]"
       style={{ color: 'inherit', textDecorationColor: '#C9C9C6' }}
     >
@@ -392,9 +396,9 @@ function CoverLetterPage({ sections }: { sections: typeof COVER_LETTER }) {
       <div className="mt-[3mm] flex flex-col gap-[5mm]">
         {sections.map((section) => (
           <div key={section.title}>
-            <h3 className="text-[16px] font-semibold" style={{ color: TEXT }}>
+            <h2 className="text-[16px] font-semibold" style={{ color: TEXT }}>
               {section.title}
-            </h3>
+            </h2>
             <div className="mt-[1.5mm] flex flex-col gap-[1.5mm]">
               {section.paragraphs.map((p, i) => (
                 <p
