@@ -19,6 +19,7 @@ import {
   MorphingDialogContent,
   MorphingDialogClose,
   MorphingDialogContainer,
+  MorphingDialogTitle,
 } from '@/app/_components/ui/morphing-dialog';
 import { AnimatedBackground } from '@/app/_components/ui/animated-background';
 import { TextEffect } from '@/app/_components/ui/text-effect';
@@ -143,6 +144,8 @@ function ProjectMedia({ src, alt }: { src: string; alt: string }) {
       </MorphingDialogTrigger>
       <MorphingDialogContainer>
         <MorphingDialogContent className="relative aspect-video rounded-2xl bg-zinc-50 p-1 ring-1 ring-zinc-200/50 ring-inset dark:bg-zinc-950 dark:ring-zinc-800/50">
+          {/* Gives the dialog its accessible name (aria-labelledby). */}
+          <MorphingDialogTitle className="sr-only">{`${alt} 미디어 크게 보기`}</MorphingDialogTitle>
           {isVideo ? (
             <video
               src={resolvedSrc}
@@ -256,7 +259,7 @@ function ProjectCard({ project }: { project: (typeof PROJECTS)[number] }) {
                 className="inline-flex items-center gap-1 rounded-full border border-zinc-200 px-2.5 py-1 transition hover:border-zinc-400 hover:text-zinc-900 dark:border-zinc-800 dark:hover:border-zinc-600"
               >
                 {resource.label}
-                <ArrowUpRight className="h-3 w-3" />
+                <ArrowUpRight aria-hidden className="h-3 w-3" />
               </a>
             ))}
           </div>

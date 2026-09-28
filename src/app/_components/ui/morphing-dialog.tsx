@@ -26,6 +26,9 @@ export type MorphingDialogContextType = {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>
   uniqueId: string
   triggerRef: React.RefObject<HTMLDivElement>
+  // Set while a Description is mounted, so aria-describedby never dangles.
+  hasDescription: boolean
+  setHasDescription: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const MorphingDialogContext =
@@ -51,6 +54,7 @@ function MorphingDialogProvider({
   transition,
 }: MorphingDialogProviderProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [hasDescription, setHasDescription] = useState(false)
   const uniqueId = useId()
   const triggerRef = useRef<HTMLDivElement>(null!)
 
@@ -60,8 +64,10 @@ function MorphingDialogProvider({
       setIsOpen,
       uniqueId,
       triggerRef,
+      hasDescription,
+      setHasDescription,
     }),
-    [isOpen, uniqueId],
+    [isOpen, uniqueId, hasDescription],
   )
 
   return (
@@ -162,7 +168,8 @@ function MorphingDialogContent({
   className,
   style,
 }: MorphingDialogContentProps) {
-  const { setIsOpen, isOpen, uniqueId, triggerRef } = useMorphingDialog()
+  const { setIsOpen, isOpen, uniqueId, triggerRef, hasDescription } =
+    useMorphingDialog()
   const containerRef = useRef<HTMLDivElement>(null!)
   const [firstFocusableElement, setFirstFocusableElement] =
     useState<HTMLElement | null>(null)
@@ -209,7 +216,7 @@ function MorphingDialogContent({
     }
     document.body.classList.add('overflow-hidden')
     const focusableElements = containerRef.current?.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      'button, [href], input, select, textarea, video[controls], audio[controls], [tabindex]:not([tabindex="-1"])',
     )
     if (focusableElements && focusableElements.length > 0) {
       setFirstFocusableElement(focusableElements[0] as HTMLElement)
@@ -241,7 +248,11 @@ function MorphingDialogContent({
       role="dialog"
       aria-modal="true"
       aria-labelledby={`motion-ui-morphing-dialog-title-${uniqueId}`}
-      aria-describedby={`motion-ui-morphing-dialog-description-${uniqueId}`}
+      aria-describedby={
+        hasDescription
+          ? `motion-ui-morphing-dialog-description-${uniqueId}`
+          : undefined
+      }
     >
       {children}
     </motion.div>
@@ -353,7 +364,12 @@ function MorphingDialogDescription({
   variants,
   disableLayoutAnimation,
 }: MorphingDialogDescriptionProps) {
-  const { uniqueId } = useMorphingDialog()
+  const { uniqueId, setHasDescription } = useMorphingDialog()
+
+  useEffect(() => {
+    setHasDescription(true)
+    return () => setHasDescription(false)
+  }, [setHasDescription])
 
   return (
     <motion.div
