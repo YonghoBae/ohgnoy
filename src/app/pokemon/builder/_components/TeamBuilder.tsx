@@ -28,7 +28,7 @@ function EmptySlot({ onClick }: { onClick: () => void }) {
       onClick={onClick}
       className="flex h-36 flex-col items-center justify-center gap-2 rounded-none border-2 border-dashed border-text-muted text-text-muted transition-colors hover:border-primary hover:text-primary"
     >
-      <span className="text-3xl">+</span>
+      <span aria-hidden className="text-3xl">+</span>
       <span className="font-mono-pixel text-xs">포켓몬 추가</span>
     </button>
   );
@@ -44,7 +44,7 @@ function FilledSlot({
   onSetChange: (set: BattleSet | null) => void;
 }) {
   return (
-    <PixelCard className="relative flex h-36 flex-col items-center justify-center gap-1 px-2 py-2">
+    <PixelCard className="relative flex min-h-36 flex-col items-center justify-center gap-1 px-2 py-2">
       <button
         onClick={onRemove}
         aria-label={`${member.nameKo} 팀에서 제거`}
@@ -55,14 +55,14 @@ function FilledSlot({
       <div className="relative h-16 w-16">
         <PixelSprite spriteUrl={member.spriteUrl} alt={member.nameEn} fill />
       </div>
-      <span className="font-mono-pixel text-xs font-bold">{member.nameKo}</span>
+      <span className="font-mono-pixel max-w-full truncate text-xs font-bold">{member.nameKo}</span>
       <div className="flex gap-1">
         {member.types.map((t) => (
           <TypeBadge key={t} type={t} size="sm" />
         ))}
       </div>
       {member.set && (
-        <span className="text-xs text-primary">{member.set.name}</span>
+        <span className="max-w-full truncate text-xs text-primary">{member.set.name}</span>
       )}
     </PixelCard>
   );

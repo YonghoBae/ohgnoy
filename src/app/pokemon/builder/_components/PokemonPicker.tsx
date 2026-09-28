@@ -187,24 +187,27 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
               placeholder="이름으로 검색 (예: 이상해씨, garchomp)"
               className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2 text-sm focus:border-blue-400 dark:border-neutral-600 dark:bg-neutral-700"
             />
-            {koIndexLoading && (
-              <p className="text-center text-xs text-neutral-500">한국어 이름 인덱스 로딩 중...</p>
-            )}
-            {loading && (
-              <p className="text-center text-xs text-neutral-500">검색 중...</p>
-            )}
-            {!loading && !koIndexLoading && query.trim() && results.length === 0 && (
-              <p className="text-center text-xs text-neutral-500">검색 결과가 없습니다.</p>
-            )}
+            <div aria-live="polite">
+              {koIndexLoading && (
+                <p className="text-center text-xs text-neutral-500">한국어 이름 인덱스 로딩 중…</p>
+              )}
+              {loading && (
+                <p className="text-center text-xs text-neutral-500">검색 중…</p>
+              )}
+              {!loading && !koIndexLoading && query.trim() && results.length === 0 && (
+                <p className="text-center text-xs text-neutral-500">검색 결과가 없습니다.</p>
+              )}
+            </div>
             <div className="flex max-h-72 flex-col gap-1 overflow-y-auto">
               {results.map((r) => (
                 <button
                   key={r.pokemon.id}
+                  type="button"
                   onClick={() => void handleSelectPokemon(r)}
                   className="flex items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700"
                 >
                   <div className="relative h-10 w-10 flex-shrink-0">
-                    <PixelSprite pokemon={r.pokemon} alt={r.pokemon.name} fill />
+                    <PixelSprite pokemon={r.pokemon} alt="" fill />
                   </div>
                   <div className="flex flex-col">
                     <span className="text-sm font-bold">{r.nameKo}</span>
@@ -224,7 +227,7 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
             {/* 포켓몬 확인 */}
             <div className="flex items-center gap-3 rounded-xl bg-neutral-100 px-4 py-3 dark:bg-neutral-700">
               <div className="relative h-14 w-14">
-                <PixelSprite pokemon={selectedPokemon.pokemon} alt={selectedPokemon.nameKo} fill />
+                <PixelSprite pokemon={selectedPokemon.pokemon} alt="" fill />
               </div>
               <div>
                 <p className="font-bold">{selectedPokemon.nameKo}</p>
@@ -246,7 +249,7 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
             <div className="flex flex-col gap-2">
               <p className="text-sm font-semibold">세트 선택 (선택 사항)</p>
               {setsLoading ? (
-                <p className="text-xs text-neutral-500">세트 불러오는 중...</p>
+                <p className="text-xs text-neutral-500">세트 불러오는 중…</p>
               ) : sets.length === 0 ? (
                 <p className="text-xs text-neutral-500">추천 세트 없음</p>
               ) : (
@@ -254,6 +257,7 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
                   {sets.map((set) => (
                     <button
                       key={set.name}
+                      type="button"
                       onClick={() => handleConfirm(set)}
                       className="rounded-xl border border-neutral-200 px-4 py-2 text-left text-sm transition-colors hover:border-blue-400 hover:bg-blue-50 dark:border-neutral-600 dark:hover:bg-blue-900"
                     >

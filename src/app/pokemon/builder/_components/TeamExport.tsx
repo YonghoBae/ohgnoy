@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { TeamMember } from "./TeamBuilder";
 import ModalDialog from "./ModalDialog";
 
@@ -56,15 +56,29 @@ export default function TeamExport({
   team: TeamMember[];
   onClose: () => void;
 }) {
-  const [copied, setCopied] = useState(false);
+  const [status, setStatus] = useState<"idle" | "copied" | "failed">("idle");
   const titleId = useId();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   const exportText = team.map(toShowdownFormat).join("\n\n");
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(exportText);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(exportText);
+      setStatus("copied");
+    } catch {
+      textareaRef.current?.select();
+      setStatus("failed");
+    }
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => setStatus("idle"), 2000);
   };
 
   return (
@@ -78,6 +92,7 @@ export default function TeamExport({
           아래 텍스트를 복사해서 PS! 팀 임포트에 붙여넣으세요.
         </p>
         <textarea
+          ref={textareaRef}
           readOnly
           aria-label="Showdown 팀 텍스트"
           spellCheck={false}
@@ -86,18 +101,28 @@ export default function TeamExport({
         />
         <div className="flex gap-3">
           <button
+            type="button"
             onClick={() => void handleCopy()}
             className="flex-1 rounded-xl bg-blue-600 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
           >
-            {copied ? "복사됨 ✓" : "클립보드에 복사"}
+            클립보드에 복사
           </button>
           <button
+            type="button"
             onClick={onClose}
             className="rounded-xl bg-neutral-200 px-4 py-2 text-sm font-semibold transition-colors hover:bg-neutral-300 dark:bg-neutral-700 dark:hover:bg-neutral-600"
           >
             닫기
           </button>
         </div>
+        <p aria-live="polite" className="min-h-[1em] text-center text-xs text-neutral-500">
+          {status === "copied" && (
+            <>
+              <span aria-hidden>✓</span> 복사됨
+            </>
+          )}
+          {status === "failed" && "복사하지 못했습니다. 직접 선택해서 복사하세요."}
+        </p>
       </div>
     </ModalDialog>
   );

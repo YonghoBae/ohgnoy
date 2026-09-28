@@ -38,7 +38,7 @@ export default async function MetaPage({ searchParams }: Props) {
           <h2 className="font-pixel text-xs">{formatLabel} 사용률 랭킹</h2>
           {ranking && (
             <span className="text-xs text-neutral-500">
-              cutoff {cutoff}+
+              컷오프 <span className="tabular-nums">{cutoff}</span>+
             </span>
           )}
         </div>
@@ -46,6 +46,8 @@ export default async function MetaPage({ searchParams }: Props) {
         {!ranking ? (
           <p className="py-8 text-center text-sm text-neutral-500">
             해당 포맷의 데이터를 불러올 수 없습니다.
+            <br />
+            다른 기간이나 포맷을 선택해 보세요.
           </p>
         ) : (
           <Suspense fallback={<RankingSkeleton />}>
@@ -62,13 +64,13 @@ function RankingSkeleton() {
     <div className="flex flex-col gap-2">
       {Array.from({ length: 10 }).map((_, i) => (
         <div key={i} className="flex items-center gap-4 px-4 py-2">
-          <div className="h-4 w-8 animate-pulse rounded bg-neutral-300 dark:bg-neutral-600" />
-          <div className="h-12 w-12 animate-pulse rounded-full bg-neutral-300 dark:bg-neutral-600" />
+          <div className="h-4 w-8 animate-pulse rounded-none bg-neutral-300 dark:bg-neutral-600" />
+          <div className="h-12 w-12 animate-pulse rounded-none bg-neutral-300 dark:bg-neutral-600" />
           <div className="flex flex-1 flex-col gap-2">
-            <div className="h-4 w-24 animate-pulse rounded bg-neutral-300 dark:bg-neutral-600" />
-            <div className="h-3 w-16 animate-pulse rounded bg-neutral-300 dark:bg-neutral-600" />
+            <div className="h-4 w-24 animate-pulse rounded-none bg-neutral-300 dark:bg-neutral-600" />
+            <div className="h-3 w-16 animate-pulse rounded-none bg-neutral-300 dark:bg-neutral-600" />
           </div>
-          <div className="h-4 w-32 animate-pulse rounded bg-neutral-300 dark:bg-neutral-600" />
+          <div className="h-4 w-32 animate-pulse rounded-none bg-neutral-300 dark:bg-neutral-600" />
         </div>
       ))}
     </div>

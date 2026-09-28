@@ -59,9 +59,9 @@ export default function PokemonCard({
           />
         </button>
       </div>
-      <h1 className="font-mono-pixel w-11/12 truncate text-center text-sm font-bold">
+      <h2 className="font-mono-pixel w-11/12 truncate text-center text-sm font-bold">
         {koName ?? pokemon.name.toUpperCase()}
-      </h1>
+      </h2>
       <Link
         href={`/pokemon/${pokemon.id}`}
         aria-label={`${koName ?? pokemon.name} 상세 보기`}

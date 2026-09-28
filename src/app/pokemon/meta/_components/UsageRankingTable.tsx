@@ -34,21 +34,18 @@ async function RankRow({
 
   const barWidth = maxUsage > 0 ? (entry.usagePercent / maxUsage) * 100 : 0;
 
-  return (
-    <Link
-      href={`/pokemon/${id}`}
-      className="flex items-center gap-4 rounded-xl px-4 py-2 transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-700"
-    >
-      <span className="w-8 text-right text-sm font-bold text-neutral-400">
+  const content = (
+    <>
+      <span className="w-8 text-right text-sm font-bold tabular-nums text-text-muted">
         {entry.rank}
       </span>
       <div className="relative h-12 w-12 flex-shrink-0">
-        {pokemon && <PixelSprite pokemon={pokemon} alt={entry.nameEn} fill />}
+        {pokemon && <PixelSprite pokemon={pokemon} alt="" fill />}
       </div>
-      <div className="flex flex-1 flex-col gap-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="font-bold">{nameKo}</span>
-          <span className="text-xs text-neutral-500">{entry.nameEn}</span>
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="truncate font-bold">{nameKo}</span>
+          <span className="truncate text-xs text-neutral-500">{entry.nameEn}</span>
         </div>
         <div className="flex items-center gap-1">
           {types.map((t) => (
@@ -63,10 +60,29 @@ async function RankRow({
             style={{ width: `${barWidth}%` }}
           />
         </div>
-        <span className="text-right text-xs font-semibold text-blue-600 dark:text-blue-400">
+        <span className="text-right text-xs font-semibold tabular-nums text-blue-600 dark:text-blue-400">
           {entry.usagePercent.toFixed(2)}%
         </span>
       </div>
+    </>
+  );
+
+  // 이름 조회에 실패하면 id가 nameEn으로 폴백된 상태 — 실제 상세 페이지가
+  // 없을 가능성이 높으므로 링크 대신 일반 행으로 표시
+  if (!pokemon) {
+    return (
+      <div className="flex items-center gap-4 rounded-none px-4 py-2">
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      href={`/pokemon/${id}`}
+      className="flex items-center gap-4 rounded-none px-4 py-2 transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-700"
+    >
+      {content}
     </Link>
   );
 }
@@ -83,10 +99,12 @@ export default async function UsageRankingTable({
   const maxUsage = ranking[0]?.usagePercent ?? 1;
 
   return (
-    <div className="flex flex-col divide-y divide-neutral-200 dark:divide-neutral-700">
+    <ol className="flex list-none flex-col divide-y divide-neutral-200 dark:divide-neutral-700">
       {ranking.map((entry) => (
-        <RankRow key={entry.nameEn} entry={entry} maxUsage={maxUsage} />
+        <li key={entry.nameEn}>
+          <RankRow entry={entry} maxUsage={maxUsage} />
+        </li>
       ))}
-    </div>
+    </ol>
   );
 }
