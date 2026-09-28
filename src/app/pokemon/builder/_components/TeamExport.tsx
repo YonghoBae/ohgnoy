@@ -4,26 +4,33 @@ import { useEffect, useId, useRef, useState } from "react";
 import { TeamMember } from "./TeamBuilder";
 import ModalDialog from "./ModalDialog";
 
+// 후보가 여러 개인 값(배열, 성격 "Adamant / Jolly")은 첫 번째만. 옛 저장 팀은
+// teratypes가 문자열이라 인덱싱하면 첫 글자가 나온다.
+const first = (v: string | string[] | undefined) =>
+  [v ?? []].flat()[0]?.split(" / ")[0];
+
+// 옛 저장 팀에는 species가 없다: "great-tusk" → "Great-Tusk"(Showdown은 id로 맞춘다).
+const titleCase = (slug: string) =>
+  slug.replace(/(^|-)([a-z])/g, (m) => m.toUpperCase());
+
 function toShowdownFormat(member: TeamMember): string {
-  const { nameEn, set } = member;
+  const { set } = member;
+  const nameEn = member.species ?? titleCase(member.nameEn);
   if (!set) return `${nameEn}\n\n`;
 
   const lines: string[] = [];
 
   // 이름 @ 아이템
-  const item = Array.isArray(set.item) ? set.item[0] : set.item;
+  const item = first(set.item);
   lines.push(item ? `${nameEn} @ ${item}` : nameEn);
 
   // 특성
-  if (set.ability) {
-    const ability = Array.isArray(set.ability) ? set.ability[0] : set.ability;
-    if (ability) lines.push(`Ability: ${ability}`);
-  }
+  const ability = first(set.ability);
+  if (ability) lines.push(`Ability: ${ability}`);
 
   // 테라스탈
-  if (set.teratypes?.[0]) {
-    lines.push(`Tera Type: ${set.teratypes[0]}`);
-  }
+  const tera = first(set.teratypes);
+  if (tera) lines.push(`Tera Type: ${tera}`);
 
   // EV
   if (set.evs) {
@@ -38,11 +45,12 @@ function toShowdownFormat(member: TeamMember): string {
   }
 
   // 성격
-  if (set.nature) lines.push(`${set.nature} Nature`);
+  const nature = first(set.nature);
+  if (nature) lines.push(`${nature} Nature`);
 
   // 기술
   for (const move of set.moves) {
-    const moveName = Array.isArray(move) ? move[0] : move;
+    const moveName = first(move);
     if (moveName) lines.push(`- ${moveName}`);
   }
 

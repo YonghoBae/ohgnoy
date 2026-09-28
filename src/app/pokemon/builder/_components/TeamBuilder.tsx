@@ -18,6 +18,8 @@ export interface TeamMember {
   spriteUrl: string;
   types: PokemonTypeName[];
   set: BattleSet | null;
+  // Showdown 내보내기용 Smogon 이름("Great Tusk"). 옛 저장 팀에는 없다.
+  species?: string;
   // 세트 기술/아이템의 한국어 표시명. 세트(set)는 내보내기용 영어 그대로.
   labels?: Record<string, string>;
 }

@@ -4,6 +4,7 @@ import {
   LabelKind,
   labelKey,
   PokemonBattleData,
+  PokemonSetsData,
   toID,
   UsageStat,
 } from "@/types/pokemon/battle";
@@ -110,4 +111,20 @@ export async function fetchPokemonBattleData(
     ? getPokemonSets(setsMap, smogonKey(Object.keys(setsMap), name))
     : [];
   return { format, month: m, usage, sets, labels: buildLabels(usage, sets) };
+}
+
+// 빌더 피커용. 사용률(Smogon 원본 약 10MB)을 기다리지 않고 세트만 준다.
+export async function fetchPokemonSets(
+  name: string,
+  format: string
+): Promise<PokemonSetsData> {
+  const setsMap = await fetchSets(format);
+  if (!setsMap) return { species: null, sets: [], labels: {} };
+  const key = smogonKey(Object.keys(setsMap), name);
+  const sets = getPokemonSets(setsMap, key);
+  return {
+    species: sets.length ? key : null,
+    sets,
+    labels: buildLabels(null, sets),
+  };
 }

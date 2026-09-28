@@ -6,7 +6,7 @@ import {
   BattleSet,
   labelKey,
   labelOf,
-  PokemonBattleData,
+  PokemonSetsData,
 } from "@/types/pokemon/battle";
 import { PokemonTypeName } from "@/types/pokemon/domain";
 import { TeamMember } from "./TeamBuilder";
@@ -36,7 +36,10 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
   const [loading, setLoading] = useState(false);
   const [selectedPokemon, setSelectedPokemon] = useState<SearchResult | null>(null);
   const [sets, setSets] = useState<BattleSet[]>([]);
-  const [labels, setLabels] = useState<PokemonBattleData["labels"]>({});
+  const [labels, setLabels] = useState<PokemonSetsData["labels"]>({});
+  const [species, setSpecies] = useState<string | null>(null);
+  // 지금 세트를 기다리는 포켓몬. 다른 포켓몬을 고른 뒤 늦게 온 응답은 버린다.
+  const pendingRef = useRef<string | null>(null);
   const [setsLoading, setSetsLoading] = useState(false);
   const [koIndex, setKoIndex] = useState<Record<string, string> | null>(null);
   const [koIndexLoading, setKoIndexLoading] = useState(false);
@@ -118,23 +121,29 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
   }, [query, allNames, koIndex]);
 
   const handleSelectPokemon = async (result: SearchResult) => {
+    const name = result.pokemon.name;
+    pendingRef.current = name;
     setSelectedPokemon(result);
+    setSets([]);
+    setLabels({});
+    setSpecies(null);
     setSetsLoading(true);
+    let data: PokemonSetsData | null = null;
     try {
       // 서버가 정규화한 영어 세트(내보내기용)와 한국어 labels(표시용)를 준다.
       const res = await fetch(
-        `/api/pokemon/battle?name=${encodeURIComponent(result.pokemon.name)}&format=${DEFAULT_FORMAT}`
+        `/api/pokemon/battle/sets?name=${encodeURIComponent(name)}&format=${DEFAULT_FORMAT}`
       );
-      if (!res.ok) throw new Error(`battle ${res.status}`);
-      const data = await res.json() as PokemonBattleData;
-      setSets(data.sets);
-      setLabels(data.labels);
+      if (!res.ok) throw new Error(`sets ${res.status}`);
+      data = await res.json() as PokemonSetsData;
     } catch {
-      setSets([]);
-      setLabels({});
-    } finally {
-      setSetsLoading(false);
+      data = null;
     }
+    if (pendingRef.current !== name) return;
+    setSets(data?.sets ?? []);
+    setLabels(data?.labels ?? {});
+    setSpecies(data?.species ?? null);
+    setSetsLoading(false);
   };
 
   const handleConfirm = (set: BattleSet | null) => {
@@ -154,6 +163,7 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
       spriteUrl: getPixelSpriteUrl(pokemon),
       types: pokemon.types.map((t) => t.type.name as PokemonTypeName),
       set,
+      species: species ?? undefined,
       labels: Object.fromEntries(
         shown.flatMap((k) => (labels[k] ? [[k, labels[k]]] : []))
       ),
@@ -232,7 +242,12 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
                 </div>
               </div>
               <button
-                onClick={() => { setSelectedPokemon(null); setSets([]); }}
+                onClick={() => {
+                  pendingRef.current = null;
+                  setSelectedPokemon(null);
+                  setSets([]);
+                  setSetsLoading(false);
+                }}
                 className="ml-auto text-xs text-neutral-400 hover:text-neutral-700"
               >
                 다시 선택

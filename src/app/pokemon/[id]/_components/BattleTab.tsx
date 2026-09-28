@@ -360,10 +360,15 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
                         const { nature, evs } = parseSpread(spread);
                         return (
                           <div key={spread} className="text-xs">
-                            <span className="font-semibold">
-                              {labelOf(labels, "natures", nature)}
+                            {nature && (
+                              <span className="font-semibold">
+                                {labelOf(labels, "natures", nature)}
+                              </span>
+                            )}
+                            <span className="text-neutral-500">
+                              {nature && " · "}
+                              {evs}
                             </span>
-                            <span className="text-neutral-500"> · {evs}</span>
                             <span className="ml-2 font-semibold tabular-nums text-blue-600">
                               {pct.toFixed(1)}%
                             </span>

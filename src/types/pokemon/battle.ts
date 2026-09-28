@@ -39,6 +39,13 @@ export interface PokemonBattleData {
   labels: Record<string, string>;
 }
 
+// 빌더 피커용: 사용률 없이 세트만. species는 Smogon 이름("Great Tusk"), 못 찾으면 null.
+export interface PokemonSetsData {
+  species: string | null;
+  sets: BattleSet[];
+  labels: Record<string, string>;
+}
+
 export type LabelKind = "items" | "moves" | "abilities" | "natures" | "types" | "pokemon";
 
 // Smogon id: "Choice Specs" → "choicespecs"
