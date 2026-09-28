@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useId, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FORMATS } from "@/lib/battle/constants";
 
@@ -19,7 +19,7 @@ export default function FormatSelector({ current, currentMonth }: { current: str
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const months = getRecentMonths(6);
-  const periodLabelId = "format-selector-period-label";
+  const periodLabelId = useId();
 
   const update = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());

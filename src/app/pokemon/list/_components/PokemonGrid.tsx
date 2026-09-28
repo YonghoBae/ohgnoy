@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { ChangeEvent, useCallback, useEffect, useState, useTransition } from "react";
 import { Pokemon } from "pokenode-ts";
 import { FaMagnifyingGlass } from "react-icons/fa6";
 import { useRouter } from "next/navigation";
@@ -32,9 +32,6 @@ export default function PokemonGrid({
   const [query, setQuery] = useState(initialQuery);
   const [user, setUser] = useState<UserInfo>({ userId: 0, nickname: "", email: "" });
   const [isPending, startTransition] = useTransition();
-  // Tracks the most recently typed value so an older, slower response can
-  // correct itself instead of overwriting a newer one.
-  const latestQueryRef = useRef(initialQuery);
 
   const { searchResults, search, clearSearch } = usePokemonSearch(allNames);
 
@@ -48,36 +45,33 @@ export default function PokemonGrid({
   }, [router]);
 
   const runSearch = useCallback(
-    async (value: string) => {
-      latestQueryRef.current = value;
+    (value: string) => {
       if (!value.trim()) {
         clearSearch();
         return;
       }
-      await search(value);
-      if (latestQueryRef.current !== value) {
-        // A newer keystroke arrived while this request was in flight; make
-        // sure the freshest query is what ends up on screen.
-        await runSearch(latestQueryRef.current);
-      }
+      void search(value);
     },
     [search, clearSearch]
   );
 
   useEffect(() => {
-    if (initialQuery.trim()) void runSearch(initialQuery);
+    if (initialQuery.trim()) runSearch(initialQuery);
     // Hydrate from the URL once, on mount only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Keeps `?q=` in sync without re-running the server data pipeline: Next
+  // keeps useSearchParams in sync with native history navigation, so a plain
+  // history update is enough (no router.replace / server round-trip).
   const updateUrl = useCallback(
     (nextQuery: string) => {
       const params = new URLSearchParams();
       params.set("gen", String(currentGen));
       if (nextQuery.trim()) params.set("q", nextQuery);
-      router.replace(`/pokemon/list?${params.toString()}`, { scroll: false });
+      window.history.replaceState(null, "", `/pokemon/list?${params.toString()}`);
     },
-    [currentGen, router]
+    [currentGen]
   );
 
   const handleSearch = useCallback(
@@ -85,7 +79,7 @@ export default function PokemonGrid({
       const value = e.target.value;
       setQuery(value);
       updateUrl(value);
-      void runSearch(value);
+      runSearch(value);
     },
     [runSearch, updateUrl]
   );

@@ -1,14 +1,19 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Pokemon } from "pokenode-ts";
 
 export default function usePokemonSearch(pokemonNames: string[]) {
   const [searchResults, setSearchResults] = useState<Map<number, Pokemon>>(new Map());
   const [isSearching, setIsSearching] = useState(false);
+  // Only the most recently started request is allowed to touch state, so a
+  // slower response for an older query can never overwrite a newer one.
+  const requestIdRef = useRef(0);
 
   const search = useCallback(
     async (query: string): Promise<void> => {
+      const requestId = ++requestIdRef.current;
+
       if (query.trim() === "") {
         setSearchResults(new Map());
         return;
@@ -27,17 +32,23 @@ export default function usePokemonSearch(pokemonNames: string[]) {
             )
           )
         );
-        setSearchResults(new Map(results.map((p) => [p.id, p])));
+        if (requestId === requestIdRef.current) {
+          setSearchResults(new Map(results.map((p) => [p.id, p])));
+        }
       } catch (error) {
         console.error("Search error:", error);
       } finally {
-        setIsSearching(false);
+        if (requestId === requestIdRef.current) setIsSearching(false);
       }
     },
     [pokemonNames]
   );
 
-  const clearSearch = () => setSearchResults(new Map());
+  const clearSearch = () => {
+    // Invalidate any in-flight request so it can't land after this clear.
+    requestIdRef.current += 1;
+    setSearchResults(new Map());
+  };
 
   return { searchResults, isSearching, search, clearSearch };
 }
