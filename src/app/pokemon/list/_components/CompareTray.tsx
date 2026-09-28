@@ -31,7 +31,7 @@ export default function CompareTray({
       ? ""
       : count === 1
         ? "1/2 선택됨. 한 마리 더 고르세요."
-        : "2/2 선택됨. 비교할 수 있습니다.";
+        : `2/2 선택됨: ${selected.map((p) => koNames[p.id] ?? p.name).join(", ")}`;
 
   // Always mounted so the live region exists before its first change; it only
   // becomes a named landmark while something is selected.

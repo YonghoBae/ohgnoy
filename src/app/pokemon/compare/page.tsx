@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ReactNode } from "react";
-import { Pokemon } from "pokenode-ts";
+import { Name, Pokemon, PokemonForm } from "pokenode-ts";
 
 import { fetchPokemon } from "@/lib/pokemon/fetchers/fetchPokemon";
 import { fetchSpecies } from "@/lib/pokemon/fetchers/fetchSpecies";
@@ -49,10 +49,38 @@ async function loadSide(id: number): Promise<Side | null> {
     return null;
   }
   const speciesId = Number(pokemon.species.url.match(/\/(\d+)\/?$/)?.[1]);
+  let speciesName: string;
   try {
-    return { pokemon, name: getKoreanName(await fetchSpecies(speciesId)) };
+    speciesName = getKoreanName(await fetchSpecies(speciesId));
   } catch {
     return { pokemon, name: pokemon.name };
+  }
+  if (pokemon.is_default) return { pokemon, name: speciesName };
+  return { pokemon, name: await loadFormName(pokemon, speciesName) };
+}
+
+// Non-default forms share the species name ("리자몽" for both 6 and 10034),
+// so name them from their pokemon-form entry to keep the columns distinct.
+async function loadFormName(
+  pokemon: Pokemon,
+  speciesName: string,
+): Promise<string> {
+  const fallback = `${speciesName} (${pokemon.name})`;
+  const ko = (list: Name[]) => list.find((n) => n.language.name === "ko")?.name;
+  try {
+    const res = await fetch(pokemon.forms[0].url, {
+      next: { revalidate: false },
+    });
+    if (!res.ok) return fallback;
+    const form = (await res.json()) as PokemonForm;
+    const full = ko(form.names);
+    if (full) return full;
+    const part = ko(form.form_names);
+    // ko form_names is often already the full name ("메가리자몽X").
+    if (!part) return fallback;
+    return part.includes(speciesName) ? part : `${speciesName} ${part}`;
+  } catch {
+    return fallback;
   }
 }
 
