@@ -51,8 +51,6 @@ point at a deployed backend. All backend calls should go through `apiClient`
 - **`/posts` and `/studys` render Next.js blog-starter Lorem Ipsum** from
   `_posts/`. Do not wire new features to `getAllPosts()` — see
   `docs/known-issues.md`.
-- **`src/app/_components/pokemonCard.tsx`** (lowercase) is dead; the live card is
-  `src/app/pokemon/list/_components/PokemonCard.tsx`.
 
 ## Layout shell
 

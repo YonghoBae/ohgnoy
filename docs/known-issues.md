@@ -8,10 +8,6 @@ Things discovered while working on this codebase that are real but out of scope 
 
 **Do not** wire any new feature (a homepage "recent posts" panel, a search index, anything) to `getAllPosts()`/`_posts/` without first checking whether this has been fixed — as of this writing it hasn't. A real fix means either replacing `_posts/*.md` with real content, or pointing `/studys` at a different real source (the external Obsidian digital garden linked via `DIGITAL_GARDEN_URL`, or a backend API — `/studys/create` exists as a route, implying a real backend was intended for studys specifically).
 
-## `src/app/_components/pokemonCard.tsx` (lowercase) is dead code
-
-Not imported anywhere. The actual card used on `/pokemon/list` is `src/app/pokemon/list/_components/PokemonCard.tsx`. The two diverged over time — the unused one still points at `official-artwork` sprites, the live one was updated to pixel sprites. Safe to delete; nothing depends on it. Left in place only because deleting unrelated files was out of scope for the task that found it.
-
 ## `/portfolio` (web) content is now stale relative to `/portfolio-pdf`
 
 `/portfolio-pdf` was rebuilt from the owner's Notion portfolio (2026-09-01) and
