@@ -7,6 +7,7 @@ import { Client, IMessage } from '@stomp/stompjs';
 import { Message } from '@/interfaces/message';
 import { UserInfo } from '@/interfaces/user';
 import { userInfo } from '@/lib/user/token';
+import { parseChatDate } from '@/lib/api/chat';
 
 const ROOM_ID = '1';
 
@@ -16,7 +17,8 @@ const timeFormat = new Intl.DateTimeFormat('ko-KR', {
 });
 
 const MessageTime = ({ sendDate }: { sendDate: number }) => {
-  const date = new Date(sendDate);
+  const date = parseChatDate(sendDate);
+  if (!date) return null;
   return (
     <time
       dateTime={date.toISOString()}
