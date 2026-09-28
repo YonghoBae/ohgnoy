@@ -16,15 +16,31 @@ interface ChaosData {
   data: Record<string, RawUsageStat>;
 }
 
+type RawCounter = [number, number, number] | { n: number; p: number; d: number };
+
 interface RawUsageStat {
   "Raw count": number;
+  usage?: number;
   Abilities: Record<string, number>;
   Items: Record<string, number>;
   Moves: Record<string, number>;
   Spreads: Record<string, number>;
   Teammates: Record<string, number>;
-  "Checks and Counters": Record<string, [number, number]>;
+  "Checks and Counters": Record<string, RawCounter>;
   "Tera Types"?: Record<string, number>;
+}
+
+// 가중 횟수를 포켓몬 가중 합계(특성 합) 대비 퍼센트로. 빈 키와 "nothing"은 뺀다.
+function toPercent(
+  counts: Record<string, number> | undefined,
+  total: number
+): Record<string, number> {
+  const out: Record<string, number> = {};
+  if (!counts || total <= 0) return out;
+  for (const [k, v] of Object.entries(counts)) {
+    if (k && k !== "nothing") out[k] = (v / total) * 100;
+  }
+  return out;
 }
 
 // 원본(약 10MB)과 가공 결과 모두 Next 데이터 캐시 한도(2MB)를 넘어 캐시하지 않는다.
@@ -45,17 +61,28 @@ export async function loadUsageStats(
   const result: Record<string, UsageStat> = {};
   for (const [name, raw] of Object.entries(chaos.data)) {
     const rawCount = raw["Raw count"];
+    const total = Object.values(raw.Abilities ?? {}).reduce((a, b) => a + b, 0);
+    const counters: UsageStat["counters"] = {};
+    for (const [k, c] of Object.entries(raw["Checks and Counters"] ?? {})) {
+      counters[k] = Array.isArray(c) ? { n: c[0], p: c[1], d: c[2] } : c;
+    }
     result[name] = {
       nameEn: name,
-      usagePercent: totalBattles > 0 ? (rawCount / totalBattles) * 100 : 0,
+      // 한 배틀에 팀이 둘이라 rawCount/battles는 약 2배가 된다.
+      usagePercent:
+        raw.usage != null
+          ? raw.usage * 100
+          : totalBattles > 0
+            ? (rawCount / (2 * totalBattles)) * 100
+            : 0,
       rawCount,
-      abilities: raw.Abilities ?? {},
-      items: raw.Items ?? {},
-      moves: raw.Moves ?? {},
-      spreads: raw.Spreads ?? {},
-      teammates: raw.Teammates ?? {},
-      counters: raw["Checks and Counters"] ?? {},
-      teraTypes: raw["Tera Types"],
+      abilities: toPercent(raw.Abilities, total),
+      items: toPercent(raw.Items, total),
+      moves: toPercent(raw.Moves, total),
+      spreads: toPercent(raw.Spreads, total),
+      teammates: toPercent(raw.Teammates, total),
+      counters,
+      teraTypes: raw["Tera Types"] && toPercent(raw["Tera Types"], total),
     };
   }
   return result;

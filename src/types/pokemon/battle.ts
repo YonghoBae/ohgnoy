@@ -19,12 +19,14 @@ export interface UsageStat {
   nameEn: string;
   usagePercent: number;
   rawCount: number;
+  // 아래 분포는 모두 퍼센트(0~100)
   abilities: Record<string, number>;
   items: Record<string, number>;
   moves: Record<string, number>;
   spreads: Record<string, number>;
   teammates: Record<string, number>;
-  counters: Record<string, [number, number]>; // [score, stddev]
+  // n: 맞붙은 수, p: 이 포켓몬이 쓰러지거나 교체된 비율(0~1), d: 표준편차
+  counters: Record<string, { n: number; p: number; d: number }>;
   teraTypes?: Record<string, number>;
 }
 

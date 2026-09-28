@@ -372,30 +372,38 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
           >
             {usage ? (
               <div>
-                <h3 className="mb-2 text-sm font-bold text-neutral-600 dark:text-neutral-300">
+                <h3 className="mb-1 text-sm font-bold text-neutral-600 dark:text-neutral-300">
                   카운터 포켓몬
                 </h3>
-                <div className="flex flex-col gap-2">
-                  {Object.entries(usage.counters)
-                    .sort((a, b) => b[1][0] - a[1][0])
-                    .slice(0, 5)
-                    .map(([name, [score]]) => (
-                      <div key={name} className="flex items-center gap-2">
-                        <div className="flex-1 overflow-hidden rounded-none bg-neutral-300 dark:bg-neutral-600">
-                          <div
-                            className="h-2 rounded-none bg-red-500"
-                            style={{ width: `${Math.min((score / 100) * 100, 100)}%` }}
-                          />
+                <p className="mb-2 text-xs text-neutral-500">
+                  상대 확률: 맞붙었을 때 이 포켓몬을 쓰러뜨리거나 교체하게 만든 비율
+                </p>
+                {Object.keys(usage.counters).length > 0 ? (
+                  <div className="flex flex-col gap-2">
+                    {Object.entries(usage.counters)
+                      // Smogon의 카운터 점수: p - 4d
+                      .sort((a, b) => b[1].p - 4 * b[1].d - (a[1].p - 4 * a[1].d))
+                      .slice(0, 5)
+                      .map(([name, { p }]) => (
+                        <div key={name} className="flex items-center gap-2">
+                          <div className="flex-1 overflow-hidden rounded-none bg-neutral-300 dark:bg-neutral-600">
+                            <div
+                              className="h-2 rounded-none bg-red-500"
+                              style={{ width: `${Math.min(p * 100, 100)}%` }}
+                            />
+                          </div>
+                          <span translate="no" className="w-32 truncate text-xs text-neutral-700 dark:text-neutral-300">
+                            {name}
+                          </span>
+                          <span className="w-12 text-right text-xs font-semibold tabular-nums">
+                            {(p * 100).toFixed(1)}%
+                          </span>
                         </div>
-                        <span translate="no" className="w-32 truncate text-xs text-neutral-700 dark:text-neutral-300">
-                          {name}
-                        </span>
-                        <span className="w-10 text-right text-xs font-semibold tabular-nums">
-                          {score.toFixed(0)}
-                        </span>
-                      </div>
-                    ))}
-                </div>
+                      ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-neutral-500">카운터 데이터가 없습니다.</p>
+                )}
               </div>
             ) : (
               <p className="text-sm text-neutral-500">{NO_USAGE_MESSAGE}</p>
