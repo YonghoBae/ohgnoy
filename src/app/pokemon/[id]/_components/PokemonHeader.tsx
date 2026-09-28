@@ -13,7 +13,7 @@ export default function PokemonHeader({ pokemon }: { pokemon: PokemonDetail }) {
       </h1>
       <p className="text-sm text-text-muted">{pokemon.nameEn.toUpperCase()}</p>
       <div className="relative h-56 w-56">
-        <PixelSprite spriteUrl={pokemon.spriteUrl} alt={pokemon.nameEn} fill priority />
+        <PixelSprite spriteUrl={pokemon.spriteUrl} alt={pokemon.nameKo || pokemon.nameEn} fill priority />
       </div>
       <div className="flex flex-row gap-2">
         {pokemon.types.map((type) => (
