@@ -20,7 +20,7 @@ export default function PixelButton({
         "active:translate-x-[2px] active:translate-y-[2px]",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
         variant === "primary"
-          ? "bg-primary text-white"
+          ? "bg-primary text-on-primary"
           : cn(styles.pixelPanelBg, "text-text-base hover:text-primary"),
         className,
       )}

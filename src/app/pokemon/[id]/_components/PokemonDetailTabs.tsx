@@ -42,7 +42,7 @@ export default function PokemonDetailTabs({
             onClick={() => setTab(t.key)}
             className={`rounded-none border-2 border-text-base px-4 py-1.5 text-sm font-semibold transition-colors ${
               tab === t.key
-                ? "bg-primary text-white"
+                ? "bg-primary text-on-primary"
                 : "bg-surface text-text-base hover:border-primary hover:text-primary"
             }`}
           >

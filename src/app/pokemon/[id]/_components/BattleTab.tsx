@@ -202,7 +202,7 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
               onClick={() => setFormat(f.id)}
               className={`rounded-none border-2 border-text-base px-2.5 py-0.5 text-xs font-semibold transition-colors ${
                 format === f.id
-                  ? "bg-primary text-white"
+                  ? "bg-primary text-on-primary"
                   : "bg-surface text-text-base hover:border-primary hover:text-primary"
               }`}
             >
@@ -225,7 +225,7 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
                 onClick={() => setTab(t.key)}
                 className={`rounded-none border-2 border-text-base px-3 py-1 text-xs font-semibold transition-colors ${
                   tab === t.key
-                    ? "bg-primary text-white"
+                    ? "bg-primary text-on-primary"
                     : "bg-surface text-text-base hover:border-primary hover:text-primary"
                 }`}
               >

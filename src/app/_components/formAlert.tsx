@@ -8,7 +8,7 @@ type AlertProps = {
 
 const variantClass: Record<Variant, string> = {
   error:   'bg-red-600',
-  success: 'bg-green-600',
+  success: 'bg-green-700',
   info:    'bg-neutral-800 dark:bg-neutral-700',
 };
 

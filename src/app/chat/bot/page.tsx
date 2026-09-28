@@ -58,7 +58,7 @@ const Chat = () => {
                   </h5>
                 )}
                 <div className="px-3 py-2 bg-primary rounded">
-                  <p className="text-white text-sm font-normal leading-snug">
+                  <p className="text-on-primary text-sm font-normal leading-snug">
                     {msg.message}
                   </p>
                 </div>
@@ -114,7 +114,7 @@ const Chat = () => {
             aria-label="메시지 전송"
             className="items-center flex px-3 py-2 bg-primary hover:bg-primary-hover rounded-full shadow transition-colors"
           >
-            <span className="text-white text-xs font-semibold leading-4 px-2">
+            <span className="text-on-primary text-xs font-semibold leading-4 px-2">
               Send
             </span>
           </button>

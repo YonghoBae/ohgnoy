@@ -27,7 +27,7 @@ export default function GenerationFilter({ generations, current, onChange }: Pro
           <SelectItem
             key={gen}
             value={gen}
-            className="text-center text-neutral-900 dark:text-neutral-100"
+            className="text-center"
           >
             {gen.toLocaleUpperCase()}
           </SelectItem>

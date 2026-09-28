@@ -144,7 +144,7 @@ export default function ChatWidget() {
           className="chat-widget-root fixed bottom-20 right-4 z-50 flex w-80 flex-col rounded-2xl border border-border bg-[#ECEFF4] shadow-2xl dark:bg-[#2E3440]"
           style={{ height: "28rem" }}
         >
-          <div className="flex items-center justify-between rounded-t-2xl bg-primary px-4 py-3 text-white">
+          <div className="flex items-center justify-between rounded-t-2xl bg-primary px-4 py-3 text-on-primary">
             <div className="flex items-center gap-2">
               <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
                 <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
@@ -187,7 +187,7 @@ export default function ChatWidget() {
                     <div
                       className={`max-w-[200px] break-words rounded-2xl px-3 py-1.5 text-sm ${
                         isMe
-                          ? "rounded-tr-sm bg-primary text-white"
+                          ? "rounded-tr-sm bg-primary text-on-primary"
                           : "rounded-tl-sm bg-surface-2 text-text-base"
                       }`}
                     >
@@ -218,7 +218,7 @@ export default function ChatWidget() {
             <button
               onClick={sendMessage}
               aria-label="전송"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-white transition-colors hover:bg-primary-hover"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary transition-colors hover:bg-primary-hover"
             >
               <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
                 <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
@@ -231,7 +231,7 @@ export default function ChatWidget() {
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? "채팅 닫기" : "채팅 열기"}
-        className="chat-widget-root fixed bottom-4 right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-all duration-200 hover:scale-110 hover:bg-primary-hover"
+        className="chat-widget-root fixed bottom-4 right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-on-primary shadow-lg transition-all duration-200 hover:scale-110 hover:bg-primary-hover"
       >
         {open ? (
           <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
