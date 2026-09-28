@@ -146,8 +146,3 @@ body:has(#auth-shell-root) .site-shell-grid {
   font-family: inherit;
 }
 
-/* /chat/* pages are already a chat: hide the floating widget there. */
-body:has(#chat-page-root) .chat-widget-root {
-  display: none;
-}
-

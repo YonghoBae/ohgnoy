@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Client, IMessage } from "@stomp/stompjs";
 import { Message } from "@/interfaces/message";
 import { UserInfo } from "@/interfaces/user";
@@ -38,7 +39,15 @@ function getOrCreateAnonUser(): UserInfo {
   return anon;
 }
 
+// /chat/* pages are already a chat: don't mount a second STOMP session there.
+// Leaving /chat/* mounts a fresh panel that connects.
 export default function ChatWidget() {
+  const pathname = usePathname();
+  if (pathname?.startsWith("/chat")) return null;
+  return <ChatWidgetPanel />;
+}
+
+function ChatWidgetPanel() {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState<UserInfo>({ userId: 0, nickname: "", email: "" });

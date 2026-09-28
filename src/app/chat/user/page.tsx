@@ -157,7 +157,6 @@ const Chat = () => {
 
   return (
     <div
-      id="chat-page-root"
       className="flex flex-col h-[calc(100dvh-8rem)] min-h-80 px-6 py-6 lg:px-8"
     >
       <h1 className="sr-only">실시간 채팅</h1>
