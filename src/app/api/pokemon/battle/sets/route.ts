@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchPokemonSets } from "@/lib/battle/fetchers/fetchBattleData";
-import { FORMATS } from "@/lib/battle/constants";
+import { DEFAULT_FORMAT, FORMATS } from "@/lib/battle/constants";
 
 const bad = (error: string) => NextResponse.json({ error }, { status: 400 });
 
@@ -8,7 +8,7 @@ const bad = (error: string) => NextResponse.json({ error }, { status: 400 });
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const name = searchParams.get("name") ?? "";
-  const format = searchParams.get("format") ?? "gen9ou";
+  const format = searchParams.get("format") ?? DEFAULT_FORMAT;
 
   // These end up in URLs and cache keys.
   if (!FORMATS.some((f) => f.id === format)) return bad("unknown format");

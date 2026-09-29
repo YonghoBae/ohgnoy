@@ -53,48 +53,71 @@ export default function FormatSelector({
     });
   };
 
-  const byGen = FORMATS.reduce<Record<number, typeof FORMATS>>((acc, f) => {
+  const official = FORMATS.filter((f) => f.group === "official");
+  const byGen = FORMATS.filter((f) => f.group === "smogon").reduce<
+    Record<number, typeof FORMATS>
+  >((acc, f) => {
     if (!acc[f.gen]) acc[f.gen] = [];
     acc[f.gen]!.push(f);
     return acc;
   }, {});
+  const currentFormat = FORMATS.find((f) => f.id === current);
+
+  const formatButton = (f: (typeof FORMATS)[number], big = false) => (
+    <button
+      key={f.id}
+      type="button"
+      onClick={() => update("format", f.id)}
+      aria-pressed={current === f.id}
+      className={`rounded-none border-2 font-semibold transition-colors ${
+        big ? "px-4 py-2 text-sm" : "px-3 py-1 text-xs"
+      } ${
+        current === f.id
+          ? "border-blue-600 bg-blue-600 text-white"
+          : "border-neutral-300 bg-neutral-200 text-neutral-600 hover:bg-neutral-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600"
+      }`}
+    >
+      {f.label}
+    </button>
+  );
 
   return (
     <div
       aria-busy={isPending}
       className={`flex flex-col gap-4 transition-opacity ${isPending ? "opacity-60" : ""}`}
     >
-      {/* 포맷 선택 */}
-      <div className="flex flex-wrap gap-3">
-        {Object.entries(byGen)
-          .sort(([a], [b]) => Number(b) - Number(a))
-          .map(([gen, formats]) => {
-            const genLabelId = `format-selector-gen-${gen}`;
-            return (
-              <div key={gen} className="flex flex-col gap-1">
-                <span id={genLabelId} className="text-xs font-bold text-neutral-500 dark:text-neutral-400">
-                  {gen}세대
-                </span>
-                <div role="group" aria-labelledby={genLabelId} className="flex flex-wrap gap-1">
-                  {formats.map((f) => (
-                    <button
-                      key={f.id}
-                      type="button"
-                      onClick={() => update("format", f.id)}
-                      aria-pressed={current === f.id}
-                      className={`rounded-none border-2 px-3 py-1 text-xs font-semibold transition-colors ${
-                        current === f.id
-                          ? "border-blue-600 bg-blue-600 text-white"
-                          : "border-neutral-300 bg-neutral-200 text-neutral-600 hover:bg-neutral-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600"
-                      }`}
-                    >
-                      {f.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+      {/* 포맷 선택: 공식 규칙 먼저, Smogon 등급은 접어 둔다 */}
+      <div className="flex flex-col gap-2">
+        <div role="group" aria-label="공식 규칙" className="flex flex-wrap gap-2">
+          {official.map((f) => formatButton(f, true))}
+        </div>
+        <details open={currentFormat?.group === "smogon"}>
+          <summary className="cursor-pointer text-xs font-bold text-neutral-500 dark:text-neutral-400">
+            Smogon 등급전 (쇼다운)
+          </summary>
+          <div className="mt-2 flex flex-wrap gap-3">
+            {Object.entries(byGen)
+              .sort(([a], [b]) => Number(b) - Number(a))
+              .map(([gen, formats]) => {
+                const genLabelId = `format-selector-gen-${gen}`;
+                return (
+                  <div key={gen} className="flex flex-col gap-1">
+                    <span id={genLabelId} className="text-xs font-bold text-neutral-500 dark:text-neutral-400">
+                      {gen}세대
+                    </span>
+                    <div role="group" aria-labelledby={genLabelId} className="flex flex-wrap gap-1">
+                      {formats.map((f) => formatButton(f))}
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </details>
+        {currentFormat && (
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            {currentFormat.desc}
+          </p>
+        )}
       </div>
 
       {/* 월 선택 */}

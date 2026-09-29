@@ -10,7 +10,7 @@ import {
 } from "@/types/pokemon/battle";
 import { CUTOFF_BY_FORMAT } from "@/lib/battle/constants";
 import { koLabel, koPokemon } from "@/lib/battle/koNames";
-import { fetchSets, getPokemonSets } from "./fetchSets";
+import { deriveSet, fetchSets, getPokemonSets } from "./fetchSets";
 import {
   getLatestMonth,
   getPokemonUsage,
@@ -87,45 +87,64 @@ function buildLabels(usage: UsageStat | null, sets: BattleSet[]) {
   return labels;
 }
 
+// 포켓몬 1마리 사용률 조각. 상세(fetchPokemonBattleData)와 빌더(fetchPokemonSets)가
+// 같은 캐시 키를 쓴다.
+function loadPokemonUsage(
+  name: string,
+  format: string,
+  month: string
+): Promise<UsageStat | null> {
+  const cutoff = cutoffFor(format);
+  return unstable_cache(
+    async () => {
+      const stats = await loadUsageStats(format, month, cutoff);
+      return getPokemonUsage(stats, smogonKey(Object.keys(stats), name));
+    },
+    [`usage-pokemon-${CACHE_VERSION}-${format}-${month}-${cutoff}-${name.toLowerCase()}`],
+    { revalidate: false }
+  )().catch((e) => {
+    console.error(`[battle] usage for ${name} ${format} ${month} failed:`, e);
+    return null;
+  });
+}
+
 export async function fetchPokemonBattleData(
   name: string,
   format: string,
   month: string = getLatestMonth()
 ): Promise<PokemonBattleData> {
   const m = month || getLatestMonth();
-  const cutoff = cutoffFor(format);
   const [usage, setsMap] = await Promise.all([
-    unstable_cache(
-      async () => {
-        const stats = await loadUsageStats(format, m, cutoff);
-        return getPokemonUsage(stats, smogonKey(Object.keys(stats), name));
-      },
-      [`usage-pokemon-${CACHE_VERSION}-${format}-${m}-${cutoff}-${name.toLowerCase()}`],
-      { revalidate: false }
-    )().catch((e) => {
-      console.error(`[battle] usage for ${name} ${format} ${m} failed:`, e);
-      return null;
-    }),
+    loadPokemonUsage(name, format, m),
     fetchSets(format),
   ]);
-  const sets = setsMap
+  const pkmnSets = setsMap
     ? getPokemonSets(setsMap, smogonKey(Object.keys(setsMap), name))
     : [];
+  // 랭크배틀 포맷은 pkmn 세트가 없다. 사용률로 세트 하나를 만든다.
+  const derived = !pkmnSets.length && usage ? deriveSet(usage) : null;
+  const sets = derived ? [derived] : pkmnSets;
   return { format, month: m, usage, sets, labels: buildLabels(usage, sets) };
 }
 
-// 빌더 피커용. 사용률(Smogon 원본 약 10MB)을 기다리지 않고 세트만 준다.
+// 빌더 피커용. pkmn 세트가 있으면 사용률(Smogon 원본 약 10MB)을 기다리지 않는다.
+// 없으면 상세와 같은 사용률 조각 캐시로 세트 하나를 만든다.
 export async function fetchPokemonSets(
   name: string,
   format: string
 ): Promise<PokemonSetsData> {
   const setsMap = await fetchSets(format);
-  if (!setsMap) return { species: null, sets: [], labels: {} };
-  const key = smogonKey(Object.keys(setsMap), name);
-  const sets = getPokemonSets(setsMap, key);
+  if (setsMap) {
+    const key = smogonKey(Object.keys(setsMap), name);
+    const sets = getPokemonSets(setsMap, key);
+    if (sets.length) return { species: key, sets, labels: buildLabels(null, sets) };
+  }
+  const usage = await loadPokemonUsage(name, format, getLatestMonth());
+  const derived = usage && deriveSet(usage);
+  if (!usage || !derived) return { species: null, sets: [], labels: {} };
   return {
-    species: sets.length ? key : null,
-    sets,
-    labels: buildLabels(null, sets),
+    species: usage.nameEn,
+    sets: [derived],
+    labels: buildLabels(null, [derived]),
   };
 }

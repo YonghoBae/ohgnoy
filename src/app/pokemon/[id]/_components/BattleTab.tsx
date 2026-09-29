@@ -231,6 +231,25 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
   const { usage, sets, labels } = battleData;
   const currentFormat = FORMATS.find((f) => f.id === format);
   const formatLabel = currentFormat?.label ?? format;
+  const smogonFormats = FORMATS.filter((f) => f.group === "smogon");
+
+  const formatButton = (f: (typeof FORMATS)[number], big = false) => (
+    <button
+      key={f.id}
+      type="button"
+      onClick={() => setFormat(f.id)}
+      aria-pressed={format === f.id}
+      className={`rounded-none border-2 border-text-base font-semibold transition-colors ${
+        big ? "px-3 py-1 text-sm" : "px-2.5 py-0.5 text-xs"
+      } ${
+        format === f.id
+          ? "bg-primary text-on-primary"
+          : "bg-surface text-text-base hover:border-primary hover:text-primary"
+      }`}
+    >
+      {f.label}
+    </button>
+  );
 
   const selectInnerTab = (next: BattleInnerTab) => {
     setTab(next);
@@ -264,23 +283,35 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
             ) : null}
           </span>
         </div>
-        {/* 포맷 선택 */}
-        <div className="flex flex-wrap gap-1">
-          {FORMATS.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => setFormat(f.id)}
-              aria-pressed={format === f.id}
-              className={`rounded-none border-2 border-text-base px-2.5 py-0.5 text-xs font-semibold transition-colors ${
-                format === f.id
-                  ? "bg-primary text-on-primary"
-                  : "bg-surface text-text-base hover:border-primary hover:text-primary"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
+        {/* 포맷 선택: 공식 규칙 먼저, Smogon 등급은 접어 둔다 */}
+        <div className="flex flex-col gap-2">
+          <div role="group" aria-label="공식 규칙" className="flex flex-wrap gap-2">
+            {FORMATS.filter((f) => f.group === "official").map((f) =>
+              formatButton(f, true)
+            )}
+          </div>
+          <details open={currentFormat?.group === "smogon"}>
+            <summary className="cursor-pointer text-xs font-bold text-neutral-500 dark:text-neutral-400">
+              Smogon 등급전 (쇼다운)
+            </summary>
+            <div className="mt-2 flex flex-wrap gap-3">
+              {[...new Set(smogonFormats.map((f) => f.gen))].map((gen) => (
+                <div key={gen} className="flex flex-col gap-1">
+                  <span id={`${baseId}-gen-${gen}`} className="text-xs font-bold text-neutral-500 dark:text-neutral-400">
+                    {gen}세대
+                  </span>
+                  <div role="group" aria-labelledby={`${baseId}-gen-${gen}`} className="flex flex-wrap gap-1">
+                    {smogonFormats.filter((f) => f.gen === gen).map((f) => formatButton(f))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </details>
+          {currentFormat && (
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              {currentFormat.desc}
+            </p>
+          )}
         </div>
       </div>
 

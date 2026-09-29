@@ -107,4 +107,13 @@ note(`문서 파싱 · OCR`), 문제 해결(`스캔 PDF 텍스트 추출 — Gem
 빌더에서 Smogon 세트가 없는 포켓몬을 넣으면 내보내기(`TeamExport`) 첫 줄이
 PokeAPI slug를 대문자로 바꾼 이름("Staraptor-Mega", "Ogerpon-Wellspring-Mask")이 된다.
 Showdown 종 이름과 다를 수 있어 가져오기에서 거부될 수 있다. Smogon 키를 모르는 폼에서만
-생긴다(2026-09-29 기록).
+생긴다(2026-09-29 기록). 싱글 랭크배틀 사용률에 있는 포켓몬은 사용률로 만든 세트가 들어가
+Smogon 키를 쓴다.
+
+## 빌더는 싱글 랭크배틀 세트만 쓴다
+
+빌더의 포켓몬 선택(`PokemonPicker`)은 `DEFAULT_FORMAT`(싱글 랭크배틀, `gen9championsbssregmb`)
+으로만 세트를 가져온다. 포맷을 고르는 곳이 없어서 더블 랭크배틀이나 Smogon 등급 세트로 팀을
+짤 수 없다. 이 포맷에는 pkmn 세트가 없어 사용률 1위 값으로 만든 "가장 많이 쓰는 구성" 하나만
+나오고, 기술·아이템·특성은 Smogon id(`focussash`)로 내보내진다. Showdown 가져오기는 id를
+이름으로 바꿔 주지만 내보내기 글 자체는 id로 보인다(2026-09-29 기록).

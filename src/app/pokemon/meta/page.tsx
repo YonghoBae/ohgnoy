@@ -31,7 +31,7 @@ export default async function MetaPage({ searchParams }: Props) {
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-extrabold">메타 분석</h1>
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          Smogon 사용률 기준 상위 50개 포켓몬
+          쇼다운 배틀 통계(Smogon) 기준 상위 50개 포켓몬
         </p>
       </div>
 
