@@ -1,5 +1,5 @@
 import "server-only";
-// 서버 전용: JSON(약 200KB)을 클라이언트 번들에 넣지 않는다. 클라이언트는
+// 서버 전용: JSON(약 300KB)을 클라이언트 번들에 넣지 않는다. 클라이언트는
 // PokemonBattleData.labels를 쓴다. 재생성: node scripts/build-ko-names.mjs
 import data from "./koNames.json";
 import { LabelKind, toID } from "@/types/pokemon/battle";
