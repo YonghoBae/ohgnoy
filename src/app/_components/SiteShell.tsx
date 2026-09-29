@@ -41,9 +41,9 @@ const NAV_ITEMS: NavItem[] = [
     icon: FaGamepad,
     matchPrefix: "/pokemon",
     subLinks: [
-      { href: "/pokemon/list", label: "List" },
-      { href: "/pokemon/meta", label: "Meta" },
-      { href: "/pokemon/builder", label: "Builder" },
+      { href: "/pokemon/list", label: "도감" },
+      { href: "/pokemon/meta", label: "메타" },
+      { href: "/pokemon/builder", label: "빌더" },
     ],
   },
   { href: "/studys/list", label: "학습 노트", icon: FaBook, matchPrefix: "/studys" },

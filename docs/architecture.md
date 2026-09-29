@@ -10,7 +10,7 @@ Personal site/portfolio built on Next.js App Router. Started from the Next.js bl
 - **Auth**: `next-auth` is a dependency but is **not actually wired up** — it's referenced only as a type import in `src/interfaces/pokemon.ts`. Real auth is a custom flow: a token in `localStorage`, checked manually per-page (e.g. `PokemonGrid` redirects to `/auth/login` if no token is present). Don't assume `next-auth` session APIs work anywhere in this codebase.
 - **Chat**: STOMP over SockJS (`@stomp/stompjs` + `sockjs-client`, see `src/lib/socket.ts`, `src/app/_components/ChatWidget.tsx`, `src/app/chat/user/page.tsx`) is the real, live transport. `socket.io-client` is in `package.json` but is **dead — not imported anywhere in `src/`**, a leftover from before the STOMP migration.
 - **Pokémon data**: `pokenode-ts` wraps PokeAPI. Fetchers live in `src/lib/pokemon/fetchers/` (pokemon, species, generation, evolution chain, move), shaped by `src/lib/pokemon/transformers/` (`toPokemonDetail.ts`, `toEvolutionChain.ts`, `toMoveList.ts`) into the domain types in `src/types/pokemon/domain.ts`. Korean name/flavor-text extraction lives in `src/lib/pokemon/i18n.ts`. Sprite URL resolution (prefer the small pixel sprite, fall back to official artwork) is centralized in `src/lib/pokemon/spriteUrl.ts` — always use `getPixelSpriteUrl()`/`PixelSprite` rather than reading `pokemon.sprites.*` directly in a component.
-- **Battle/meta data**: `src/lib/battle/fetchers/` pulls competitive usage stats and sets (Pokémon Showdown / pkmn.cc-style data) for the `/pokemon/meta` and team-builder pages. Pages read it only through `fetchBattleData.ts` (`fetchUsageRanking`, `fetchPokemonBattleData`), which caches small slices and never caches a failure; that file is the swap point for the planned Pokémon backend API.
+- **Battle/meta data**: `src/lib/battle/fetchers/` pulls competitive usage stats and sets (Pokémon Showdown / pkmn.cc-style data) for the `/pokemon/meta` and team-builder pages. Pages read it only through `fetchBattleData.ts` (`fetchUsageRanking`, `fetchPokemonBattleData`), which caches small slices and never caches a failure; that file is the swap point for the planned Pokémon backend API. `fetchPokemonSets` is the sets-only variant for the builder's picker. Formats in `src/lib/battle/constants.ts` carry a `group`: `official` (싱글 랭크배틀 = `gen9championsbssregmb`, the `DEFAULT_FORMAT` at cutoff 1500, and 더블 랭크배틀 = VGC 2026 reg M-B) shown first, and `smogon` fan tiers folded in a `<details>` in both pickers (meta `FormatSelector`, detail `BattleTab`); each has a Korean `label` and a one-line `desc`. The official formats have no pkmn.cc sets, so when a Pokémon has no pkmn set but has usage, `deriveSet()` (`fetchSets.ts`) builds one "가장 많이 쓰는 구성" from the top 4 moves, top item/ability and top spread (usage gives Smogon ids like `focussash`; `enLabel()` turns them into English display names from `koNames.json`'s `en` map, like pkmn sets carry). The builder picker only loads usage in that case, through the same cached slice (`loadPokemonUsage`) the detail page uses. Korean names come from `src/lib/battle/koNames.json` + `koNames.ts` (items, moves, abilities, natures, types and Pokémon, Korean/English from PokeAPI; regenerate with `node scripts/build-ko-names.mjs`). It is **server-only** (about 300KB): battle data carries a `labels` map (`labelKey(kind, englishName)` → Korean) and components render through `labelOf()`, keeping the English values for Showdown export.
 - **Blog/posts**: `src/lib/api.ts` + `gray-matter` parse markdown from `_posts/`. Currently demo content only — see `docs/known-issues.md` before building anything on top of it.
 
 ## Directory map
@@ -26,7 +26,10 @@ src/
                            (+ getPixelSpriteUrl). See docs/design/ if a page needs
                            the pixel look.
     api/                   route handlers: like/[postId], pokemon/battle,
-                           pokemon/ko-names, users/[userId]/likedMons
+                           pokemon/battle/sets (sets only, for the builder picker),
+                           pokemon/names (?slugs= → Korean/English names, reads
+                           koNames.json server-side), pokemon/ko-names,
+                           users/[userId]/likedMons
     auth/                  login, regist (register), forgot — custom localStorage-token auth
     chat/                  user, bot — STOMP/SockJS chat UI
     pokemon/               list, [id] (detail), builder (team builder), meta (usage stats),
@@ -36,6 +39,7 @@ src/
                            same demo _posts data as posts/, see known-issues.md
     portfolio/              portfolio/-pdf   self-contained pages that opt out of the
                            global header/footer/chat widget (see "Shell escape hatch" below)
+    not-found.tsx, error.tsx  Korean 404 / error pages, rendered inside SiteShell
     page.tsx               home — the pixel Pokédex screen, see docs/design/pixel-pokedex-home.md
     layout.tsx             root layout: renders `<SiteShell>{children}</SiteShell>` (persistent
                            left sidebar + main content slot) plus the floating ChatWidget
@@ -44,7 +48,8 @@ src/
   lib/
     api.ts, api/            blog-starter post fetching (post.ts), user API
     pokemon/                fetchers/ transformers/ i18n.ts spriteUrl.ts hooks/
-    battle/                 fetchers/ constants.ts — competitive usage/sets data
+    battle/                 fetchers/ constants.ts — competitive usage/sets data;
+                            koNames.json + koNames.ts — server-only Korean names
     user/                   token.ts — localStorage auth token helpers
     socket.ts               STOMP/SockJS client setup
     utils.ts                cn() (clsx + tailwind-merge), shared input/button classes

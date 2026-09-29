@@ -2,7 +2,12 @@
 
 import { useState, useEffect, useId, useRef } from "react";
 import { Pokemon } from "pokenode-ts";
-import { BattleSet } from "@/types/pokemon/battle";
+import {
+  BattleSet,
+  labelKey,
+  labelOf,
+  PokemonSetsData,
+} from "@/types/pokemon/battle";
 import { PokemonTypeName } from "@/types/pokemon/domain";
 import { TeamMember } from "./TeamBuilder";
 import TypeBadge from "@/app/_components/TypeBadge";
@@ -21,6 +26,7 @@ interface Props {
 interface SearchResult {
   pokemon: Pokemon;
   nameKo: string;
+  nameEn: string;
 }
 
 const isKorean = (s: string) => /[가-힣]/.test(s);
@@ -31,6 +37,10 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
   const [loading, setLoading] = useState(false);
   const [selectedPokemon, setSelectedPokemon] = useState<SearchResult | null>(null);
   const [sets, setSets] = useState<BattleSet[]>([]);
+  const [labels, setLabels] = useState<PokemonSetsData["labels"]>({});
+  const [species, setSpecies] = useState<string | null>(null);
+  // 지금 세트를 기다리는 포켓몬. 다른 포켓몬을 고른 뒤 늦게 온 응답은 버린다.
+  const pendingRef = useRef<string | null>(null);
   const [setsLoading, setSetsLoading] = useState(false);
   const [koIndex, setKoIndex] = useState<Record<string, string> | null>(null);
   const [koIndexLoading, setKoIndexLoading] = useState(false);
@@ -82,20 +92,19 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
 
     let cancelled = false;
     setLoading(true);
-    // Form slugs (pikachu-rock-star, charizard-mega-x) have no pokemon-species
-    // entry of their own, so take the species URL from the pokemon, and keep
-    // whatever loaded instead of dropping every result when one request fails.
+    // Korean/English (form) names come from our names route ("메가리자몽X" /
+    // "Mega Charizard X"); keep whatever loaded instead of dropping every
+    // result when one request fails.
+    const namesReq = fetch(`/api/pokemon/names?slugs=${matched.join(",")}`)
+      .then((r) => (r.ok ? r.json() : {}) as Promise<Record<string, { ko: string; en: string }>>)
+      .catch(() => ({}) as Record<string, { ko: string; en: string }>);
     Promise.allSettled(
       matched.map(async (name) => {
         const pokeRes = await fetch(`https://pokeapi.co/api/v2/pokemon/${name}`);
         if (!pokeRes.ok) throw new Error(`${name}: ${pokeRes.status}`);
         const pokemon = await pokeRes.json() as Pokemon;
-        const speciesRes = await fetch(pokemon.species.url);
-        const species = speciesRes.ok
-          ? await speciesRes.json() as { names: { language: { name: string }; name: string }[] }
-          : null;
-        const ko = species?.names.find((n) => n.language.name === "ko");
-        return { pokemon, nameKo: ko?.name ?? name };
+        const names = (await namesReq)[pokemon.name];
+        return { pokemon, nameKo: names?.ko ?? name, nameEn: names?.en ?? name };
       })
     )
       .then((settled) => {
@@ -112,50 +121,41 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
   }, [query, allNames, koIndex]);
 
   const handleSelectPokemon = async (result: SearchResult) => {
+    const name = result.pokemon.name;
+    pendingRef.current = name;
     setSelectedPokemon(result);
+    setSets([]);
+    setLabels({});
+    setSpecies(null);
     setSetsLoading(true);
+    let data: PokemonSetsData | null = null;
     try {
-      const res = await fetch(`https://data.pkmn.cc/sets/${DEFAULT_FORMAT}.json`);
-      if (res.ok) {
-        const data = await res.json() as Record<string, Record<string, object>>;
-        const key = Object.keys(data).find(
-          (k) => k.toLowerCase() === result.pokemon.name.toLowerCase()
-        );
-        if (key && data[key]) {
-          const setList: BattleSet[] = Object.entries(data[key]).map(([name, raw]) => {
-            const s = raw as {
-              moves?: (string | string[])[];
-              item?: string | string[];
-              ability?: string | string[];
-              nature?: string;
-              evs?: Record<string, number>;
-              teratypes?: string[];
-            };
-            return {
-              name,
-              moves: s.moves ?? [],
-              item: s.item ?? [],
-              ability: s.ability,
-              nature: s.nature,
-              evs: s.evs as BattleSet["evs"],
-              teratypes: s.teratypes,
-            };
-          });
-          setSets(setList);
-        } else {
-          setSets([]);
-        }
-      }
+      // 서버가 정규화한 영어 세트(내보내기용)와 한국어 labels(표시용)를 준다.
+      const res = await fetch(
+        `/api/pokemon/battle/sets?name=${encodeURIComponent(name)}&format=${DEFAULT_FORMAT}`
+      );
+      if (!res.ok) throw new Error(`sets ${res.status}`);
+      data = await res.json() as PokemonSetsData;
     } catch {
-      setSets([]);
-    } finally {
-      setSetsLoading(false);
+      data = null;
     }
+    if (pendingRef.current !== name) return;
+    setSets(data?.sets ?? []);
+    setLabels(data?.labels ?? {});
+    setSpecies(data?.species ?? null);
+    setSetsLoading(false);
   };
 
   const handleConfirm = (set: BattleSet | null) => {
     if (!selectedPokemon) return;
     const { pokemon, nameKo } = selectedPokemon;
+    // 슬롯에 보이는 기술/아이템 번역만 저장한다(localStorage).
+    const shown = set
+      ? [
+          ...set.moves.map((m) => labelKey("moves", [m].flat()[0])),
+          labelKey("items", [set.item].flat()[0] ?? ""),
+        ]
+      : [];
     onSelect({
       id: pokemon.id,
       nameEn: pokemon.name,
@@ -163,6 +163,10 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
       spriteUrl: getPixelSpriteUrl(pokemon),
       types: pokemon.types.map((t) => t.type.name as PokemonTypeName),
       set,
+      species: species ?? undefined,
+      labels: Object.fromEntries(
+        shown.flatMap((k) => (labels[k] ? [[k, labels[k]]] : []))
+      ),
     });
   };
 
@@ -185,7 +189,7 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="이름으로 검색 (예: 이상해씨, garchomp)"
-              className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-2 text-sm focus:border-blue-400 dark:border-neutral-600 dark:bg-neutral-700"
+              className="rounded-none border border-neutral-200 bg-neutral-50 px-4 py-2 text-sm focus:border-blue-400 dark:border-neutral-600 dark:bg-neutral-700"
             />
             <div aria-live="polite">
               {koIndexLoading && (
@@ -204,14 +208,14 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
                   key={r.pokemon.id}
                   type="button"
                   onClick={() => void handleSelectPokemon(r)}
-                  className="flex items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700"
+                  className="flex items-center gap-3 rounded-none px-3 py-2 text-left transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-700"
                 >
                   <div className="relative h-10 w-10 flex-shrink-0">
                     <PixelSprite pokemon={r.pokemon} alt="" fill />
                   </div>
                   <div className="flex flex-col">
                     <span className="text-sm font-bold">{r.nameKo}</span>
-                    <span className="text-xs text-neutral-500">{r.pokemon.name}</span>
+                    <span className="text-xs text-neutral-500">{r.nameEn}</span>
                   </div>
                   <div className="ml-auto flex gap-1">
                     {r.pokemon.types.map(({ type: { name } }) => (
@@ -225,7 +229,7 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
         ) : (
           <>
             {/* 포켓몬 확인 */}
-            <div className="flex items-center gap-3 rounded-xl bg-neutral-100 px-4 py-3 dark:bg-neutral-700">
+            <div className="flex items-center gap-3 rounded-none bg-neutral-100 px-4 py-3 dark:bg-neutral-700">
               <div className="relative h-14 w-14">
                 <PixelSprite pokemon={selectedPokemon.pokemon} alt="" fill />
               </div>
@@ -238,7 +242,12 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
                 </div>
               </div>
               <button
-                onClick={() => { setSelectedPokemon(null); setSets([]); }}
+                onClick={() => {
+                  pendingRef.current = null;
+                  setSelectedPokemon(null);
+                  setSets([]);
+                  setSetsLoading(false);
+                }}
                 className="ml-auto text-xs text-neutral-400 hover:text-neutral-700"
               >
                 다시 선택
@@ -259,12 +268,19 @@ export default function PokemonPicker({ allNames, onSelect, onClose }: Props) {
                       key={set.name}
                       type="button"
                       onClick={() => handleConfirm(set)}
-                      className="rounded-xl border border-neutral-200 px-4 py-2 text-left text-sm transition-colors hover:border-blue-400 hover:bg-blue-50 dark:border-neutral-600 dark:hover:bg-blue-900"
+                      className="rounded-none border border-neutral-200 px-4 py-2 text-left text-sm transition-colors hover:border-blue-400 hover:bg-blue-50 dark:border-neutral-600 dark:hover:bg-blue-900"
                     >
                       <p className="font-semibold text-blue-600 dark:text-blue-400">{set.name}</p>
                       <p className="text-xs text-neutral-500">
-                        {set.moves.map((m) => (Array.isArray(m) ? m[0] : m)).join(" / ")}
+                        {set.moves
+                          .map((m) => labelOf(labels, "moves", [m].flat()[0]))
+                          .join(" / ")}
                       </p>
+                      {[set.item].flat()[0] && (
+                        <p className="text-xs text-neutral-500">
+                          @ {labelOf(labels, "items", [set.item].flat()[0])}
+                        </p>
+                      )}
                     </button>
                   ))}
                 </div>

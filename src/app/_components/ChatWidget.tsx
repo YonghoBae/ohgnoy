@@ -7,7 +7,7 @@ import { Message } from "@/interfaces/message";
 import { UserInfo } from "@/interfaces/user";
 import { userInfo } from "@/lib/user/token";
 import { createStompClient } from "@/lib/socket";
-import { chatApi } from "@/lib/api/chat";
+import { chatApi, parseChatDate } from "@/lib/api/chat";
 
 const ROOM_ID = "1";
 const PANEL_ID = "chat-widget-panel";
@@ -254,7 +254,7 @@ function ChatWidgetPanel() {
                 );
               }
               const isMe = msg.userId === user.userId;
-              const sent = new Date(msg.sendDate);
+              const sent = parseChatDate(msg.sendDate);
               return (
                 <div key={key} className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}>
                   {!isSameUser && (
@@ -272,9 +272,11 @@ function ChatWidgetPanel() {
                     >
                       {msg.message}
                     </div>
-                    <time dateTime={sent.toISOString()} className="shrink-0 text-[10px] text-text-muted">
-                      {formatSendDate(sent)}
-                    </time>
+                    {sent && (
+                      <time dateTime={sent.toISOString()} className="shrink-0 text-[10px] text-text-muted">
+                        {formatSendDate(sent)}
+                      </time>
+                    )}
                   </div>
                 </div>
               );

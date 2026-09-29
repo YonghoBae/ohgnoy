@@ -69,22 +69,13 @@ note(`문서 파싱 · OCR`), 문제 해결(`스캔 PDF 텍스트 추출 — Gem
 
 소유자는 2번을 선호한다고 밝혔다(2026-09-18). 2번을 하면 1번은 필요 없어진다.
 
-## 이름에 하이픈이 있는 포켓몬은 상세 페이지에 실전 데이터가 안 나온다
-
-`fetchPokemonBattleData(pokemon.name, ...)`는 PokeAPI 이름(`great-tusk`)으로
-Smogon 데이터를 찾는데, Smogon 키는 `Great Tusk`다. `getPokemonUsage`와
-`getPokemonSets`는 대소문자만 무시하고 비교하므로 하이픈과 공백 차이로
-못 찾는다(`/api/pokemon/battle?name=great-tusk` → usage 없음, `name=Great%20Tusk`
-→ usage와 세트 4개). 폼 이름(`landorus-therian` ↔ `Landorus-Therian`)처럼
-하이픈이 원래 있는 경우는 맞는다. 이름 변환 규칙은 포켓몬 백엔드 API로 옮길 때
-그쪽에서 정하는 편이 낫다(2026-09-28 발견).
-
 ## /pokemon/list 검색은 영어 이름만 찾는다
 
 목록 검색(`usePokemonSearch`)은 PokeAPI 영어 slug를 `startsWith`로만 맞춘다. 그래서
 "피카츄"로는 찾을 수 없고, 검색창 안내 문구도 영어 예시("예: pikachu")로 바꿔 두었다.
 빌더의 포켓몬 선택(`PokemonPicker`)은 `/api/pokemon/ko-names` 인덱스로 한국어 검색을
 하므로, 같은 인덱스를 목록 검색에도 쓰면 된다(2026-09-29 기록).
+결과 카드의 이름은 이제 한국어로 나오지만, 매칭은 여전히 영어 slug로만 한다.
 
 ## 회원가입 인증번호를 브라우저에서 비교한다
 
@@ -92,3 +83,37 @@ Smogon 데이터를 찾는데, Smogon 키는 `Great Tusk`다. `getPokemonUsage`�
 `/auth/regist`가 사용자가 입력한 값과 브라우저에서 비교한다. 개발자 도구로 번호를 볼 수
 있다. 백엔드에 "번호 확인" 엔드포인트를 만들고 응답에서 번호를 빼야 고칠 수 있다
 (2026-09-29 기록).
+
+## 포켓몬 폼 이름 일부가 한국어로 겹친다
+
+`koNames.json`에서 서로 다른 폼끼리 같은 한국어 이름을 쓰는 묶음이 64개 있다. 거다이맥스
+(`venusaur-gmax` → 이상해꽃), 주인 포켓몬(`gumshoos-totem`), 피카츄 옷차림, 코라이돈·미라이돈
+모드, 메테노 색, 시비꼬 깃털 같은 폼이다. PokeAPI가 이 폼들에 한국어 폼 이름을 주지 않는다
+(GraphQL도 REST `pokemon-form`도 비어 있다). `scripts/build-ko-names.mjs`는 폼 이름이 없으면
+종 이름을 그대로 쓴다. 고치려면 `REGION`처럼 `-gmax` → "(거다이맥스)" 등 접미사 표를 스크립트에
+더하면 된다(2026-09-29 기록, 65 → 64: 다투곰 (붉은 달)만 풀렸다).
+
+## VGC 2026 메가스톤·특성 일부에 한국어 이름이 없다
+
+`gen9championsvgc2026regmb`(VGC 2026 M-B)의 새 메가진화 관련 데이터는 PokeAPI에 한국어가
+없다. 2026-08 기준 도구 148개 중 34개(`staraptite`, `feraligite` 등 새
+메가스톤), 특성 194개 중 6개(`megasol`, `dragonize`, `piercingdrill` 등), 포켓몬 35종
+(`Staraptor-Mega` 등)이 `koNames.json`에 없다. 도구·특성은 영어로 나오고, 포켓몬은
+`getPokemonNames`가 "메가{종 이름}"으로 만든다. PokeAPI가 채우면 스크립트 재생성으로 풀린다
+(2026-09-29 기록).
+
+## 세트 없는 팀원은 내보내기에 slug 대문자 이름이 들어간다
+
+빌더에서 Smogon 세트가 없는 포켓몬을 넣으면 내보내기(`TeamExport`) 첫 줄이
+PokeAPI slug를 대문자로 바꾼 이름("Staraptor-Mega", "Ogerpon-Wellspring-Mask")이 된다.
+Showdown 종 이름과 다를 수 있어 가져오기에서 거부될 수 있다. Smogon 키를 모르는 폼에서만
+생긴다(2026-09-29 기록). 싱글 랭크배틀 사용률에 있는 포켓몬은 사용률로 만든 세트가 들어가
+Smogon 키를 쓴다.
+
+## 빌더는 싱글 랭크배틀 세트만 쓴다
+
+빌더의 포켓몬 선택(`PokemonPicker`)은 `DEFAULT_FORMAT`(싱글 랭크배틀, `gen9championsbssregmb`)
+으로만 세트를 가져온다. 포맷을 고르는 곳이 없어서 더블 랭크배틀이나 Smogon 등급 세트로 팀을
+짤 수 없다. 이 포맷에는 pkmn 세트가 없어 사용률 1위 값으로 만든 "가장 많이 쓰는 구성" 하나만
+나온다. 기술·아이템·특성 이름은 `koNames.json`의 영어 이름으로 바꾸고, PokeAPI에 없는 새
+메가스톤 등은 Smogon id(`staraptite`)로 남는다(2026-09-29 기록).

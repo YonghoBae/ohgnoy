@@ -31,12 +31,11 @@ async function EvolutionNodeCard({ node }: { node: EvolutionNode }) {
         </div>
       )}
       <span className="text-xs font-semibold">{koName}</span>
-      {node.minLevel && (
-        <span className="text-xs text-neutral-500">Lv. {node.minLevel}</span>
-      )}
-      {node.item && (
-        <span className="text-xs text-neutral-500 capitalize">{node.item}</span>
-      )}
+      {node.conditions.map((c) => (
+        <span key={c} className="max-w-[9rem] text-center text-xs text-text-muted">
+          {c}
+        </span>
+      ))}
     </Link>
   );
 }
@@ -50,6 +49,23 @@ function EvolutionArrow() {
 function renderChain(node: EvolutionNode): React.ReactNode {
   if (node.nextEvolutions.length === 0) {
     return <EvolutionNodeCard node={node} />;
+  }
+
+  // Eevee: eight branches in one column run off the card, so they go in a grid.
+  if (node.nextEvolutions.length > 2) {
+    return (
+      <div className="flex flex-col items-center gap-2">
+        <EvolutionNodeCard node={node} />
+        <span aria-hidden className="text-xl text-neutral-400 dark:text-neutral-500">↓</span>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {node.nextEvolutions.map((next) => (
+            <div key={next.speciesId} className="flex flex-row items-center justify-center">
+              {renderChain(next)}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (

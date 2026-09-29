@@ -1,5 +1,8 @@
+import type { Metadata } from "next";
 import { fetchAllPokemonNames } from "@/lib/pokemon/fetchers/fetchPokemon";
 import TeamBuilder from "./_components/TeamBuilder";
+
+export const metadata: Metadata = { title: "팀 빌더 | Ohgnoy" };
 
 export default async function BuilderPage() {
   const allNames = await fetchAllPokemonNames();

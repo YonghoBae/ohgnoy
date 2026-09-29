@@ -4,26 +4,33 @@ import { useEffect, useId, useRef, useState } from "react";
 import { TeamMember } from "./TeamBuilder";
 import ModalDialog from "./ModalDialog";
 
+// 후보가 여러 개인 값(배열, 성격 "Adamant / Jolly")은 첫 번째만. 옛 저장 팀은
+// teratypes가 문자열이라 인덱싱하면 첫 글자가 나온다.
+const first = (v: string | string[] | undefined) =>
+  [v ?? []].flat()[0]?.split(" / ")[0];
+
+// 옛 저장 팀에는 species가 없다: "great-tusk" → "Great-Tusk"(Showdown은 id로 맞춘다).
+const titleCase = (slug: string) =>
+  slug.replace(/(^|-)([a-z])/g, (m) => m.toUpperCase());
+
 function toShowdownFormat(member: TeamMember): string {
-  const { nameEn, set } = member;
+  const { set } = member;
+  const nameEn = member.species ?? titleCase(member.nameEn);
   if (!set) return `${nameEn}\n\n`;
 
   const lines: string[] = [];
 
   // 이름 @ 아이템
-  const item = Array.isArray(set.item) ? set.item[0] : set.item;
+  const item = first(set.item);
   lines.push(item ? `${nameEn} @ ${item}` : nameEn);
 
   // 특성
-  if (set.ability) {
-    const ability = Array.isArray(set.ability) ? set.ability[0] : set.ability;
-    if (ability) lines.push(`Ability: ${ability}`);
-  }
+  const ability = first(set.ability);
+  if (ability) lines.push(`Ability: ${ability}`);
 
   // 테라스탈
-  if (set.teratypes?.[0]) {
-    lines.push(`Tera Type: ${set.teratypes[0]}`);
-  }
+  const tera = first(set.teratypes);
+  if (tera) lines.push(`Tera Type: ${tera}`);
 
   // EV
   if (set.evs) {
@@ -38,11 +45,12 @@ function toShowdownFormat(member: TeamMember): string {
   }
 
   // 성격
-  if (set.nature) lines.push(`${set.nature} Nature`);
+  const nature = first(set.nature);
+  if (nature) lines.push(`${nature} Nature`);
 
   // 기술
   for (const move of set.moves) {
-    const moveName = Array.isArray(move) ? move[0] : move;
+    const moveName = first(move);
     if (moveName) lines.push(`- ${moveName}`);
   }
 
@@ -83,7 +91,7 @@ export default function TeamExport({
 
   return (
     <ModalDialog labelledBy={titleId} onClose={onClose} className="max-w-lg">
-      <div className="flex w-full flex-col gap-4 rounded-2xl bg-white p-5 shadow-2xl dark:bg-neutral-800">
+      <div className="flex w-full flex-col gap-4 rounded-none bg-white p-5 shadow-2xl dark:bg-neutral-800">
         <div className="flex items-center justify-between">
           <h3 id={titleId} className="font-bold">Pokémon Showdown 내보내기</h3>
           <button type="button" onClick={onClose} aria-label="닫기" className="text-neutral-400 hover:text-neutral-700">✕</button>
@@ -97,20 +105,20 @@ export default function TeamExport({
           aria-label="Showdown 팀 텍스트"
           spellCheck={false}
           value={exportText}
-          className="h-72 rounded-xl bg-neutral-100 p-4 font-mono text-xs dark:bg-neutral-700"
+          className="h-72 rounded-none bg-neutral-100 p-4 font-mono text-xs dark:bg-neutral-700"
         />
         <div className="flex gap-3">
           <button
             type="button"
             onClick={() => void handleCopy()}
-            className="flex-1 rounded-xl bg-blue-600 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+            className="flex-1 rounded-none bg-blue-600 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
           >
             클립보드에 복사
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl bg-neutral-200 px-4 py-2 text-sm font-semibold transition-colors hover:bg-neutral-300 dark:bg-neutral-700 dark:hover:bg-neutral-600"
+            className="rounded-none bg-neutral-200 px-4 py-2 text-sm font-semibold transition-colors hover:bg-neutral-300 dark:bg-neutral-700 dark:hover:bg-neutral-600"
           >
             닫기
           </button>

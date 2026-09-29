@@ -1,5 +1,5 @@
-// 블로그 이름과 홈의 OG 이미지 URL을 import (메타데이터와 관련)
-import { BLOG_NAME, HOME_OG_IMAGE_URL } from '@/lib/constants';
+// 블로그 이름을 import (메타데이터와 관련)
+import { BLOG_NAME } from '@/lib/constants';
 // Next.js의 Metadata 타입을 import (메타데이터의 타입 정의에 사용)
 import type { Metadata } from 'next';
 // Google Fonts에서 Inter 폰트를 불러옴 (글꼴 스타일링에 사용)
@@ -20,9 +20,6 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: `${BLOG_NAME}`, // 페이지 제목 (블로그 이름을 제목으로 사용)
   description: `개발 공부를 하면서 만든 연습용 블로그 ${BLOG_NAME}.`, // 페이지 설명
-  openGraph: {
-    images: [HOME_OG_IMAGE_URL], // Open Graph 프로토콜에서 사용될 이미지 (미리보기 이미지 등)
-  },
   verification: {
     google: '20MA_khcMkhCRMF1pekcIxcPFGjEOr7Gyzxr3VbAaDo',
   },

@@ -36,13 +36,14 @@ export interface PokemonMove {
 export interface EvolutionNode {
   speciesId: number;
   speciesName: string;
-  minLevel?: number;
-  trigger?: string;
-  item?: string;
+  /** Korean phrases, one per distinct evolution method ("Lv.16", "천둥의돌 사용"). */
+  conditions: string[];
   nextEvolutions: EvolutionNode[];
 }
 
 export interface PokemonDetail extends PokemonSummary {
+  /** National dex number of the species (6 for charizard-mega-x, id 10034). */
+  dexNumber: number;
   height: number;
   weight: number;
   genus: string;

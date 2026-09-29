@@ -5,7 +5,7 @@ import {
   getEnglishFlavorText,
   getKoreanFlavorText,
   getKoreanGenus,
-  getKoreanName,
+  PokemonNames,
 } from "@/lib/pokemon/i18n";
 import { toEvolutionChain } from "./toEvolutionChain";
 import { MoveWithLearnInfo, toMoveList } from "./toMoveList";
@@ -14,7 +14,8 @@ export function toPokemonDetail(
   pokemon: Pokemon,
   species: PokemonSpecies,
   evolutionChain: EvolutionChain,
-  movesWithInfo: MoveWithLearnInfo[]
+  movesWithInfo: MoveWithLearnInfo[],
+  names: PokemonNames
 ): PokemonDetail {
   const stats = {
     hp: pokemon.stats.find((s) => s.stat.name === "hp")?.base_stat ?? 0,
@@ -29,8 +30,9 @@ export function toPokemonDetail(
 
   return {
     id: pokemon.id,
-    nameEn: pokemon.name,
-    nameKo: getKoreanName(species),
+    dexNumber: species.id,
+    nameEn: names.en,
+    nameKo: names.ko,
     types: pokemon.types.map((t) => t.type.name as PokemonTypeName),
     spriteUrl: getPixelSpriteUrl(pokemon),
     height: pokemon.height,

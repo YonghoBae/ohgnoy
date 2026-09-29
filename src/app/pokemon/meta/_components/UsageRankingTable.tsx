@@ -3,7 +3,9 @@ import { Pokemon } from "pokenode-ts";
 import { UsageRankEntry } from "@/lib/battle/fetchers/fetchUsageStats";
 import { fetchPokemon } from "@/lib/pokemon/fetchers/fetchPokemon";
 import { fetchSpecies } from "@/lib/pokemon/fetchers/fetchSpecies";
-import { getKoreanName } from "@/lib/pokemon/i18n";
+import { getPokemonNames } from "@/lib/pokemon/i18n";
+import { koPokemon } from "@/lib/battle/koNames";
+import { ALL_TYPES } from "@/lib/battle/typeChart";
 import TypeBadge from "@/app/_components/TypeBadge";
 import PixelSprite from "@/app/_components/ui/pixel/PixelSprite";
 import { PokemonTypeName } from "@/types/pokemon/domain";
@@ -16,18 +18,32 @@ async function RankRow({
   maxUsage: number;
 }) {
   let pokemon: Pokemon | null = null;
-  let nameKo = entry.nameEn;
+  // Smogon names ("Ogerpon-Wellspring", "Landorus") → PokeAPI slug + names.
+  const known = koPokemon(entry.nameEn);
+  let nameKo = known?.ko ?? entry.nameEn;
+  let nameEn = known?.en ?? entry.nameEn;
   let types: PokemonTypeName[] = [];
   let id: number | string = entry.nameEn;
 
   try {
-    const slug = entry.nameEn.toLowerCase().replace(/ /g, "-");
+    const slug = known?.slug ?? entry.nameEn.toLowerCase().replace(/ /g, "-");
     pokemon = await fetchPokemon(slug);
     id = pokemon.id;
     types = pokemon.types.map((t) => t.type.name as PokemonTypeName);
+    // PokeAPI has a single Normal Arceus/Silvally; Smogon's "Arceus-Ground"
+    // carries the plate's type in its name.
+    const plate = entry.nameEn.match(/^(?:Arceus|Silvally)-(\w+)$/)?.[1];
+    const plateType = plate?.toLowerCase() as PokemonTypeName | undefined;
+    if (plateType && ALL_TYPES.includes(plateType)) types = [plateType];
 
-    const species = await fetchSpecies(pokemon.id);
-    nameKo = getKoreanName(species);
+    if (!known) {
+      // Forms have no species of their own: species id comes from species.url.
+      const speciesId = Number(pokemon.species.url.match(/\/(\d+)\/?$/)?.[1]);
+      ({ ko: nameKo, en: nameEn } = await getPokemonNames(
+        pokemon,
+        await fetchSpecies(speciesId)
+      ));
+    }
   } catch {
     // 데이터 없으면 영어 이름으로 폴백
   }
@@ -44,11 +60,11 @@ async function RankRow({
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="truncate font-bold">{nameKo}</span>
+          <span className="truncate font-bold sm:shrink-0">{nameKo}</span>
           {/* Below sm the Korean name needs the whole line; the English name
               stays in the accessible text only. */}
-          <span className="hidden truncate text-xs text-neutral-500 sm:block">{entry.nameEn}</span>
-          <span className="sr-only sm:hidden">{entry.nameEn}</span>
+          <span className="hidden min-w-0 truncate text-xs text-neutral-500 sm:block">{nameEn}</span>
+          <span className="sr-only sm:hidden">{nameEn}</span>
         </div>
         <div className="flex flex-wrap items-center gap-1 whitespace-nowrap">
           {types.map((t) => (
@@ -58,9 +74,9 @@ async function RankRow({
       </div>
       {/* Below sm the bar + percent wrap onto their own full-width line. */}
       <div className="flex w-full flex-shrink-0 items-center gap-2 sm:w-32 sm:flex-col sm:items-stretch sm:gap-1">
-        <div className="flex-1 overflow-hidden rounded-full bg-neutral-300 dark:bg-neutral-600 sm:flex-none">
+        <div className="flex-1 overflow-hidden rounded-none bg-neutral-300 dark:bg-neutral-600 sm:flex-none">
           <div
-            className="h-2 rounded-full bg-blue-500"
+            className="h-2 rounded-none bg-blue-500"
             style={{ width: `${barWidth}%` }}
           />
         </div>

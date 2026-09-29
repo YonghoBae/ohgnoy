@@ -1,13 +1,19 @@
 "use client";
 
 import { useState, useEffect, useId, useRef } from "react";
-import { PokemonBattleData, BattleSet } from "@/types/pokemon/battle";
+import {
+  PokemonBattleData,
+  BattleSet,
+  LabelKind,
+  labelOf,
+} from "@/types/pokemon/battle";
 import { FORMATS } from "@/lib/battle/constants";
+import { ALL_TYPES } from "@/lib/battle/typeChart";
 import TypeBadge from "@/app/_components/TypeBadge";
 import { PokemonTypeName } from "@/types/pokemon/domain";
 import PixelCard from "@/app/_components/ui/pixel/PixelCard";
 
-// EV 스프레드 파싱: "Jolly:252/4/0/0/0/252" → 표시용 문자열
+// 능력치 배분(EV, 챔피언스는 능력 포인트) 파싱: "Jolly:252/4/0/0/0/252" → 표시용 문자열
 function parseSpread(spread: string): { nature: string; evs: string } {
   const [nature, evStr] = spread.split(":");
   if (!evStr) return { nature: spread, evs: "" };
@@ -19,15 +25,31 @@ function parseSpread(spread: string): { nature: string; evs: string } {
   if (spa) parts.push(`특공 ${spa}`);
   if (spd) parts.push(`특방 ${spd}`);
   if (spe) parts.push(`스피드 ${spe}`);
-  return { nature: nature ?? "", evs: parts.join(" / ") || "노력치 없음" };
+  return { nature: nature ?? "", evs: parts.join(" / ") || "배분 없음" };
+}
+
+type Labels = PokemonBattleData["labels"];
+
+// 18타입과 스텔라는 배지로, 그 밖은 한국어 글자로.
+function TeraType({ type, labels }: { type: string; labels: Labels }) {
+  const t = type.toLowerCase() as PokemonTypeName | "stellar";
+  return t === "stellar" || ALL_TYPES.includes(t) ? (
+    <TypeBadge type={t} size="sm" />
+  ) : (
+    <span className="text-xs font-semibold">{labelOf(labels, "types", type)}</span>
+  );
 }
 
 function TopList({
   data,
   label,
+  kind,
+  labels,
 }: {
   data: Record<string, number>;
   label: string;
+  kind: LabelKind;
+  labels: Labels;
 }) {
   const sorted = Object.entries(data)
     .sort((a, b) => b[1] - a[1])
@@ -49,8 +71,12 @@ function TopList({
                 style={{ width: `${Math.min(pct, 100)}%` }}
               />
             </div>
-            <span translate="no" className="w-32 truncate text-xs text-neutral-700 dark:text-neutral-300">
-              {name}
+            <span className="w-32 truncate text-xs text-neutral-700 dark:text-neutral-300">
+              {kind === "types" ? (
+                <TeraType type={name} labels={labels} />
+              ) : (
+                labelOf(labels, kind, name)
+              )}
             </span>
             <span className="w-12 text-right text-xs font-semibold tabular-nums">
               {pct.toFixed(1)}%
@@ -62,16 +88,20 @@ function TopList({
   );
 }
 
-function SetCard({ set }: { set: BattleSet }) {
-  const itemDisplay = Array.isArray(set.item)
-    ? set.item.slice(0, 2).join(" / ")
-    : set.item;
+function SetCard({ set, labels }: { set: BattleSet; labels: Labels }) {
+  const itemDisplay = [set.item]
+    .flat()
+    .slice(0, 2)
+    .map((i) => labelOf(labels, "items", i))
+    .join(" / ");
 
-  const abilityDisplay = set.ability
-    ? Array.isArray(set.ability)
-      ? set.ability[0]
-      : set.ability
-    : null;
+  const ability = [set.ability ?? []].flat()[0];
+  const abilityDisplay = ability ? labelOf(labels, "abilities", ability) : null;
+
+  const natureDisplay = set.nature
+    ?.split(" / ")
+    .map((n) => labelOf(labels, "natures", n))
+    .join(" / ");
 
   const topSpread = set.evs
     ? Object.entries(set.evs)
@@ -98,10 +128,9 @@ function SetCard({ set }: { set: BattleSet }) {
             {set.moves.map((m, i) => (
               <span
                 key={i}
-                translate="no"
                 className="rounded-none border border-text-base bg-surface px-2 py-0.5 text-xs"
               >
-                {Array.isArray(m) ? m.join(" / ") : m}
+                {[m].flat().map((x) => labelOf(labels, "moves", x)).join(" / ")}
               </span>
             ))}
           </div>
@@ -109,24 +138,24 @@ function SetCard({ set }: { set: BattleSet }) {
         {itemDisplay && (
           <div className="flex gap-2">
             <span className="text-xs text-neutral-500">아이템</span>
-            <span translate="no" className="text-xs font-semibold">{itemDisplay}</span>
+            <span className="text-xs font-semibold">{itemDisplay}</span>
           </div>
         )}
         {abilityDisplay && (
           <div className="flex gap-2">
             <span className="text-xs text-neutral-500">특성</span>
-            <span translate="no" className="text-xs font-semibold">{abilityDisplay}</span>
+            <span className="text-xs font-semibold">{abilityDisplay}</span>
           </div>
         )}
-        {set.nature && (
+        {natureDisplay && (
           <div className="flex gap-2">
             <span className="text-xs text-neutral-500">성격</span>
-            <span translate="no" className="text-xs font-semibold">{set.nature}</span>
+            <span className="text-xs font-semibold">{natureDisplay}</span>
           </div>
         )}
         {topSpread && (
           <div className="flex gap-2">
-            <span className="text-xs text-neutral-500">노력치</span>
+            <span className="text-xs text-neutral-500">능력치 배분</span>
             <span className="text-xs font-semibold">{topSpread}</span>
           </div>
         )}
@@ -135,11 +164,7 @@ function SetCard({ set }: { set: BattleSet }) {
             <span className="text-xs text-neutral-500">테라스탈</span>
             <div className="flex flex-wrap gap-1">
               {set.teratypes.slice(0, 3).map((t) => (
-                <TypeBadge
-                  key={t}
-                  type={t.toLowerCase() as PokemonTypeName}
-                  size="sm"
-                />
+                <TeraType key={t} type={t} labels={labels} />
               ))}
             </div>
           </div>
@@ -203,9 +228,28 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
     { key: "counters", label: "카운터" },
   ];
 
-  const { usage, sets } = battleData;
+  const { usage, sets, labels } = battleData;
   const currentFormat = FORMATS.find((f) => f.id === format);
   const formatLabel = currentFormat?.label ?? format;
+  const smogonFormats = FORMATS.filter((f) => f.group === "smogon");
+
+  const formatButton = (f: (typeof FORMATS)[number], big = false) => (
+    <button
+      key={f.id}
+      type="button"
+      onClick={() => setFormat(f.id)}
+      aria-pressed={format === f.id}
+      className={`rounded-none border-2 border-text-base font-semibold transition-colors ${
+        big ? "px-3 py-1 text-sm" : "px-2.5 py-0.5 text-xs"
+      } ${
+        format === f.id
+          ? "bg-primary text-on-primary"
+          : "bg-surface text-text-base hover:border-primary hover:text-primary"
+      }`}
+    >
+      {f.label}
+    </button>
+  );
 
   const selectInnerTab = (next: BattleInnerTab) => {
     setTab(next);
@@ -239,23 +283,35 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
             ) : null}
           </span>
         </div>
-        {/* 포맷 선택 */}
-        <div className="flex flex-wrap gap-1">
-          {FORMATS.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => setFormat(f.id)}
-              aria-pressed={format === f.id}
-              className={`rounded-none border-2 border-text-base px-2.5 py-0.5 text-xs font-semibold transition-colors ${
-                format === f.id
-                  ? "bg-primary text-on-primary"
-                  : "bg-surface text-text-base hover:border-primary hover:text-primary"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
+        {/* 포맷 선택: 공식 규칙 먼저, Smogon 등급은 접어 둔다 */}
+        <div className="flex flex-col gap-2">
+          <div role="group" aria-label="공식 규칙" className="flex flex-wrap gap-2">
+            {FORMATS.filter((f) => f.group === "official").map((f) =>
+              formatButton(f, true)
+            )}
+          </div>
+          {currentFormat && (
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              {currentFormat.desc}
+            </p>
+          )}
+          <details open={currentFormat?.group === "smogon"}>
+            <summary className="cursor-pointer text-xs font-bold text-neutral-500 dark:text-neutral-400">
+              Smogon 등급전 (쇼다운)
+            </summary>
+            <div className="mt-2 flex flex-wrap gap-3">
+              {[...new Set(smogonFormats.map((f) => f.gen))].map((gen) => (
+                <div key={gen} className="flex flex-col gap-1">
+                  <span id={`${baseId}-gen-${gen}`} className="text-xs font-bold text-neutral-500 dark:text-neutral-400">
+                    {gen}세대
+                  </span>
+                  <div role="group" aria-labelledby={`${baseId}-gen-${gen}`} className="flex flex-wrap gap-1">
+                    {smogonFormats.filter((f) => f.gen === gen).map((f) => formatButton(f))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </details>
         </div>
       </div>
 
@@ -302,7 +358,7 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
             className="flex flex-col gap-3"
           >
             {sets.length > 0 ? (
-              sets.map((set) => <SetCard key={set.name} set={set} />)
+              sets.map((set) => <SetCard key={set.name} set={set} labels={labels} />)
             ) : (
               <p className="text-sm text-neutral-500">추천 세트 정보 없음</p>
             )}
@@ -317,15 +373,15 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
           >
             {usage ? (
               <>
-                <TopList data={usage.moves} label="주요 기술" />
-                <TopList data={usage.items} label="주요 아이템" />
-                <TopList data={usage.abilities} label="주요 특성" />
+                <TopList data={usage.moves} label="주요 기술" kind="moves" labels={labels} />
+                <TopList data={usage.items} label="주요 아이템" kind="items" labels={labels} />
+                <TopList data={usage.abilities} label="주요 특성" kind="abilities" labels={labels} />
                 {usage.teraTypes && (
-                  <TopList data={usage.teraTypes} label="테라스탈 타입" />
+                  <TopList data={usage.teraTypes} label="테라스탈 타입" kind="types" labels={labels} />
                 )}
                 <div>
                   <h3 className="mb-2 text-sm font-bold text-neutral-600 dark:text-neutral-300">
-                    주요 EV 스프레드
+                    주요 능력치 배분
                   </h3>
                   <div className="flex flex-col gap-1">
                     {Object.entries(usage.spreads)
@@ -335,8 +391,15 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
                         const { nature, evs } = parseSpread(spread);
                         return (
                           <div key={spread} className="text-xs">
-                            <span translate="no" className="font-semibold">{nature}</span>
-                            <span className="ml-2 text-neutral-500">{evs}</span>
+                            {nature && (
+                              <span className="font-semibold">
+                                {labelOf(labels, "natures", nature)}
+                              </span>
+                            )}
+                            <span className="text-neutral-500">
+                              {nature && " · "}
+                              {evs}
+                            </span>
                             <span className="ml-2 font-semibold tabular-nums text-blue-600">
                               {pct.toFixed(1)}%
                             </span>
@@ -358,7 +421,12 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
             hidden={tab !== "teammates"}
           >
             {usage ? (
-              <TopList data={usage.teammates} label="같이 자주 쓰는 포켓몬" />
+              <TopList
+                data={usage.teammates}
+                label="같이 자주 쓰는 포켓몬"
+                kind="pokemon"
+                labels={labels}
+              />
             ) : (
               <p className="text-sm text-neutral-500">{NO_USAGE_MESSAGE}</p>
             )}
@@ -372,30 +440,38 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
           >
             {usage ? (
               <div>
-                <h3 className="mb-2 text-sm font-bold text-neutral-600 dark:text-neutral-300">
+                <h3 className="mb-1 text-sm font-bold text-neutral-600 dark:text-neutral-300">
                   카운터 포켓몬
                 </h3>
-                <div className="flex flex-col gap-2">
-                  {Object.entries(usage.counters)
-                    .sort((a, b) => b[1][0] - a[1][0])
-                    .slice(0, 5)
-                    .map(([name, [score]]) => (
-                      <div key={name} className="flex items-center gap-2">
-                        <div className="flex-1 overflow-hidden rounded-none bg-neutral-300 dark:bg-neutral-600">
-                          <div
-                            className="h-2 rounded-none bg-red-500"
-                            style={{ width: `${Math.min((score / 100) * 100, 100)}%` }}
-                          />
+                <p className="mb-2 text-xs text-neutral-500">
+                  상대 확률: 맞붙었을 때 이 포켓몬을 쓰러뜨리거나 교체하게 만든 비율
+                </p>
+                {Object.keys(usage.counters).length > 0 ? (
+                  <div className="flex flex-col gap-2">
+                    {Object.entries(usage.counters)
+                      // Smogon의 카운터 점수: p - 4d
+                      .sort((a, b) => b[1].p - 4 * b[1].d - (a[1].p - 4 * a[1].d))
+                      .slice(0, 5)
+                      .map(([name, { p }]) => (
+                        <div key={name} className="flex items-center gap-2">
+                          <div className="flex-1 overflow-hidden rounded-none bg-neutral-300 dark:bg-neutral-600">
+                            <div
+                              className="h-2 rounded-none bg-red-500"
+                              style={{ width: `${Math.min(p * 100, 100)}%` }}
+                            />
+                          </div>
+                          <span className="w-32 truncate text-xs text-neutral-700 dark:text-neutral-300">
+                            {labelOf(labels, "pokemon", name)}
+                          </span>
+                          <span className="w-12 text-right text-xs font-semibold tabular-nums">
+                            {(p * 100).toFixed(1)}%
+                          </span>
                         </div>
-                        <span translate="no" className="w-32 truncate text-xs text-neutral-700 dark:text-neutral-300">
-                          {name}
-                        </span>
-                        <span className="w-10 text-right text-xs font-semibold tabular-nums">
-                          {score.toFixed(0)}
-                        </span>
-                      </div>
-                    ))}
-                </div>
+                      ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-neutral-500">카운터 데이터가 없습니다.</p>
+                )}
               </div>
             ) : (
               <p className="text-sm text-neutral-500">{NO_USAGE_MESSAGE}</p>
