@@ -91,6 +91,11 @@ export default function FormatSelector({
         <div role="group" aria-label="공식 규칙" className="flex flex-wrap gap-2">
           {official.map((f) => formatButton(f, true))}
         </div>
+        {currentFormat && (
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            {currentFormat.desc}
+          </p>
+        )}
         <details open={currentFormat?.group === "smogon"}>
           <summary className="cursor-pointer text-xs font-bold text-neutral-500 dark:text-neutral-400">
             Smogon 등급전 (쇼다운)
@@ -113,11 +118,6 @@ export default function FormatSelector({
               })}
           </div>
         </details>
-        {currentFormat && (
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            {currentFormat.desc}
-          </p>
-        )}
       </div>
 
       {/* 월 선택 */}

@@ -13,7 +13,7 @@ import TypeBadge from "@/app/_components/TypeBadge";
 import { PokemonTypeName } from "@/types/pokemon/domain";
 import PixelCard from "@/app/_components/ui/pixel/PixelCard";
 
-// EV 스프레드 파싱: "Jolly:252/4/0/0/0/252" → 표시용 문자열
+// 능력치 배분(EV, 챔피언스는 능력 포인트) 파싱: "Jolly:252/4/0/0/0/252" → 표시용 문자열
 function parseSpread(spread: string): { nature: string; evs: string } {
   const [nature, evStr] = spread.split(":");
   if (!evStr) return { nature: spread, evs: "" };
@@ -25,7 +25,7 @@ function parseSpread(spread: string): { nature: string; evs: string } {
   if (spa) parts.push(`특공 ${spa}`);
   if (spd) parts.push(`특방 ${spd}`);
   if (spe) parts.push(`스피드 ${spe}`);
-  return { nature: nature ?? "", evs: parts.join(" / ") || "노력치 없음" };
+  return { nature: nature ?? "", evs: parts.join(" / ") || "배분 없음" };
 }
 
 type Labels = PokemonBattleData["labels"];
@@ -155,7 +155,7 @@ function SetCard({ set, labels }: { set: BattleSet; labels: Labels }) {
         )}
         {topSpread && (
           <div className="flex gap-2">
-            <span className="text-xs text-neutral-500">노력치</span>
+            <span className="text-xs text-neutral-500">능력치 배분</span>
             <span className="text-xs font-semibold">{topSpread}</span>
           </div>
         )}
@@ -290,6 +290,11 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
               formatButton(f, true)
             )}
           </div>
+          {currentFormat && (
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              {currentFormat.desc}
+            </p>
+          )}
           <details open={currentFormat?.group === "smogon"}>
             <summary className="cursor-pointer text-xs font-bold text-neutral-500 dark:text-neutral-400">
               Smogon 등급전 (쇼다운)
@@ -307,11 +312,6 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
               ))}
             </div>
           </details>
-          {currentFormat && (
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              {currentFormat.desc}
-            </p>
-          )}
         </div>
       </div>
 
@@ -381,7 +381,7 @@ export default function BattleTab({ data, pokemonName }: { data: PokemonBattleDa
                 )}
                 <div>
                   <h3 className="mb-2 text-sm font-bold text-neutral-600 dark:text-neutral-300">
-                    주요 EV 스프레드
+                    주요 능력치 배분
                   </h3>
                   <div className="flex flex-col gap-1">
                     {Object.entries(usage.spreads)

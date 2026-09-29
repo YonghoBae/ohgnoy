@@ -115,5 +115,5 @@ Smogon 키를 쓴다.
 빌더의 포켓몬 선택(`PokemonPicker`)은 `DEFAULT_FORMAT`(싱글 랭크배틀, `gen9championsbssregmb`)
 으로만 세트를 가져온다. 포맷을 고르는 곳이 없어서 더블 랭크배틀이나 Smogon 등급 세트로 팀을
 짤 수 없다. 이 포맷에는 pkmn 세트가 없어 사용률 1위 값으로 만든 "가장 많이 쓰는 구성" 하나만
-나오고, 기술·아이템·특성은 Smogon id(`focussash`)로 내보내진다. Showdown 가져오기는 id를
-이름으로 바꿔 주지만 내보내기 글 자체는 id로 보인다(2026-09-29 기록).
+나온다. 기술·아이템·특성 이름은 `koNames.json`의 영어 이름으로 바꾸고, PokeAPI에 없는 새
+메가스톤 등은 Smogon id(`staraptite`)로 남는다(2026-09-29 기록).
