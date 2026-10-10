@@ -199,24 +199,17 @@ export const EDUCATION = [
 // ----------------------------------------------------------------------------
 export const BLOG_POSTS = [
   {
-    uid: '1',
-    title: '홈서버 구축기: WSL에서 Ubuntu Server로 이사하기',
-    description:
-      'Docker 컨테이너 운영 중 겪은 메모리·네트워크 병목 현상 분석과, Ubuntu Server 마이그레이션을 통한 성능 개선 과정.',
-    link: 'https://ohgnoy-digitalgarden.vercel.app/project/setting/Home%20Server/Ubuntu%20Server%20%EC%84%A4%EC%B9%98/',
-  },
-  {
     uid: '2',
     title: 'git push 하나로 완성되는 나만의 배포 파이프라인 구축기',
     description:
       'GitHub Actions로 Docker 이미지 빌드부터 SSH 배포까지 자동화하고, Secrets·캐시를 활용해 빌드 시간을 절감한 CI/CD 구축기.',
-    link: 'https://ohgnoy-digitalgarden.vercel.app/project/setting/Github%20Actions/Github%20Actions/',
+    link: 'https://github.com/YonghoBae/digitalgarden/blob/a61209799b8d38309378e7474adc024a42eff1c6/src/site/notes/04%20-%20Knowledge/DevEnv/CICD/Github%20Actions/GitHub%20Actions%20%EB%B0%B0%ED%8F%AC%20%ED%8C%A8%ED%84%B4.md',
   },
   {
     uid: '3',
     title: 'Vagrant와 Ansible로 HTCondor 클러스터 자동화하기',
     description:
       'WSL 상에서 Vagrant/Ansible을 조합해 마스터·워커 노드를 자동 구성하고, 분산 크롤링 과제를 재현한 IaC 프로젝트 회고.',
-    link: 'https://ohgnoy-digitalgarden.vercel.app/project/setting/Cloud%20Computing/vagrant,%20ansible/',
+    link: 'https://github.com/YonghoBae/digitalgarden/blob/a61209799b8d38309378e7474adc024a42eff1c6/src/site/notes/Archive/CBNU/Vagrant%20Ansible%20HTCondor%20%EA%B5%AC%EC%B6%95.md',
   },
 ];
